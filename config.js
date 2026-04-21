@@ -34,8 +34,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 // ── Supabase ──────────────────────────────────────────────────
-window.__SUPABASE_URL__      = ''; // e.g. 'https://abcdefgh.supabase.co'
-window.__SUPABASE_ANON_KEY__ = ''; // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+window.__SUPABASE_URL__      = 'https://jpkuzhlcjxqoitalpgnr.supabase.co'; 
+window.__SUPABASE_ANON_KEY__ = 'sb_publishable_3HHRJ-C40zzQ1WJj4NC7zQ_zDhsGvQ6'; 
 
 // Prevent admin panel flicker by checking local storage before rendering
 if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy_admin_session') === 'authenticated') {
@@ -43,8 +43,8 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
 }
 
 // ── Upstash Redis (REST API) ──────────────────────────────────
-window.__REDIS_URL__   = ''; // e.g. 'https://us1-caring-fox-12345.upstash.io'
-window.__REDIS_TOKEN__ = ''; // e.g. 'AXXXaGFsYWN0aWMtZ...'
+window.__REDIS_URL__   = 'https://adequate-seahorse-103818.upstash.io'; 
+window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYjBjZmI2OXAxMTAzODE4'; 
 
 // ── App settings ──────────────────────────────────────────────
 window.__APP_VERSION__ = '1.0.0';
