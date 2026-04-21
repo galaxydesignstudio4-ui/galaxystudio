@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdAvatar Gallery — Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style>.av-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}@media(max-width:1100px){.av-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:800px){.av-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:560px){.av-grid{grid-template-columns:repeat(2,1fr)}}</style>
+</head>
+<body>
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
+    <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
+  </div>
+</div>
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="sidebar-logo-text">Admin Panel</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="services.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span><span class="nav-label">Services</span></a>
+      <a class="nav-item" href="portfolio.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Portfolio</span></a>
+      <a class="nav-item" href="gallery.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span class="nav-label">Gallery</span></a>
+      <a class="nav-item" href="testimonials.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Testimonials</span></a>
+      <a class="nav-item" href="about.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">About / Owner</span></a>
+      <a class="nav-item" href="team.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="nav-label">Team Members</span></a>
+      <a class="nav-item active" href="adavatar.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">AdAvatar Gallery</span></a>
+      <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="nav-label">Notifications</span></a>
+      <a class="nav-item" href="messages.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="nav-label">Messages</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../index.html"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span><span class="nav-label">Back to Site</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">AdAvatar Gallery</h1><p class="page-sub" id="avSub"></p></div>
+     <div class="page-actions">
+       <button class="btn btn-ghost" id="addAVVideoBtn" style="border-color:rgba(245,158,11,0.4);color:#fcd34d;">▶ Add Video URL</button>
+       <label class="btn btn-gold" style="cursor:pointer;">📁 Upload Files<input type="file" id="avUploadInput" multiple accept="image/*,video/*" style="display:none;"></label>
+     </div></div>
+    <div class="page-body"><div class="progress-wrap" id="avProg"><div class="progress-bar" id="avBar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fcd34d);"></div></div>
+     <div class="av-grid" id="avGrid"></div></div>
+  </main>
+  <div class="bottom-tab-bar">
+    <a class="tab-item" href="index.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Home</a>
+    <a class="tab-item" href="services.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>Services</a>
+    <a class="tab-item" href="portfolio.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Portfolio</a>
+    <a class="tab-item" href="gallery.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery</a>
+    <a class="tab-item" href="messages.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages</a>
+  </div>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const MAX_AV=50*1024*1024;
+function renderAV(){
+  const list=getData('galaxy_adavatar')||[];
+  document.getElementById('avSub').textContent=`${list.length} item${list.length!==1?'s':''} • images & videos shown on the AdAvatar page`;
+  const grid=document.getElementById('avGrid');
+  if(!list.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><h3>No AdAvatar items yet</h3><p>Upload images or add video URLs to showcase your AdAvatar work.</p></div>';return;}
+  grid.innerHTML=list.map(item=>`
+    <div style="position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid rgba(245,158,11,0.25);background:var(--card-bg);cursor:pointer;transition:var(--transition);" onmouseenter="this.style.borderColor='rgba(245,158,11,0.55)';this.querySelector('.av-overlay').style.opacity='1'" onmouseleave="this.style.borderColor='rgba(245,158,11,0.25)';this.querySelector('.av-overlay').style.opacity='0'">
+      <div style="aspect-ratio:1;background:hsl(260 15% 10%);display:flex;align-items:center;justify-content:center;font-size:36px;color:hsl(260,5%,28%);position:relative;overflow:hidden;">
+        ${item.thumb?`<img src="${item.thumb}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" alt="">`:`<span>${escHtml(item.icon||'👤')}</span>`}
+      </div>
+      <span style="position:absolute;top:7px;left:7px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:#fcd34d;">${item.type==='video'?'▶ Video':'🖼 Image'}</span>
+      <div class="av-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:0.2s;">
+        ${item.type==='video'?'<div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.8);display:flex;align-items:center;justify-content:center;font-size:18px;color:#1a0f00;">▶</div>':''}
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="editAV(${item.id})" style="background:hsl(260 20% 10%);">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="delAV(${item.id})">🗑️</button>
+        </div>
+      </div>
+      ${item.title?`<div style="padding:8px 10px;border-top:1px solid rgba(245,158,11,0.15);font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#fcd34d;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${escHtml(item.title)}</div>`:''}
+    </div>`).join('');
+}
+
+function addAVVideoModal(){
+  const ov=openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title" style="color:#fcd34d;">▶ Add Video URL</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Paste a YouTube, Vimeo, or direct video URL. Upload a thumbnail to display in the gallery.</p>
+      <div class="form-group"><label class="form-label">Video URL *</label><input class="form-input" id="avUrl" placeholder="https://youtube.com/watch?v=..." oninput="checkAVBtn()"></div>
+      <div class="form-group">
+        <label class="form-label">Thumbnail *</label>
+        <label style="display:block;border:2px dashed rgba(245,158,11,0.3);border-radius:var(--radius-md);padding:24px;text-align:center;cursor:pointer;transition:var(--transition);" id="avThumbArea" onmouseenter="this.style.borderColor='rgba(245,158,11,0.6)'" onmouseleave="this.style.borderColor='rgba(245,158,11,0.3)'">
+          <div style="font-size:32px;margin-bottom:8px;opacity:0.5;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div style="font-size:13px;font-weight:600;color:#fcd34d;">Click to upload thumbnail</div>
+          <input type="file" id="avThumbFile" accept="image/*" style="display:none;" oninput="checkAVBtn()">
+        </label>
+        <div class="img-preview-box" id="avThumbPrev" style="display:none;"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="avTitle" placeholder="Video title (optional)"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="avDesc"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-gold" id="saveBtn" disabled>Add Video</button>
+    </div>
+  </div>`);
+  let thumb='';
+  window.checkAVBtn=()=>{ov.querySelector('#saveBtn').disabled=!(ov.querySelector('#avUrl').value.trim()&&thumb);};
+  ov.querySelector('#avThumbArea').onclick=()=>ov.querySelector('#avThumbFile').click();
+  ov.querySelector('#avThumbFile').onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>MAX_AV){showToast('File too large — max 50MB','error');return;}
+    thumb=await fileToBase64(file);
+    ov.querySelector('#avThumbArea').style.display='none';
+    const p=ov.querySelector('#avThumbPrev');p.style.display='';p.innerHTML=`<img src="${thumb}">`;
+    checkAVBtn();
+  };
+  ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
+  ov.querySelector('#saveBtn').onclick=()=>{
+    const url=ov.querySelector('#avUrl').value.trim();
+    if(!url||!thumb){showToast('URL and thumbnail required','error');return;}
+    const list=getData('galaxy_adavatar')||[];
+    list.push({id:nextId(list),type:'video',url,thumb,title:ov.querySelector('#avTitle').value.trim(),desc:ov.querySelector('#avDesc').value.trim(),icon:'🎬'});
+    setData('galaxy_adavatar',list);closeModal(ov);renderAV();showToast('Video added!');
+  };
+}
+
+function editAVModal(item){
+  const ov=openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title" style="color:#fcd34d;">Edit AdAvatar Item</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Thumbnail</label>
+        <input type="file" id="eThumb" accept="image/*" class="form-input" style="padding:8px;cursor:pointer;">
+        <div class="img-preview-box" id="eThumbPrev">${item.thumb?`<img src="${item.thumb}">`:'<span class="placeholder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>'}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="eTitle" value="${escHtml(item.title||'')}" placeholder="Optional title"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="eDesc">${escHtml(item.desc||'')}</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-gold" id="saveBtn">Save Changes</button>
+    </div>
+  </div>`);
+  let thumbData=item.thumb||'';
+  ov.querySelector('#eThumb').onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    if(file.size>MAX_AV){showToast('File too large','error');return;}
+    thumbData=await fileToBase64(file);
+    const p=ov.querySelector('#eThumbPrev');p.innerHTML=`<img src="${thumbData}">`;
+  };
+  ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
+  ov.querySelector('#saveBtn').onclick=()=>{
+    const list=getData('galaxy_adavatar')||[];
+    const i=list.findIndex(x=>x.id===item.id);
+    if(i>-1){list[i]={...item,thumb:thumbData,title:ov.querySelector('#eTitle').value.trim(),desc:ov.querySelector('#eDesc').value.trim()};}
+    setData('galaxy_adavatar',list);closeModal(ov);renderAV();showToast('Item updated!');
+  };
+}
+
+async function uploadAVFiles(files){
+  const arr=Array.from(files);
+  const big=arr.filter(f=>f.size>MAX_AV);
+  if(big.length){showToast(`${big.length} file(s) exceed 50MB. Please compress or use "Add Video URL".`,'error');}
+  const ok=arr.filter(f=>f.size<=MAX_AV);if(!ok.length)return;
+  const prog=document.getElementById('avProg');const bar=document.getElementById('avBar');
+  prog.style.display='';
+  const list=getData('galaxy_adavatar')||[];
+  for(let i=0;i<ok.length;i++){
+    bar.style.width=Math.round(((i+1)/ok.length)*100)+'%';
+    const b64=await fileToBase64(ok[i]);
+    list.push({id:nextId(list),type:ok[i].type.startsWith('video')?'video':'image',thumb:b64,title:ok[i].name.replace(/\.[^/.]+$/,''),desc:'',icon:'👤'});
+  }
+  setData('galaxy_adavatar',list);renderAV();
+  setTimeout(()=>{prog.style.display='none';bar.style.width='0%';},800);
+  showToast(`${ok.length} file(s) uploaded!`);
+}
+
+window.editAV=id=>editAVModal((getData('galaxy_adavatar')||[]).find(x=>x.id===id));
+window.delAV=id=>confirmDelete('Delete this item?',()=>{
+  setData('galaxy_adavatar',(getData('galaxy_adavatar')||[]).filter(x=>x.id!==id));
+  renderAV();showToast('Deleted.','error');
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  renderAV();
+  document.getElementById('addAVVideoBtn').onclick=addAVVideoModal;
+  const inp=document.getElementById('avUploadInput');
+  inp.onchange=e=>{uploadAVFiles(e.target.files);e.target.value='';};
+});
+</script>
+</body>
+</html>

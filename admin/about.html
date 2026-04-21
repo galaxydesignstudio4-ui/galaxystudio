@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About / Owner — Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style>.owner-header{display:flex;align-items:center;gap:22px;margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid var(--border);}
+.avatar-wrap{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;font-family:"Space Grotesk",sans-serif;flex-shrink:0;overflow:hidden;border:2px solid hsl(250 80% 65% / 0.3);}
+.full-save{display:block;width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:999px;font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:var(--transition);box-shadow:0 0 20px hsl(250 80% 65% / 0.3);}
+.full-save:hover{filter:brightness(1.15);}</style>
+</head>
+<body>
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
+    <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
+  </div>
+</div>
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="sidebar-logo-text">Admin Panel</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="services.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span><span class="nav-label">Services</span></a>
+      <a class="nav-item" href="portfolio.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Portfolio</span></a>
+      <a class="nav-item" href="gallery.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span class="nav-label">Gallery</span></a>
+      <a class="nav-item" href="testimonials.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Testimonials</span></a>
+      <a class="nav-item active" href="about.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">About / Owner</span></a>
+      <a class="nav-item" href="team.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="nav-label">Team Members</span></a>
+      <a class="nav-item" href="adavatar.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">AdAvatar Gallery</span></a>
+      <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="nav-label">Notifications</span></a>
+      <a class="nav-item" href="messages.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="nav-label">Messages</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../index.html"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span><span class="nav-label">Back to Site</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">About / Owner Profile</h1><p class="page-sub">Edit the public owner profile shown on the About page.</p></div></div>
+    <div class="page-body"><div class="card" style="max-width:660px;">
+    <div class="card-body">
+      <div class="owner-header">
+        <div class="avatar-wrap" id="avatarPrev">E</div>
+        <div>
+          <p style="font-size:13px;font-weight:600;margin-bottom:5px;">Profile Photo</p>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Shown on the About page. Square image recommended.</p>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload Photo<input type="file" id="avatarFile" accept="image/*" style="display:none;"></label>
+        </div>
+      </div>
+      <form id="ownerForm">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Owner Name</label><input class="form-input" id="oName" placeholder="Emmanuel Yirenkyi-Amoyaw"></div>
+          <div class="form-group"><label class="form-label">Role / Title</label><input class="form-input" id="oRole" placeholder="Owner & Creative Director"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" id="oBio" style="min-height:120px;" placeholder="Write a bio about the owner..."></textarea></div>
+        <div class="form-group"><label class="form-label">Facebook URL</label><input class="form-input" id="oFb" placeholder="https://web.facebook.com/..."></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">YouTube — Epic Tales</label><input class="form-input" id="oYt1" placeholder="https://youtube.com/@..."></div>
+          <div class="form-group"><label class="form-label">YouTube — Bible Sparks</label><input class="form-input" id="oYt2" placeholder="https://youtube.com/@..."></div>
+        </div>
+        <button type="submit" class="full-save" id="saveBtn">Save Changes</button>
+      </form>
+    </div>
+  </div></div>
+  </main>
+  <div class="bottom-tab-bar">
+    <a class="tab-item" href="index.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Home</a>
+    <a class="tab-item" href="services.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>Services</a>
+    <a class="tab-item" href="portfolio.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Portfolio</a>
+    <a class="tab-item" href="gallery.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery</a>
+    <a class="tab-item" href="messages.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages</a>
+  </div>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const ABOUT_KEY='galaxy_about';
+function loadAbout(){
+  const d=getData(ABOUT_KEY)||DEFAULTS.galaxy_about;
+  document.getElementById('oName').value=d.name||'';
+  document.getElementById('oRole').value=d.role||'';
+  document.getElementById('oBio').value=d.bio||'';
+  document.getElementById('oFb').value=d.facebook||'';
+  document.getElementById('oYt1').value=d.youtube1||'';
+  document.getElementById('oYt2').value=d.youtube2||'';
+  if(d.avatar){const p=document.getElementById('avatarPrev');p.innerHTML=`<img src="${d.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;p._src=d.avatar;}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  loadAbout();
+  document.getElementById('avatarFile').onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    const b64=await fileToBase64(file);
+    const p=document.getElementById('avatarPrev');
+    p.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    p._src=b64;e.target.value='';
+  };
+  document.getElementById('ownerForm').onsubmit=async e=>{
+    e.preventDefault();
+    const btn=document.getElementById('saveBtn');
+    btn.textContent='Saving…';btn.disabled=true;
+    await new Promise(r=>setTimeout(r,500));
+    const p=document.getElementById('avatarPrev');
+    const obj={name:document.getElementById('oName').value.trim(),role:document.getElementById('oRole').value.trim(),bio:document.getElementById('oBio').value.trim(),facebook:document.getElementById('oFb').value.trim(),youtube1:document.getElementById('oYt1').value.trim(),youtube2:document.getElementById('oYt2').value.trim(),avatar:p._src||(getData(ABOUT_KEY)||{}).avatar||''};
+    setData(ABOUT_KEY,obj);
+    btn.textContent='✓ Saved!';btn.style.background='hsl(145 60% 35%)';
+    setTimeout(()=>{btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;},2200);
+    showToast('Owner profile saved!');
+  };
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Members — Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style>.t-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}@media(max-width:900px){.t-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.t-grid{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
+    <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
+  </div>
+</div>
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="sidebar-logo-text">Admin Panel</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="services.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span><span class="nav-label">Services</span></a>
+      <a class="nav-item" href="portfolio.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Portfolio</span></a>
+      <a class="nav-item" href="gallery.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span class="nav-label">Gallery</span></a>
+      <a class="nav-item" href="testimonials.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Testimonials</span></a>
+      <a class="nav-item" href="about.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">About / Owner</span></a>
+      <a class="nav-item active" href="team.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="nav-label">Team Members</span></a>
+      <a class="nav-item" href="adavatar.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">AdAvatar Gallery</span></a>
+      <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="nav-label">Notifications</span></a>
+      <a class="nav-item" href="messages.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="nav-label">Messages</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../index.html"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span><span class="nav-label">Back to Site</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">Team Members</h1><p class="page-sub" id="teamSub"></p></div>
+     <div class="page-actions"><button class="btn btn-primary" id="addMemberBtn">+ Add Member</button></div></div>
+    <div class="page-body"><div class="t-grid" id="teamGrid"></div></div>
+  </main>
+  <div class="bottom-tab-bar">
+    <a class="tab-item" href="index.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Home</a>
+    <a class="tab-item" href="services.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>Services</a>
+    <a class="tab-item" href="portfolio.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Portfolio</a>
+    <a class="tab-item" href="gallery.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery</a>
+    <a class="tab-item" href="messages.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages</a>
+  </div>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+function renderTeam(){
+  const list=getData('galaxy_team')||[];
+  document.getElementById('teamSub').textContent=`${list.length} member${list.length!==1?'s':''}`;
+  const grid=document.getElementById('teamGrid');
+  if(!list.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div><h3>No team members yet</h3><p>Add team members to showcase on your site.</p></div>';return;}
+  grid.innerHTML=list.sort((a,b)=>(a.order||99)-(b.order||99)).map(m=>`
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px 20px;text-align:center;transition:var(--transition);" onmouseenter="this.style.borderColor='hsl(250 80% 65% / 0.3)'" onmouseleave="this.style.borderColor='var(--border)'">
+      <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;font-family:'Space Grotesk',sans-serif;margin:0 auto 14px;overflow:hidden;border:2px solid hsl(250 80% 65% / 0.25);">
+        ${m.avatar?`<img src="${m.avatar}" style="width:68px;height:68px;object-fit:cover;">`:(m.name||'?')[0].toUpperCase()}
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px;">${escHtml(m.name||'')}</div>
+      <div style="font-size:12px;color:var(--primary);margin-bottom:8px;">${escHtml(m.role||'')}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(m.bio||'')}</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn btn-ghost btn-sm" onclick="editMember(${m.id})">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="delMember(${m.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function openMemberModal(m=null){
+  const isEdit=!!m;
+  const ov=openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title">${isEdit?'Edit':'Add'} Team Member</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Profile Photo</label>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div id="mAvatarPrev" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;overflow:hidden;flex-shrink:0;">
+            ${m?.avatar?`<img src="${m.avatar}" style="width:56px;height:56px;object-fit:cover;">`:((m?.name||'?')[0].toUpperCase())}
+          </div>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload Photo<input type="file" id="mAvatarFile" accept="image/*" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="mName" value="${escHtml(m?.name||'')}" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Role / Title</label><input class="form-input" id="mRole" value="${escHtml(m?.role||'')}" placeholder="e.g. Senior Designer"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" id="mBio" placeholder="Short bio...">${escHtml(m?.bio||'')}</textarea></div>
+      <div class="form-group"><label class="form-label">Display Order</label><input class="form-input" id="mOrder" type="number" value="${m?.order||''}" placeholder="1"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save Member</button>
+    </div>
+  </div>`);
+
+  let avatarData=m?.avatar||'';
+  ov.querySelector('#mAvatarFile').onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    avatarData=await fileToBase64(file);
+    const p=ov.querySelector('#mAvatarPrev');
+    p.innerHTML=`<img src="${avatarData}" style="width:56px;height:56px;object-fit:cover;">`;
+  };
+  ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
+  ov.querySelector('#saveBtn').onclick=()=>{
+    const name=ov.querySelector('#mName').value.trim();
+    if(!name){showToast('Name is required','error');return;}
+    const list=getData('galaxy_team')||[];
+    const obj={id:isEdit?m.id:nextId(list),name,role:ov.querySelector('#mRole').value.trim(),bio:ov.querySelector('#mBio').value.trim(),order:parseInt(ov.querySelector('#mOrder').value)||list.length+1,avatar:avatarData};
+    if(isEdit){const i=list.findIndex(x=>x.id===m.id);if(i>-1)list[i]=obj;}else list.push(obj);
+    setData('galaxy_team',list);closeModal(ov);renderTeam();
+    showToast(isEdit?'Member updated!':'Member added!');
+  };
+}
+window.editMember=id=>openMemberModal((getData('galaxy_team')||[]).find(x=>x.id===id));
+window.delMember=id=>confirmDelete('Delete this team member?',()=>{
+  setData('galaxy_team',(getData('galaxy_team')||[]).filter(x=>x.id!==id));
+  renderTeam();showToast('Deleted.','error');
+});
+document.addEventListener('DOMContentLoaded',()=>{renderTeam();document.getElementById('addMemberBtn').onclick=()=>openMemberModal();});
+</script>
+</body>
+</html>

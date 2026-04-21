@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Galaxy Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.contact-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 800px) { .contact-layout { grid-template-columns: 1fr; } }
+
+/* Form */
+.contact-form-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 48px;
+}
+@media (max-width: 560px) { .contact-form-card { padding: 24px; } }
+
+.form-group { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.form-input, .form-textarea {
+  width: 100%;
+  background: hsl(260 20% 6%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  color: var(--fg);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  transition: var(--transition);
+  outline: none;
+  resize: none;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px hsl(250 80% 65% / 0.12);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: hsl(260, 5%, 40%); }
+.form-textarea { min-height: 140px; }
+.form-submit {
+  width: 100%;
+  padding: 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 0 24px hsl(250 80% 65% / 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.form-submit:hover { filter: brightness(1.15); box-shadow: 0 0 36px hsl(250 80% 65% / 0.6); }
+.form-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.qr-display {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.qr-display p { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.qr-code-box {
+  width: 120px; height: 120px;
+  background: #fff;
+  border-radius: var(--radius);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.qr-code-box svg { width: 100%; height: 100%; }
+
+/* Info cards */
+.info-cards { display: flex; flex-direction: column; gap: 14px; }
+.info-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: var(--transition);
+}
+.info-card:hover { border-color: hsl(250 80% 65% / 0.35); transform: translateX(4px); }
+.info-card-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--radius-sm);
+  background: hsl(250 80% 65% / 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.info-card-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.info-card-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.info-card-value a { color: inherit; transition: var(--transition); }
+.info-card-value a:hover { color: var(--primary); }
+
+.wa-card {
+  background: linear-gradient(135deg, hsl(140 60% 8%), hsl(145 50% 10%));
+  border-color: hsl(140 60% 30% / 0.3);
+}
+.wa-card:hover { border-color: hsl(140 60% 40% / 0.5); }
+.wa-card .info-card-icon { background: hsl(140 60% 30% / 0.15); color: hsl(140 60% 60%); }
+.wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(140 60% 55%);
+}
+.wa-btn:hover { color: hsl(140 60% 70%); }
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="logo-text">Galaxy <span class="gradient-text">Studio</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link active" href="contact.html">Contact</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-primary" href="contact.html" style="font-size:14px;padding:9px 20px;">Get Started</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link active" href="contact.html">Contact</a>
+    <a class="btn btn-primary" href="contact.html">Get Started</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="orb" style="width:400px;height:400px;background:hsl(250 80% 65% / 0.1);top:-80px;right:-100px;"></div>
+  <div class="orb" style="width:250px;height:250px;background:hsl(200 100% 60% / 0.08);bottom:-40px;left:-60px;animation-delay:2.5s;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="page-hero-label">Get In Touch</div>
+    <h1 class="page-hero-title">Let's <span class="gradient-text">Create Together</span></h1>
+    <p class="page-hero-sub">Have a project in mind? Reach out and let's discuss how we can bring your vision to life — at an affordable price.</p>
+  </div>
+</div>
+
+<section style="padding-top:0;">
+  <div class="container">
+    <div class="contact-layout">
+
+      <!-- LEFT: Form -->
+      <div class="contact-form-card animate-in">
+        <h3 style="font-size:22px;font-weight:700;margin-bottom:8px;">Send Us a Message</h3>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:32px;">Fill in the form below and we'll get back to you within 24 hours.</p>
+
+        <form id="contactForm">
+          <div class="form-group">
+            <label class="form-label" for="name">Your Name</label>
+            <input class="form-input" type="text" id="name" placeholder="Emmanuel Kwame" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input class="form-input" type="email" id="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="service">Service Interested In</label>
+            <select class="form-input" id="service" style="cursor:pointer;">
+              <option value="">Select a service...</option>
+              <option>AdAvatar (Signature Service)</option>
+              <option>Graphic Design</option>
+              <option>Logo &amp; Branding</option>
+              <option>Video Editing</option>
+              <option>3D Animation</option>
+              <option>UI/UX Design</option>
+              <option>CAD Design</option>
+              <option>Advertisement Design</option>
+              <option>Digital Promotion</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">Your Message</label>
+            <textarea class="form-textarea" id="message" placeholder="Tell us about your project, budget, and timeline..." required></textarea>
+          </div>
+          <button class="form-submit" type="submit" id="submitBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send Message
+          </button>
+        </form>
+
+        <!-- QR Code -->
+        <div class="qr-display">
+          <div class="qr-code-box" id="qrBox">
+            <!-- SVG QR placeholder that looks like a real QR -->
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100" height="100" fill="white"/>
+              <!-- Top-left finder -->
+              <rect x="5" y="5" width="28" height="28" fill="black"/>
+              <rect x="9" y="9" width="20" height="20" fill="white"/>
+              <rect x="13" y="13" width="12" height="12" fill="black"/>
+              <!-- Top-right finder -->
+              <rect x="67" y="5" width="28" height="28" fill="black"/>
+              <rect x="71" y="9" width="20" height="20" fill="white"/>
+              <rect x="75" y="13" width="12" height="12" fill="black"/>
+              <!-- Bottom-left finder -->
+              <rect x="5" y="67" width="28" height="28" fill="black"/>
+              <rect x="9" y="71" width="20" height="20" fill="white"/>
+              <rect x="13" y="75" width="12" height="12" fill="black"/>
+              <!-- Data modules -->
+              <rect x="37" y="5" width="4" height="4" fill="black"/>
+              <rect x="45" y="5" width="4" height="4" fill="black"/>
+              <rect x="53" y="5" width="4" height="4" fill="black"/>
+              <rect x="37" y="13" width="4" height="4" fill="black"/>
+              <rect x="53" y="13" width="4" height="4" fill="black"/>
+              <rect x="41" y="21" width="4" height="4" fill="black"/>
+              <rect x="49" y="21" width="4" height="4" fill="black"/>
+              <rect x="37" y="37" width="4" height="4" fill="black"/>
+              <rect x="45" y="37" width="4" height="4" fill="black"/>
+              <rect x="53" y="37" width="4" height="4" fill="black"/>
+              <rect x="61" y="37" width="4" height="4" fill="black"/>
+              <rect x="37" y="45" width="4" height="4" fill="black"/>
+              <rect x="53" y="45" width="4" height="4" fill="black"/>
+              <rect x="37" y="53" width="4" height="4" fill="black"/>
+              <rect x="45" y="53" width="4" height="4" fill="black"/>
+              <rect x="61" y="53" width="4" height="4" fill="black"/>
+              <rect x="37" y="61" width="4" height="4" fill="black"/>
+              <rect x="45" y="61" width="4" height="4" fill="black"/>
+              <rect x="53" y="61" width="4" height="4" fill="black"/>
+              <rect x="5" y="37" width="4" height="4" fill="black"/>
+              <rect x="13" y="37" width="4" height="4" fill="black"/>
+              <rect x="21" y="37" width="4" height="4" fill="black"/>
+              <rect x="29" y="37" width="4" height="4" fill="black"/>
+              <rect x="5" y="45" width="4" height="4" fill="black"/>
+              <rect x="21" y="45" width="4" height="4" fill="black"/>
+              <rect x="5" y="53" width="4" height="4" fill="black"/>
+              <rect x="13" y="53" width="4" height="4" fill="black"/>
+              <rect x="29" y="53" width="4" height="4" fill="black"/>
+              <rect x="5" y="61" width="4" height="4" fill="black"/>
+              <rect x="21" y="61" width="4" height="4" fill="black"/>
+              <rect x="29" y="61" width="4" height="4" fill="black"/>
+              <rect x="67" y="37" width="4" height="4" fill="black"/>
+              <rect x="75" y="37" width="4" height="4" fill="black"/>
+              <rect x="83" y="37" width="4" height="4" fill="black"/>
+              <rect x="91" y="37" width="4" height="4" fill="black"/>
+              <rect x="67" y="45" width="4" height="4" fill="black"/>
+              <rect x="83" y="45" width="4" height="4" fill="black"/>
+              <rect x="75" y="53" width="4" height="4" fill="black"/>
+              <rect x="91" y="53" width="4" height="4" fill="black"/>
+              <rect x="67" y="61" width="4" height="4" fill="black"/>
+              <rect x="75" y="61" width="4" height="4" fill="black"/>
+              <rect x="91" y="61" width="4" height="4" fill="black"/>
+              <rect x="67" y="69" width="4" height="4" fill="black"/>
+              <rect x="83" y="69" width="4" height="4" fill="black"/>
+              <rect x="75" y="77" width="4" height="4" fill="black"/>
+              <rect x="91" y="77" width="4" height="4" fill="black"/>
+              <rect x="67" y="85" width="4" height="4" fill="black"/>
+              <rect x="83" y="85" width="4" height="4" fill="black"/>
+              <rect x="37" y="69" width="4" height="4" fill="black"/>
+              <rect x="53" y="69" width="4" height="4" fill="black"/>
+              <rect x="45" y="77" width="4" height="4" fill="black"/>
+              <rect x="61" y="77" width="4" height="4" fill="black"/>
+              <rect x="37" y="85" width="4" height="4" fill="black"/>
+              <rect x="45" y="85" width="4" height="4" fill="black"/>
+              <rect x="61" y="85" width="4" height="4" fill="black"/>
+              <rect x="37" y="93" width="4" height="4" fill="black"/>
+              <rect x="53" y="93" width="4" height="4" fill="black"/>
+              <rect x="5" y="69" width="4" height="4" fill="black"/>
+              <rect x="21" y="69" width="4" height="4" fill="black"/>
+              <rect x="29" y="69" width="4" height="4" fill="black"/>
+              <rect x="13" y="77" width="4" height="4" fill="black"/>
+              <rect x="5" y="85" width="4" height="4" fill="black"/>
+              <rect x="29" y="85" width="4" height="4" fill="black"/>
+              <rect x="13" y="93" width="4" height="4" fill="black"/>
+              <rect x="21" y="93" width="4" height="4" fill="black"/>
+              <rect x="29" y="93" width="4" height="4" fill="black"/>
+            </svg>
+          </div>
+          <p>Scan to visit Galaxy Design Studio</p>
+        </div>
+      </div>
+
+      <!-- RIGHT: Info Cards -->
+      <div class="info-cards animate-in" style="--delay:100ms">
+        <div class="info-card">
+          <div class="info-card-icon">📧</div>
+          <div>
+            <div class="info-card-label">Email Us</div>
+            <div class="info-card-value"><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">📞</div>
+          <div>
+            <div class="info-card-label">Call / WhatsApp</div>
+            <div class="info-card-value"><a href="tel:+233556881003">055-688-1003</a></div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">📍</div>
+          <div>
+            <div class="info-card-label">Location</div>
+            <div class="info-card-value">Tema, Accra, Ghana</div>
+          </div>
+        </div>
+        <div class="info-card wa-card">
+          <div class="info-card-icon">💬</div>
+          <div>
+            <div class="info-card-label">WhatsApp</div>
+            <div class="info-card-value">
+              <a class="wa-btn" href="https://wa.me/233556881003" target="_blank" rel="noopener">
+                Chat on WhatsApp →
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">📘</div>
+          <div>
+            <div class="info-card-label">Facebook</div>
+            <div class="info-card-value"><a href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener">Galaxy Design Studio</a></div>
+          </div>
+        </div>
+        <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;margin-top:4px;">
+          <p style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Working Hours</p>
+          <p style="font-size:14px;color:var(--fg);margin-bottom:4px;">Monday – Friday: <strong>8 AM – 8 PM</strong></p>
+          <p style="font-size:14px;color:var(--fg);margin-bottom:4px;">Saturday: <strong>9 AM – 6 PM</strong></p>
+          <p style="font-size:14px;color:var(--muted);">Sunday: <strong>Closed</strong></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-logo-area">
+        <div class="footer-logo"><div class="logo-icon" style="width:34px;height:34px;font-size:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Design Studio</span></span></div>
+        <p class="footer-desc">Creative &amp; digital advertisement studio by Emmanuel Yirenkyi-Amoyaw.</p>
+        <div class="footer-socials"><a class="social-btn" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank">📘 Facebook</a><a class="social-btn" href="https://youtube.com/@epictales-q6n" target="_blank">▶ Epic Tales</a><a class="social-btn" href="https://youtube.com/@biblesparksbs" target="_blank">▶ Bible Sparks</a></div>
+      </div>
+      <div class="footer-col"><h4>Navigation</h4><div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div>
+      <div class="footer-col"><h4>Services</h4><div class="footer-links"><a href="services.html">Graphic Design</a><a href="services.html">Video Editing</a><a href="services.html">Logo &amp; Branding</a><a href="services.html">3D Animation</a><a href="adavatar.html">AdAvatar</a><a href="services.html">UI/UX Design</a></div></div>
+      <div class="footer-col"><h4>Contact</h4>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003">055-688-1003</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+  </div>
+</footer>
+
+<button id="scroll-top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+<script src="db.js"></script>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+<script>
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin-slow 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Sending...`;
+  await new Promise(r => setTimeout(r, 1600));
+  // Save message to localStorage
+  const msgs = JSON.parse(localStorage.getItem('galaxy_messages') || '[]');
+  msgs.unshift({
+    id: Date.now(),
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    service: document.getElementById('service').value,
+    message: document.getElementById('message').value,
+    date: new Date().toISOString(),
+    read: false
+  });
+  localStorage.setItem('galaxy_messages', JSON.stringify(msgs));
+  btn.disabled = false;
+  btn.innerHTML = `✓ Message Sent!`;
+  btn.style.background = 'hsl(145 60% 35%)';
+  e.target.reset();
+  showToast('Message sent successfully! We\'ll reply within 24 hours. 🚀', 'success');
+  setTimeout(() => {
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Message`;
+    btn.style.background = '';
+  }, 3000);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testimonials — Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style></style>
+</head>
+<body>
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
+    <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
+  </div>
+</div>
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="sidebar-logo-text">Admin Panel</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="services.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span><span class="nav-label">Services</span></a>
+      <a class="nav-item" href="portfolio.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Portfolio</span></a>
+      <a class="nav-item" href="gallery.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span class="nav-label">Gallery</span></a>
+      <a class="nav-item active" href="testimonials.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Testimonials</span></a>
+      <a class="nav-item" href="about.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">About / Owner</span></a>
+      <a class="nav-item" href="team.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="nav-label">Team Members</span></a>
+      <a class="nav-item" href="adavatar.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">AdAvatar Gallery</span></a>
+      <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="nav-label">Notifications</span></a>
+      <a class="nav-item" href="messages.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="nav-label">Messages</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../index.html"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span><span class="nav-label">Back to Site</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">Testimonials</h1><p class="page-sub" id="tSub"></p></div>
+     <div class="page-actions"><button class="btn btn-primary" id="addTestBtn">+ Add Testimonial</button></div></div>
+    <div class="page-body"><div class="card"><div id="tList" style="padding:0;"></div></div></div>
+  </main>
+  <div class="bottom-tab-bar">
+    <a class="tab-item" href="index.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Home</a>
+    <a class="tab-item" href="services.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>Services</a>
+    <a class="tab-item" href="portfolio.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Portfolio</a>
+    <a class="tab-item" href="gallery.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery</a>
+    <a class="tab-item" href="messages.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages</a>
+  </div>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+function renderTestimonials() {
+  const list = getData('galaxy_testimonials')||[];
+  document.getElementById('tSub').textContent = `${list.length} testimonial${list.length!==1?'s':''}`;
+  const container = document.getElementById('tList');
+  if(!list.length){
+    container.innerHTML='<div class="empty-state"><div class="empty-state-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>No testimonials yet</h3><p>Add client reviews to display on your site.</p></div>';return;
+  }
+  container.innerHTML = list.map(t=>`
+    <div style="padding:16px 22px;border-bottom:1px solid hsl(260 15% 11%);display:flex;align-items:flex-start;gap:14px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:${t.avatarUrl?'transparent':'linear-gradient(135deg,var(--primary),var(--accent))'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;font-family:'Space Grotesk',sans-serif;flex-shrink:0;overflow:hidden;">
+        ${t.avatarUrl?`<img src="${t.avatarUrl}" style="width:42px;height:42px;object-fit:cover;">`:(t.name||'?')[0].toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <strong style="font-size:14px;">${escHtml(t.name||'')}</strong>
+          <span style="font-size:12px;color:var(--muted);">${escHtml(t.company||'')}</span>
+          <span style="color:#f59e0b;font-size:14px;letter-spacing:1px;margin-left:auto;">${'★'.repeat(t.rating||5)}</span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);font-style:italic;line-height:1.65;">"${escHtml(t.quote||'')}"</p>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0;margin-top:2px;">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="editTest(${t.id})" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="delTest(${t.id})" title="Delete">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function openTestModal(t=null){
+  const isEdit=!!t;
+  const ov=openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title">${isEdit?'Edit':'Add'} Testimonial</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Client Name *</label><input class="form-input" id="fName" value="${escHtml(t?.name||'')}" placeholder="John Doe"></div>
+        <div class="form-group"><label class="form-label">Company</label><input class="form-input" id="fComp" value="${escHtml(t?.company||'')}" placeholder="Company Ltd"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Quote / Testimonial *</label><textarea class="form-textarea" id="fQuote" placeholder="What did they say about your work...">${escHtml(t?.quote||'')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Rating</label>
+          <select class="form-select" id="fRating">
+            ${[5,4,3,2,1].map(r=>`<option value="${r}" ${t&&t.rating===r?'selected':''}>${'★'.repeat(r)} (${r} star${r!==1?'s':''})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Avatar URL (optional)</label><input class="form-input" id="fAvatar" value="${escHtml(t?.avatarUrl||'')}" placeholder="https://..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save Testimonial</button>
+    </div>
+  </div>`);
+  ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
+  ov.querySelector('#saveBtn').onclick=()=>{
+    const name=ov.querySelector('#fName').value.trim();
+    const quote=ov.querySelector('#fQuote').value.trim();
+    if(!name||!quote){showToast('Name and quote are required','error');return;}
+    const list=getData('galaxy_testimonials')||[];
+    const obj={id:isEdit?t.id:nextId(list),name,company:ov.querySelector('#fComp').value.trim(),quote,rating:parseInt(ov.querySelector('#fRating').value)||5,avatarUrl:ov.querySelector('#fAvatar').value.trim()};
+    if(isEdit){const i=list.findIndex(x=>x.id===t.id);if(i>-1)list[i]=obj;}else list.push(obj);
+    setData('galaxy_testimonials',list);closeModal(ov);renderTestimonials();
+    showToast(isEdit?'Testimonial updated!':'Testimonial added!');
+  };
+}
+window.editTest=id=>openTestModal((getData('galaxy_testimonials')||[]).find(x=>x.id===id));
+window.delTest=id=>confirmDelete('Delete this testimonial?',()=>{
+  setData('galaxy_testimonials',(getData('galaxy_testimonials')||[]).filter(x=>x.id!==id));
+  renderTestimonials();showToast('Deleted.','error');
+});
+document.addEventListener('DOMContentLoaded',()=>{renderTestimonials();document.getElementById('addTestBtn').onclick=()=>openTestModal();});
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdAvatar — Galaxy Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* Gold theme overrides */
+:root {
+  --gold-primary: #f59e0b;
+  --gold-light: #fcd34d;
+  --gold-dark: #d97706;
+}
+
+/* Hero overrides for gold theme */
+.adavatar-hero {
+  padding: 160px 0 100px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.gold-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  animation: pulse-orb 6s ease-in-out infinite;
+}
+.adavatar-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(245,158,11,0.4);
+  background: rgba(245,158,11,0.08);
+  font-size: 13px;
+  font-weight: 600;
+  color: #fcd34d;
+  letter-spacing: 0.5px;
+  margin-bottom: 28px;
+}
+.adavatar-hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pulse-orb 2s ease-in-out infinite;
+}
+.adavatar-hero-title {
+  font-size: clamp(60px, 10vw, 120px);
+  font-weight: 700;
+  letter-spacing: -4px;
+  line-height: 1;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.2s;
+}
+.adavatar-hero-sub {
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--muted);
+  max-width: 620px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.3s;
+}
+.hero-btns {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.7s ease both;
+  animation-delay: 0.4s;
+}
+
+/* Feature cards */
+.feat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 80px;
+}
+@media (max-width: 900px) { .feat-cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .feat-cards { grid-template-columns: 1fr; } }
+
+.feat-card {
+  border-radius: var(--radius-md);
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.5), rgba(252,211,77,0.3), rgba(217,119,6,0.4));
+  transition: var(--transition);
+}
+.feat-card:hover { background: linear-gradient(135deg, rgba(245,158,11,0.8), rgba(252,211,77,0.6), rgba(217,119,6,0.7)); }
+.feat-card-inner {
+  background: var(--card-bg);
+  border-radius: calc(var(--radius-md) - 2px);
+  padding: 32px 28px;
+  height: 100%;
+}
+.feat-icon { font-size: 32px; margin-bottom: 16px; }
+.feat-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.feat-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+/* AdAvatar gallery section */
+.adgallery-section {
+  background: linear-gradient(180deg, transparent, hsl(260 20% 6% / 0.3), transparent);
+}
+
+.adgallery-masonry {
+  columns: 3;
+  column-gap: 16px;
+}
+@media (max-width: 900px) { .adgallery-masonry { columns: 2; } }
+@media (max-width: 560px) { .adgallery-masonry { columns: 1; } }
+
+.adgallery-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid rgba(245,158,11,0.25);
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.adgallery-item:hover {
+  border-color: rgba(245,158,11,0.6);
+  box-shadow: 0 0 24px rgba(245,158,11,0.15);
+  transform: translateY(-3px);
+}
+.adgallery-thumb {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: hsl(260 15% 10%);
+}
+.adgallery-thumb.tall { aspect-ratio: 3/4; }
+.adgallery-thumb.wide { aspect-ratio: 16/9; }
+.adgallery-thumb.square { aspect-ratio: 1; }
+
+.adgallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(245,158,11,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: var(--transition);
+}
+.adgallery-item:hover .adgallery-overlay { opacity: 1; }
+
+.adgallery-play {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: rgba(245,158,11,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a0f00;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.adgallery-info { padding: 12px 14px; }
+.adgallery-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: #fcd34d; }
+
+/* Scroll divider */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent);
+  margin: 0 0 80px;
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="logo-text">Galaxy <span class="gradient-text">Studio</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link" href="contact.html">Contact</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:9px 20px;">Get AdAvatar</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link" href="contact.html">Contact</a>
+    <a class="btn btn-gold" href="contact.html">Get AdAvatar</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="adavatar-hero">
+  <div class="gold-orb" style="width:500px;height:500px;background:rgba(245,158,11,0.08);top:-120px;left:-120px;animation-delay:0s;"></div>
+  <div class="gold-orb" style="width:400px;height:400px;background:rgba(245,158,11,0.06);bottom:-80px;right:-100px;animation-delay:3s;"></div>
+  <div class="gold-orb" style="width:300px;height:300px;background:rgba(245,158,11,0.05);top:40%;left:50%;transform:translate(-50%,-50%);animation-delay:1.5s;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="adavatar-hero-badge">✨ Signature Premium Service</div>
+    <h1 class="adavatar-hero-title gold-gradient-text">AdAvatar</h1>
+    <p class="adavatar-hero-sub">3D animated Pixar-style avatars that talk and promote your product or business. The future of digital advertising — unforgettable, engaging, and uniquely yours.</p>
+    <div class="hero-btns">
+      <a class="btn btn-gold" href="contact.html" style="font-size:16px;padding:14px 32px;">Get Your AdAvatar →</a>
+      <a class="btn btn-gold-outline" href="#samples" style="font-size:16px;padding:14px 32px;">✨ View Samples</a>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section style="padding-top:20px;">
+  <div class="container">
+    <div class="section-header text-center animate-in" style="text-align:center;">
+      <span class="section-label" style="color:#f59e0b;">What You Get</span>
+      <h2 class="section-title">Why <span class="gold-gradient-text">AdAvatar</span>?</h2>
+      <p class="section-sub" style="margin:0 auto;">Every AdAvatar is a unique, custom-crafted digital asset built exclusively for your brand.</p>
+    </div>
+
+    <div class="feat-cards">
+      <div class="feat-card animate-in" style="--delay:0ms">
+        <div class="feat-card-inner">
+          <div class="feat-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>
+          <h3>Pixar-Style 3D Avatar</h3>
+          <p>A custom animated character modeled to represent you or your brand with personality, emotion, and distinctive style. Every avatar is 100% original.</p>
+        </div>
+      </div>
+      <div class="feat-card animate-in" style="--delay:100ms">
+        <div class="feat-card-inner">
+          <div class="feat-icon">🗣️</div>
+          <h3>Talks &amp; Promotes</h3>
+          <p>Your avatar speaks your script — promoting your product, service, or message in a captivating, memorable, and engaging way that converts viewers to customers.</p>
+        </div>
+      </div>
+      <div class="feat-card animate-in" style="--delay:200ms">
+        <div class="feat-card-inner">
+          <div class="feat-icon">📱</div>
+          <h3>Social Media Ready</h3>
+          <p>Optimized for Instagram, TikTok, Facebook Ads, YouTube, and more. Stand out in every feed with content that stops the scroll and drives action.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="adgallery-section" id="samples">
+  <div class="container">
+    <div class="section-header animate-in">
+      <span class="section-label" style="color:#f59e0b;">AdAvatar Gallery</span>
+      <h2 class="section-title">Samples &amp; <span class="gold-gradient-text">Examples</span></h2>
+      <p class="section-sub">Browse our AdAvatar creations — images and video demos. Each one tells a brand story.</p>
+    </div>
+
+    <div class="adgallery-masonry">
+      <div class="adgallery-item animate-in" style="--delay:0ms">
+        <div class="adgallery-thumb tall" style="background:linear-gradient(135deg,hsl(35,50%,8%),hsl(40,60%,14%));"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+        <div class="adgallery-overlay"><div class="adgallery-play">▶</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Avatar — Skincare Brand</div></div>
+      </div>
+      <div class="adgallery-item animate-in" style="--delay:60ms">
+        <div class="adgallery-thumb wide" style="background:linear-gradient(135deg,hsl(30,50%,8%),hsl(45,60%,12%));"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>
+        <div class="adgallery-overlay"><div style="font-size:28px;">🔍</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Avatar Promo Still</div></div>
+      </div>
+      <div class="adgallery-item animate-in" style="--delay:120ms">
+        <div class="adgallery-thumb square" style="background:linear-gradient(135deg,hsl(40,55%,8%),hsl(50,60%,14%));"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div class="adgallery-overlay"><div class="adgallery-play">▶</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Product Launch Ad</div></div>
+      </div>
+      <div class="adgallery-item animate-in" style="--delay:180ms">
+        <div class="adgallery-thumb wide" style="background:linear-gradient(135deg,hsl(35,50%,9%),hsl(42,55%,15%));"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+        <div class="adgallery-overlay"><div class="adgallery-play">▶</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Restaurant Promo Avatar</div></div>
+      </div>
+      <div class="adgallery-item animate-in" style="--delay:240ms">
+        <div class="adgallery-thumb tall" style="background:linear-gradient(135deg,hsl(38,52%,8%),hsl(44,58%,13%));">🌟</div>
+        <div class="adgallery-overlay"><div style="font-size:28px;">🔍</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Fashion Brand Avatar</div></div>
+      </div>
+      <div class="adgallery-item animate-in" style="--delay:300ms">
+        <div class="adgallery-thumb square" style="background:linear-gradient(135deg,hsl(36,50%,9%),hsl(46,60%,14%));">🎤</div>
+        <div class="adgallery-overlay"><div class="adgallery-play">▶</div></div>
+        <div class="adgallery-info"><div class="adgallery-title">Talking Avatar Demo</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section>
+  <div class="container">
+    <div class="section-header animate-in" style="text-align:center;">
+      <span class="section-label" style="color:#f59e0b;">How It Works</span>
+      <h2 class="section-title">Getting Your <span class="gold-gradient-text">AdAvatar</span></h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:64px;" class="animate-in">
+      <div style="text-align:center;padding:28px 20px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#f59e0b;margin:0 auto 16px;font-family:'Space Grotesk',sans-serif;">1</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px;">Contact Us</h4>
+        <p style="font-size:13px;color:var(--muted);">Reach out via WhatsApp or email with your project details and vision.</p>
+      </div>
+      <div style="text-align:center;padding:28px 20px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#f59e0b;margin:0 auto 16px;font-family:'Space Grotesk',sans-serif;">2</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px;">Share Your Script</h4>
+        <p style="font-size:13px;color:var(--muted);">Provide your brand message and script for the avatar to deliver.</p>
+      </div>
+      <div style="text-align:center;padding:28px 20px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#f59e0b;margin:0 auto 16px;font-family:'Space Grotesk',sans-serif;">3</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px;">We Create</h4>
+        <p style="font-size:13px;color:var(--muted);">Our team crafts your 3D Pixar-style avatar and animates your message.</p>
+      </div>
+      <div style="text-align:center;padding:28px 20px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#f59e0b;margin:0 auto 16px;font-family:'Space Grotesk',sans-serif;">4</div>
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:8px;">Go Viral</h4>
+        <p style="font-size:13px;color:var(--muted);">Receive your ready-to-post AdAvatar and watch your brand engagement explode.</p>
+      </div>
+    </div>
+    <div style="text-align:center;" class="animate-in">
+      <a class="btn btn-gold" href="contact.html" style="font-size:16px;padding:14px 36px;">Get Your AdAvatar Now →</a>
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner animate-in" style="background:linear-gradient(135deg,hsl(35 80% 12%),hsl(40 60% 10%));border-color:rgba(245,158,11,0.25);">
+      <h2>Ready for Your <span class="gold-gradient-text">AdAvatar</span>?</h2>
+      <p>Join the brands already using Galaxy Design Studio's signature AdAvatar service to dominate their niche on social media.</p>
+      <a class="btn btn-gold" href="contact.html">Get Started Today →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-logo-area">
+        <div class="footer-logo"><div class="logo-icon" style="width:34px;height:34px;font-size:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Design Studio</span></span></div>
+        <p class="footer-desc">Creative &amp; digital advertisement studio by Emmanuel Yirenkyi-Amoyaw.</p>
+        <div class="footer-socials"><a class="social-btn" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank">📘 Facebook</a><a class="social-btn" href="https://youtube.com/@epictales-q6n" target="_blank">▶ Epic Tales</a><a class="social-btn" href="https://youtube.com/@biblesparksbs" target="_blank">▶ Bible Sparks</a></div>
+      </div>
+      <div class="footer-col"><h4>Navigation</h4><div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div>
+      <div class="footer-col"><h4>Services</h4><div class="footer-links"><a href="services.html">Graphic Design</a><a href="services.html">Video Editing</a><a href="services.html">Logo &amp; Branding</a><a href="services.html">3D Animation</a><a href="adavatar.html">AdAvatar</a><a href="services.html">UI/UX Design</a></div></div>
+      <div class="footer-col"><h4>Contact</h4>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003">055-688-1003</a></div>
+        <div class="footer-contact-item"><a class="social-btn" href="https://wa.me/233556881003" target="_blank" style="display:inline-flex;">💬 WhatsApp Chat</a></div>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+  </div>
+</footer>
+
+<button id="scroll-top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+<script src="db.js"></script>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+</body>
+</html>

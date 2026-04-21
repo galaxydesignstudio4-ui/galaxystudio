@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery — Galaxy Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.gallery-masonry {
+  columns: 4;
+  column-gap: 16px;
+}
+@media (max-width: 1024px) { .gallery-masonry { columns: 3; } }
+@media (max-width: 640px)  { .gallery-masonry { columns: 2; } }
+
+.gallery-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.gallery-item:hover {
+  transform: translateY(-3px);
+  border-color: hsl(250 80% 65% / 0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.gallery-thumb {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--muted);
+  background: hsl(260 15% 10%);
+}
+.gallery-thumb.tall { aspect-ratio: 3/4; }
+.gallery-thumb.wide { aspect-ratio: 4/3; }
+.gallery-thumb.square { aspect-ratio: 1; }
+.gallery-thumb.short { aspect-ratio: 16/9; }
+.gallery-thumb img { width:100%; height:100%; object-fit:cover; }
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: hsl(260 20% 4% / 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: var(--transition);
+  padding: 16px;
+}
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+
+.play-btn {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+.media-badge {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: hsl(260 20% 4% / 0.8);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+.link-badge {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 24px; height: 24px;
+  background: hsl(250 80% 65% / 0.8);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  z-index: 2;
+}
+
+.gallery-item-info {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+.gallery-item-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--fg);
+}
+.gallery-item-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gallery-overlay-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="logo-text">Galaxy <span class="gradient-text">Studio</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link active" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link" href="contact.html">Contact</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-primary" href="contact.html" style="font-size:14px;padding:9px 20px;">Get Started</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a><a class="nav-link" href="services.html">Services</a><a class="nav-link" href="portfolio.html">Portfolio</a><a class="nav-link active" href="gallery.html">Gallery</a><a class="nav-link" href="about.html">About</a><a class="nav-link" href="contact.html">Contact</a>
+    <a class="btn btn-primary" href="contact.html">Get Started</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="orb" style="width:350px;height:350px;background:hsl(250 80% 65% / 0.1);top:-60px;left:-80px;"></div>
+  <div class="orb" style="width:280px;height:280px;background:hsl(200 100% 60% / 0.08);bottom:-40px;right:-60px;animation-delay:2s;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="page-hero-label">Gallery</div>
+    <h1 class="page-hero-title">Our <span class="gradient-text">Design Gallery</span></h1>
+    <p class="page-hero-sub">A showcase of creative work by Galaxy Design Studio — images, videos, and more.</p>
+  </div>
+</div>
+
+<section style="padding-top:0;">
+  <div class="container">
+    <div class="gallery-masonry" id="galleryMasonry">
+
+      <div class="gallery-item animate-in" data-index="0" style="--delay:0ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb tall" style="background:linear-gradient(135deg,hsl(260,30%,10%),hsl(250,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="7" y="2" width="10" height="4" rx="1"/><path d="m8 16 2-2 2 2 4-4"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">Graphic Poster</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Vibrant Poster Design</div>
+          <div class="gallery-item-desc">Bold poster design created for a music festival event in Accra.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="1" style="--delay:50ms">
+        <div class="media-badge">▶ Video</div>
+        <div class="gallery-thumb wide" style="background:linear-gradient(135deg,hsl(220,40%,8%),hsl(240,50%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>
+        </div>
+        <div class="gallery-overlay">
+          <div class="play-btn">▶</div>
+          <span class="gallery-overlay-title">Brand Commercial</span>
+        </div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">TV Commercial Edit</div>
+          <div class="gallery-item-desc">30-second brand commercial with cinematic color grading.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="2" style="--delay:100ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb square" style="background:linear-gradient(135deg,hsl(280,30%,10%),hsl(300,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">Logo Design</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Minimalist Logo Collection</div>
+          <div class="gallery-item-desc">3 logo concepts for a tech startup — clean and modern.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="3" style="--delay:150ms">
+        <div class="media-badge">▶ Video</div>
+        <div class="gallery-thumb tall" style="background:linear-gradient(135deg,hsl(200,40%,8%),hsl(220,50%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        </div>
+        <div class="gallery-overlay">
+          <div class="play-btn">▶</div>
+          <span class="gallery-overlay-title">AdAvatar Demo</span>
+        </div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">AdAvatar Promo Video</div>
+          <div class="gallery-item-desc">3D Pixar-style talking avatar promoting a skincare brand.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="4" style="--delay:200ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb wide" style="background:linear-gradient(135deg,hsl(240,30%,10%),hsl(260,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">3D Render</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Product 3D Render</div>
+          <div class="gallery-item-desc">Photorealistic product visualization for e-commerce.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="5" style="--delay:250ms">
+        <div class="media-badge">🔗 Link</div>
+        <div class="link-badge">↗</div>
+        <div class="gallery-thumb square" style="background:linear-gradient(135deg,hsl(200,40%,8%),hsl(180,50%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">↗</span><span class="gallery-overlay-title">View Website</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">UI Design — Showcase</div>
+          <div class="gallery-item-desc">Live website redesign project for a local business.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="6" style="--delay:300ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb short" style="background:linear-gradient(135deg,hsl(260,30%,10%),hsl(250,40%,16%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">Brand Kit</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Full Brand Kit</div>
+          <div class="gallery-item-desc">Complete branding package — colors, fonts, and logo variants.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="7" style="--delay:350ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb tall" style="background:linear-gradient(135deg,hsl(320,30%,10%),hsl(300,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="7" y="2" width="10" height="4" rx="1"/><path d="m8 16 2-2 2 2 4-4"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">Social Media Pack</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Instagram Content Pack</div>
+          <div class="gallery-item-desc">Set of 12 cohesive social media post templates for a beauty brand.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="8" style="--delay:400ms">
+        <div class="media-badge">▶ Video</div>
+        <div class="gallery-thumb wide" style="background:linear-gradient(135deg,hsl(250,30%,10%),hsl(270,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+        </div>
+        <div class="gallery-overlay">
+          <div class="play-btn">▶</div>
+          <span class="gallery-overlay-title">3D Animation</span>
+        </div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">3D Product Animation</div>
+          <div class="gallery-item-desc">360° spin animation for a consumer electronics product launch.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="9" style="--delay:450ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb square" style="background:linear-gradient(135deg,hsl(200,30%,10%),hsl(220,40%,14%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">CAD Drawing</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Technical Drawing</div>
+          <div class="gallery-item-desc">Precision 2D floor plan and elevation drawings for a residential project.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="10" style="--delay:500ms">
+        <div class="media-badge">🖼 Image</div>
+        <div class="gallery-thumb wide" style="background:linear-gradient(135deg,hsl(260,30%,10%),hsl(240,50%,16%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.4 4.4 3.9 6.8 4a5.87 5.87 0 0 1-.6-4C12 5 15 7 16 9c2-.1 4-2 6-5z"/></svg></span>
+        </div>
+        <div class="gallery-overlay"><span style="font-size:24px;">🔍</span><span class="gallery-overlay-title">Ad Banner</span></div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">Digital Ad Banner Series</div>
+          <div class="gallery-item-desc">Multiple size digital ad banners optimized for Google Ads.</div>
+        </div>
+      </div>
+
+      <div class="gallery-item animate-in" data-index="11" style="--delay:550ms">
+        <div class="media-badge">▶ Video</div>
+        <div class="gallery-thumb tall" style="background:linear-gradient(135deg,hsl(240,35%,10%),hsl(260,45%,15%));">
+          <span><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        </div>
+        <div class="gallery-overlay">
+          <div class="play-btn">▶</div>
+          <span class="gallery-overlay-title">AdAvatar Reel</span>
+        </div>
+        <div class="gallery-item-info">
+          <div class="gallery-item-title">AdAvatar Showcase Reel</div>
+          <div class="gallery-item-desc">Compilation of our best AdAvatar animations and talking characters.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner animate-in">
+      <h2>Ready to <span class="gradient-text">Transform</span> Your Brand?</h2>
+      <p>Let's collaborate and create something extraordinary together.</p>
+      <a class="btn btn-primary" href="contact.html">Start Your Project →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-logo-area">
+        <div class="footer-logo"><div class="logo-icon" style="width:34px;height:34px;font-size:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Design Studio</span></span></div>
+        <p class="footer-desc">Creative &amp; digital advertisement studio. Affordable, professional, and modern design services.</p>
+        <div class="footer-socials"><a class="social-btn" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank">📘 Facebook</a><a class="social-btn" href="https://youtube.com/@epictales-q6n" target="_blank">▶ Epic Tales</a><a class="social-btn" href="https://youtube.com/@biblesparksbs" target="_blank">▶ Bible Sparks</a></div>
+      </div>
+      <div class="footer-col"><h4>Navigation</h4><div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div>
+      <div class="footer-col"><h4>Services</h4><div class="footer-links"><a href="services.html">Graphic Design</a><a href="services.html">Video Editing</a><a href="services.html">Logo &amp; Branding</a><a href="services.html">3D Animation</a><a href="adavatar.html">AdAvatar</a><a href="services.html">UI/UX Design</a></div></div>
+      <div class="footer-col"><h4>Contact</h4>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003">055-688-1003</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+  </div>
+</footer>
+
+<button id="scroll-top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></button>
+
+<script src="db.js"></script>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+<script>
+document.querySelectorAll('.gallery-item').forEach((item, i) => {
+  item.addEventListener('click', () => {
+    const title = item.querySelector('.gallery-item-title')?.textContent || '';
+    const desc = item.querySelector('.gallery-item-desc')?.textContent || '';
+    const icon = item.querySelector('.gallery-thumb span')?.textContent || '🖼';
+    const isVideo = item.querySelector('.media-badge')?.textContent.includes('Video');
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    overlay.innerHTML = `
+      <button class="lightbox-close" id="lbClose">✕</button>
+      <div class="lightbox-content" style="max-width:600px;width:90vw;">
+        <div style="width:100%;aspect-ratio:${isVideo?'16/9':'4/3'};background:hsl(260 15% 10%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:0.35;">${icon}</div>
+        <div style="text-align:center;padding:12px;">
+          <strong style="font-family:'Space Grotesk',sans-serif;font-size:17px;display:block;margin-bottom:6px;">${title}</strong>
+          <span style="color:var(--muted);font-size:14px;">${desc}</span>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay || e.target.id === 'lbClose') { overlay.remove(); document.body.style.overflow = ''; }
+    });
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', esc); }
+    });
+  });
+});
+</script>
+</body>
+</html>

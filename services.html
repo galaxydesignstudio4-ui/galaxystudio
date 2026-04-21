@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — Galaxy Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.services-list { display: flex; flex-direction: column; gap: 24px; margin-bottom: 56px; }
+
+.service-row {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 36px;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 28px;
+  align-items: start;
+  transition: var(--transition);
+}
+.service-row:hover {
+  border-color: hsl(250 80% 65% / 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px hsl(250 80% 65% / 0.08);
+}
+.service-row.adavatar-row {
+  border-color: rgba(245,158,11,0.35);
+  box-shadow: 0 0 30px rgba(245,158,11,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.service-row.adavatar-row::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f59e0b, #fcd34d, #f59e0b);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease infinite;
+}
+.service-row-icon {
+  width: 80px; height: 80px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  flex-shrink: 0;
+}
+.service-row-body { flex: 1; }
+.service-row-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.service-row-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.service-sig-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: hsl(250 80% 65% / 0.12);
+  border: 1px solid hsl(250 80% 65% / 0.3);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.service-row-desc {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.service-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+@media (max-width: 560px) { .service-features { grid-template-columns: 1fr; } }
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: hsl(260, 5%, 65%);
+}
+.feature-check {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: hsl(250 80% 65% / 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--primary);
+  font-size: 10px;
+}
+.service-row.adavatar-row .feature-check {
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+}
+.affordable-note {
+  text-align: center;
+  padding: 28px;
+  background: hsl(250 80% 65% / 0.06);
+  border: 1px solid hsl(250 80% 65% / 0.2);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 64px;
+}
+.affordable-note strong { color: var(--fg); }
+
+@media (max-width: 640px) {
+  .service-row { grid-template-columns: 1fr; padding: 24px; }
+  .service-row-icon { width: 56px; height: 56px; font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <span class="logo-text">Galaxy <span class="gradient-text">Studio</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link active" href="services.html">Services</a>
+      <a class="nav-link" href="portfolio.html">Portfolio</a>
+      <a class="nav-link" href="gallery.html">Gallery</a>
+      <a class="nav-link" href="about.html">About</a>
+      <a class="nav-link" href="contact.html">Contact</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-primary" href="contact.html" style="font-size:14px;padding:9px 20px;">Get Started</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link active" href="services.html">Services</a>
+    <a class="nav-link" href="portfolio.html">Portfolio</a>
+    <a class="nav-link" href="gallery.html">Gallery</a>
+    <a class="nav-link" href="about.html">About</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+    <a class="btn btn-primary" href="contact.html">Get Started</a>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="orb" style="width:400px;height:400px;background:hsl(250 80% 65% / 0.12);top:-100px;left:-80px;"></div>
+  <div class="orb" style="width:300px;height:300px;background:hsl(200 100% 60% / 0.1);bottom:-50px;right:-60px;animation-delay:3s;"></div>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="page-hero-label">Our Services</div>
+    <h1 class="page-hero-title">Creative Solutions for <span class="gradient-text">Every Need</span></h1>
+    <p class="page-hero-sub">Professional, modern, and very affordable design services for individuals, businesses, and organizations.</p>
+  </div>
+</div>
+
+<!-- SERVICES LIST -->
+<section style="padding-top:0;">
+  <div class="container">
+    <div class="services-list">
+
+      <!-- 1. Graphic Design -->
+      <div class="service-row animate-in" style="--delay:0ms">
+        <div class="service-row-icon" style="background:hsl(250 80% 65% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="7" y="2" width="10" height="4" rx="1"/><path d="m8 16 2-2 2 2 4-4"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">Graphic Design</h3>
+          </div>
+          <p class="service-row-desc">From posters to flyers and marketing materials — stunning visuals that communicate your message with impact and clarity. Every design is crafted to resonate with your target audience.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Poster &amp; Flyer Design</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Marketing Materials</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Social Media Graphics</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Packaging Design</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Advertisement Design -->
+      <div class="service-row animate-in" style="--delay:60ms">
+        <div class="service-row-icon" style="background:hsl(220 80% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.4 4.4 3.9 6.8 4a5.87 5.87 0 0 1-.6-4C12 5 15 7 16 9c2-.1 4-2 6-5z"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">Advertisement Design</h3>
+          </div>
+          <p class="service-row-desc">Creative advertisement designs for digital and print that grab attention and convert your audience into customers. Eye-catching layouts built for maximum engagement.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Digital Ads</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Print Advertisements</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Banner Design</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Promotional Content</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Logo & Branding -->
+      <div class="service-row animate-in" style="--delay:120ms">
+        <div class="service-row-icon" style="background:hsl(320 70% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">Logo &amp; Branding Design</h3>
+          </div>
+          <p class="service-row-desc">Memorable brand identities that capture your essence and leave a lasting impression. We craft iconic logos and complete brand systems that stand the test of time.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Logo Design</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Brand Identity</div>
+            <div class="feature-item"><div class="feature-check">✓</div>T-Shirt &amp; Merchandise</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Brand Guidelines</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Video Editing -->
+      <div class="service-row animate-in" style="--delay:180ms">
+        <div class="service-row-icon" style="background:hsl(330 80% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">Video Editing</h3>
+          </div>
+          <p class="service-row-desc">Professional video editing that transforms your raw footage into compelling, shareable content. Cinematic storytelling with expert color grading and motion graphics.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Commercial Editing</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Social Media Videos</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Color Grading</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Motion Graphics</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 3D Animation -->
+      <div class="service-row animate-in" style="--delay:240ms">
+        <div class="service-row-icon" style="background:hsl(240 80% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">3D Animation</h3>
+          </div>
+          <p class="service-row-desc">Breathtaking 3D visuals and animations that bring ideas to life with stunning realism. From product visualization to architectural renders — we make the impossible visible.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Product Visualization</div>
+            <div class="feature-item"><div class="feature-check">✓</div>3D Animated Ads</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Architectural Renders</div>
+            <div class="feature-item"><div class="feature-check">✓</div>VFX</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. AdAvatar (Signature) -->
+      <div class="service-row adavatar-row animate-in" style="--delay:300ms">
+        <div class="service-row-icon" style="background:rgba(245,158,11,0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title gold-gradient-text">AdAvatar</h3>
+            <span class="service-sig-badge" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.35);color:#fcd34d;">⭐ Signature Service</span>
+          </div>
+          <p class="service-row-desc">Our signature service — a 3D animated Pixar-style avatar that talks and promotes your product or business. The future of digital advertising. Perfect for social media ads, brand promotion, and digital marketing campaigns.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check" style="background:rgba(245,158,11,0.15);color:#f59e0b;">✓</div>Pixar-Style Characters</div>
+            <div class="feature-item"><div class="feature-check" style="background:rgba(245,158,11,0.15);color:#f59e0b;">✓</div>Talking Avatar Ads</div>
+            <div class="feature-item"><div class="feature-check" style="background:rgba(245,158,11,0.15);color:#f59e0b;">✓</div>Product Promotion</div>
+            <div class="feature-item"><div class="feature-check" style="background:rgba(245,158,11,0.15);color:#f59e0b;">✓</div>Social Media Ads</div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+            <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">Get Your AdAvatar →</a>
+            <a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">✨ View Samples</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. UI/UX Design -->
+      <div class="service-row animate-in" style="--delay:360ms">
+        <div class="service-row-icon" style="background:hsl(200 80% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">UI/UX Design</h3>
+          </div>
+          <p class="service-row-desc">User-centered interface design that creates intuitive, beautiful digital experiences. We design websites and apps that users love to interact with.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Web Design</div>
+            <div class="feature-item"><div class="feature-check">✓</div>App Design</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Wireframing</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Shop / Website UI</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. CAD Design -->
+      <div class="service-row animate-in" style="--delay:420ms">
+        <div class="service-row-icon" style="background:hsl(260 80% 60% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">CAD Design &amp; 3D Modeling</h3>
+          </div>
+          <p class="service-row-desc">Precision-engineered technical drawings and 3D CAD models for any industry. From concept sketches to production-ready technical documentation.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>2D Drafting</div>
+            <div class="feature-item"><div class="feature-check">✓</div>3D CAD Modeling</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Technical Illustrations</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Product Design</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Digital Promotion -->
+      <div class="service-row animate-in" style="--delay:480ms">
+        <div class="service-row-icon" style="background:hsl(320 70% 55% / 0.12);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title">Digital Promotion Content</h3>
+          </div>
+          <p class="service-row-desc">All-round creative and digital services to promote your business or personal brand online. We craft compelling content strategies that grow your digital presence.</p>
+          <div class="service-features">
+            <div class="feature-item"><div class="feature-check">✓</div>Social Media Content</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Digital Marketing</div>
+            <div class="feature-item"><div class="feature-check">✓</div>Avatar-Style Ads</div>
+            <div class="feature-item"><div class="feature-check">✓</div>General Creative Services</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Affordable note -->
+    <div class="affordable-note animate-in">
+      💸 All services are <strong>very affordable</strong>. Contact us for a free quote tailored to your budget and needs.
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner animate-in">
+      <h2>Ready to <span class="gradient-text">Transform</span> Your Brand?</h2>
+      <p>Let's collaborate and create something extraordinary together. Your vision, our expertise.</p>
+      <a class="btn btn-primary" href="contact.html">Start Your Project →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-logo-area">
+        <div class="footer-logo">
+          <div class="logo-icon" style="width:34px;height:34px;font-size:15px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Design Studio</span></span>
+        </div>
+        <p class="footer-desc">Creative &amp; digital advertisement studio by Emmanuel Yirenkyi-Amoyaw. Affordable, professional, and modern design services.</p>
+        <div class="footer-socials">
+          <a class="social-btn" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener">📘 Facebook</a>
+          <a class="social-btn" href="https://youtube.com/@epictales-q6n" target="_blank" rel="noopener">▶ Epic Tales</a>
+          <a class="social-btn" href="https://youtube.com/@biblesparksbs" target="_blank" rel="noopener">▶ Bible Sparks</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <div class="footer-links">
+          <a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <div class="footer-links">
+          <a href="services.html">Graphic Design</a><a href="services.html">Video Editing</a><a href="services.html">Logo &amp; Branding</a><a href="services.html">3D Animation</a><a href="adavatar.html">AdAvatar</a><a href="services.html">UI/UX Design</a><a href="services.html">CAD Design</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003">055-688-1003</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Galaxy Design Studio. All rights reserved.</p>
+      <p>In collaboration with <a href="#">Nova Tech</a></p>
+    </div>
+  </div>
+</footer>
+
+<button id="scroll-top" aria-label="Scroll to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script src="db.js"></script>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+</body>
+</html>

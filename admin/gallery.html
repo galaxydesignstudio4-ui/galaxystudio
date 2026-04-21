@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery — Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<style>
+.g-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:1100px){.g-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:800px){.g-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.g-grid{grid-template-columns:repeat(2,1fr)}}
+.g-card{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--card-bg);cursor:pointer;transition:var(--transition)}
+.g-card:hover{border-color:hsl(250 80% 65% / 0.4);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.g-card:hover .g-overlay{opacity:1}
+.g-thumb{aspect-ratio:1;background:hsl(260 15% 10%);display:flex;align-items:center;justify-content:center;font-size:36px;color:hsl(260,5%,28%);position:relative;overflow:hidden}
+.g-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.g-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:0.2s}
+.g-play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,0.3)}
+.g-type{position:absolute;top:7px;left:7px;background:hsl(260 20% 5% / 0.88);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:var(--muted);backdrop-filter:blur(4px)}
+.g-link-icon{position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:5px;background:hsl(250 80% 65% / 0.8);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.g-footer{padding:8px 10px;border-top:1px solid var(--border)}
+.g-footer-title{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--fg);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.g-footer-desc{font-size:10px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:1px}
+.upload-area{border:2px dashed var(--border);border-radius:var(--radius-md);padding:32px 24px;text-align:center;cursor:pointer;transition:var(--transition);margin-bottom:12px}
+.upload-area:hover,.upload-area.drag{border-color:var(--primary);background:var(--primary-dim)}
+.upload-area-icon{font-size:40px;margin-bottom:10px;opacity:0.5}
+</style>
+</head>
+<body>
+
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <h2 class="auth-title">Admin Access</h2>
+    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
+    <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
+  </div>
+</div>
+
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span class="sidebar-logo-text">Admin Panel</span></div>
+    <button class="sidebar-toggle" id="sidebarToggle">◀</button>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="services.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span><span class="nav-label">Services</span></a>
+      <a class="nav-item" href="portfolio.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Portfolio</span></a>
+      <a class="nav-item active" href="gallery.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span><span class="nav-label">Gallery</span></a>
+      <a class="nav-item" href="testimonials.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="nav-label">Testimonials</span></a>
+      <a class="nav-item" href="about.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">About / Owner</span></a>
+      <a class="nav-item" href="team.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></span><span class="nav-label">Team Members</span></a>
+      <a class="nav-item" href="adavatar.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span class="nav-label">AdAvatar Gallery</span></a>
+      <a class="nav-item" href="notifications.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="nav-label">Notifications</span></a>
+      <a class="nav-item" href="messages.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="nav-label">Messages</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../index.html"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span><span class="nav-label">Back to Site</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+
+  <main id="mainContent">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h1 class="page-title">Gallery</h1>
+        <p class="page-sub" id="galSub"></p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost" id="addLinkBtn">🔗 Add Link</button>
+        <button class="btn btn-ghost" id="addVideoBtn">▶ Add Video</button>
+        <label class="btn btn-primary" style="cursor:pointer;">
+          📁 Upload Files
+          <input type="file" id="uploadInput" multiple accept="image/*,video/*" style="display:none;">
+        </label>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="progress-wrap" id="progWrap"><div class="progress-bar" id="progBar" style="width:0%"></div></div>
+      <div id="progLabel" style="font-size:12px;color:var(--muted);margin-bottom:10px;display:none;"></div>
+      <div class="g-grid" id="galGrid"></div>
+      <div id="galEmpty" class="empty-state" style="display:none;">
+        <div class="empty-state-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <h3>Gallery is empty</h3>
+        <p>Upload images, add videos, or paste links to build your gallery.</p>
+      </div>
+    </div>
+  </main>
+
+  <div class="bottom-tab-bar">
+    <a class="tab-item" href="index.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>Home</a>
+    <a class="tab-item" href="services.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>Services</a>
+    <a class="tab-item" href="portfolio.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>Portfolio</a>
+    <a class="tab-item active" href="gallery.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>Gallery</a>
+    <a class="tab-item" href="messages.html"><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>Messages</a>
+  </div>
+</div>
+
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+function renderGallery() {
+  const list = getData('galaxy_gallery') || [];
+  document.getElementById('galSub').textContent = `${list.length} item${list.length !== 1 ? 's' : ''} • images, videos & links`;
+  const grid  = document.getElementById('galGrid');
+  const empty = document.getElementById('galEmpty');
+  if (!list.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = list.map(item => {
+    const typeLabel = item.type === 'video' ? '▶ Video' : item.type === 'link' ? '🔗 Link' : '🖼 Image';
+    return `
+    <div class="g-card">
+      <div class="g-thumb">
+        ${item.thumb ? `<img src="${item.thumb}" alt="">` : `<span>${escHtml(item.icon||'🖼')}</span>`}
+      </div>
+      <span class="g-type">${typeLabel}</span>
+      ${item.type === 'link' ? '<span class="g-link-icon">↗</span>' : ''}
+      <div class="g-overlay">
+        ${item.type === 'video' ? '<div class="g-play">▶</div>' : ''}
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="editGal(${item.id})" style="background:hsl(260 20% 10%);">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="delGal(${item.id})">🗑️</button>
+        </div>
+      </div>
+      ${item.title ? `<div class="g-footer"><div class="g-footer-title">${escHtml(item.title)}</div>${item.desc ? `<div class="g-footer-desc">${escHtml(item.desc)}</div>` : ''}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ── Edit modal ── */
+function editGalModal(item) {
+  const ov = openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title">Edit Gallery Item</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="eType" onchange="toggleUrlField(this.value)">
+          <option value="image" ${item.type==='image'?'selected':''}>🖼 Image</option>
+          <option value="video" ${item.type==='video'?'selected':''}>▶ Video</option>
+          <option value="link" ${item.type==='link'?'selected':''}>🔗 Link</option>
+        </select>
+      </div>
+      <div class="form-group" id="urlFieldWrap" style="${item.type==='image'?'display:none':''}">
+        <label class="form-label" id="urlLabel">${item.type==='link'?'Link URL':'Video URL'}</label>
+        <input class="form-input" id="eUrl" value="${escHtml(item.url||'')}" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Thumbnail</label>
+        <input type="file" id="eThumb" accept="image/*" class="form-input" style="padding:8px;cursor:pointer;">
+        <div class="img-preview-box" id="eThumbPrev">${item.thumb?`<img src="${item.thumb}">`:'<span class="placeholder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>'}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="eTitle" value="${escHtml(item.title||'')}" placeholder="Optional title"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="eDesc" placeholder="Optional description...">${escHtml(item.desc||'')}</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save Changes</button>
+    </div>
+  </div>`);
+
+  let thumbData = item.thumb || '';
+
+  window.toggleUrlField = (type) => {
+    const wrap = ov.querySelector('#urlFieldWrap');
+    const lbl  = ov.querySelector('#urlLabel');
+    wrap.style.display = type === 'image' ? 'none' : '';
+    if (lbl) lbl.textContent = type === 'link' ? 'Link URL' : 'Video URL';
+  };
+
+  ov.querySelector('#eThumb').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); e.target.value=''; return; }
+    thumbData = await fileToBase64(file);
+    const prev = ov.querySelector('#eThumbPrev');
+    prev.innerHTML = `<img src="${thumbData}">`;
+  };
+  ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
+  ov.querySelector('#saveBtn').onclick = () => {
+    const list = getData('galaxy_gallery') || [];
+    const idx  = list.findIndex(x => x.id === item.id);
+    if (idx > -1) {
+      list[idx] = { ...item,
+        type:  ov.querySelector('#eType').value,
+        url:   ov.querySelector('#eUrl')?.value.trim() || '',
+        thumb: thumbData,
+        title: ov.querySelector('#eTitle').value.trim(),
+        desc:  ov.querySelector('#eDesc').value.trim(),
+      };
+      setData('galaxy_gallery', list);
+    }
+    closeModal(ov); renderGallery(); showToast('Item updated!');
+  };
+}
+
+/* ── Add Video modal ── */
+function addVideoModal() {
+  const ov = openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title">▶ Add Video</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Paste a YouTube, Vimeo, or direct video URL. Upload a thumbnail image to display in the gallery.</p>
+      <div class="form-group">
+        <label class="form-label">Video URL *</label>
+        <input class="form-input" id="vUrl" placeholder="https://youtube.com/watch?v=..." oninput="checkVideoBtn()">
+        <p class="form-hint">YouTube, Vimeo, or direct .mp4 link</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Thumbnail Image *</label>
+        <label class="upload-area" id="vThumbArea" style="display:block;">
+          <div class="upload-area-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Click to upload thumbnail</div>
+          <div style="font-size:12px;color:var(--muted);">Recommended: 16:9 ratio (e.g. 1280×720)</div>
+          <input type="file" id="vThumb" accept="image/*" style="display:none;" oninput="checkVideoBtn()">
+        </label>
+        <div class="img-preview-box" id="vPrev" style="display:none;"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="vTitle" placeholder="Video title (optional)"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="vDesc" placeholder="Optional description..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="addVidBtn" disabled>Add Video</button>
+    </div>
+  </div>`);
+
+  let thumbData = '';
+
+  window.checkVideoBtn = () => {
+    const url   = ov.querySelector('#vUrl').value.trim();
+    const ready = url && thumbData;
+    ov.querySelector('#addVidBtn').disabled = !ready;
+  };
+
+  ov.querySelector('#vThumbArea').onclick = () => ov.querySelector('#vThumb').click();
+  ov.querySelector('#vThumb').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); return; }
+    thumbData = await fileToBase64(file);
+    const area = ov.querySelector('#vThumbArea'); area.style.display = 'none';
+    const prev = ov.querySelector('#vPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${thumbData}">`;
+    checkVideoBtn();
+  };
+  ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
+  ov.querySelector('#addVidBtn').onclick = () => {
+    const url = ov.querySelector('#vUrl').value.trim();
+    if (!url || !thumbData) { showToast('URL and thumbnail are required','error'); return; }
+    const list = getData('galaxy_gallery') || [];
+    list.push({ id:nextId(list), type:'video', url, thumb:thumbData, title:ov.querySelector('#vTitle').value.trim(), desc:ov.querySelector('#vDesc').value.trim(), icon:'🎬' });
+    setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+    showToast('Video added to gallery!');
+  };
+}
+
+/* ── Add Link modal ── */
+function addLinkModal() {
+  const ov = openModal(`<div class="modal">
+    <div class="modal-header"><span class="modal-title">🔗 Add Link Card</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Thumbnail Image *</label>
+        <label class="upload-area" id="lThumbArea" style="display:block;">
+          <div class="upload-area-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Click to upload thumbnail</div>
+          <div style="font-size:12px;color:var(--muted);">This image appears in the gallery card</div>
+          <input type="file" id="lThumb" accept="image/*" style="display:none;">
+        </label>
+        <div class="img-preview-box" id="lPrev" style="display:none;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link URL *</label>
+        <input class="form-input" id="lUrl" placeholder="https://example.com">
+      </div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="lTitle" placeholder="Link title (optional)"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="lDesc" placeholder="Optional description..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="addLinkCardBtn" disabled>Add Link Card</button>
+    </div>
+  </div>`);
+
+  let thumbData = '';
+  const checkBtn = () => {
+    const url = ov.querySelector('#lUrl').value.trim();
+    ov.querySelector('#addLinkCardBtn').disabled = !(url && thumbData);
+  };
+
+  ov.querySelector('#lThumbArea').onclick = () => ov.querySelector('#lThumb').click();
+  ov.querySelector('#lUrl').oninput = checkBtn;
+  ov.querySelector('#lThumb').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); return; }
+    thumbData = await fileToBase64(file);
+    ov.querySelector('#lThumbArea').style.display = 'none';
+    const prev = ov.querySelector('#lPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${thumbData}">`;
+    checkBtn();
+  };
+  ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
+  ov.querySelector('#addLinkCardBtn').onclick = () => {
+    const url = ov.querySelector('#lUrl').value.trim();
+    if (!url || !thumbData) { showToast('URL and thumbnail are required','error'); return; }
+    const list = getData('galaxy_gallery') || [];
+    list.push({ id:nextId(list), type:'link', url, thumb:thumbData, title:ov.querySelector('#lTitle').value.trim(), desc:ov.querySelector('#lDesc').value.trim(), icon:'🔗' });
+    setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+    showToast('Link card added!');
+  };
+}
+
+/* ── File upload ── */
+async function handleFiles(files) {
+  const arr = Array.from(files);
+  const oversized = arr.filter(f => f.size > MAX_SIZE);
+  if (oversized.length) {
+    showToast(`${oversized.length} file(s) exceed 50MB limit. Compress or use "Add Video" with a URL instead.`, 'error');
+    const ok = arr.filter(f => f.size <= MAX_SIZE);
+    if (!ok.length) return;
+    processFiles(ok);
+  } else {
+    processFiles(arr);
+  }
+}
+
+async function processFiles(arr) {
+  if (!arr.length) return;
+  const prog = document.getElementById('progWrap');
+  const bar  = document.getElementById('progBar');
+  const lbl  = document.getElementById('progLabel');
+  prog.style.display = ''; lbl.style.display = '';
+
+  const list = getData('galaxy_gallery') || [];
+  for (let i = 0; i < arr.length; i++) {
+    const f   = arr[i];
+    const pct = Math.round(((i + 1) / arr.length) * 100);
+    bar.style.width = pct + '%';
+    lbl.textContent = `Uploading ${i + 1} / ${arr.length} files...`;
+    const b64 = await fileToBase64(f);
+    list.push({
+      id:    nextId(list),
+      type:  f.type.startsWith('video') ? 'video' : 'image',
+      thumb: b64,
+      title: f.name.replace(/\.[^/.]+$/, ''),
+      desc:  '',
+      icon:  f.type.startsWith('video') ? '🎬' : '🖼️',
+    });
+  }
+  setData('galaxy_gallery', list);
+  renderGallery();
+  setTimeout(() => { prog.style.display = 'none'; lbl.style.display = 'none'; bar.style.width = '0%'; }, 800);
+  showToast(`${arr.length} file(s) uploaded!`);
+}
+
+window.editGal = id => {
+  const item = (getData('galaxy_gallery')||[]).find(x => x.id === id);
+  if (item) editGalModal(item);
+};
+window.delGal = id => confirmDelete('Delete this gallery item?', () => {
+  setData('galaxy_gallery', (getData('galaxy_gallery')||[]).filter(x => x.id !== id));
+  renderGallery(); showToast('Item deleted.', 'error');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderGallery();
+  document.getElementById('addVideoBtn').onclick = addVideoModal;
+  document.getElementById('addLinkBtn').onclick  = addLinkModal;
+
+  const input = document.getElementById('uploadInput');
+  input.onchange = e => { handleFiles(e.target.files); e.target.value = ''; };
+
+  // Drag & drop on page
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (files?.length) handleFiles(files);
+  });
+});
+</script>
+</body>
+</html>
