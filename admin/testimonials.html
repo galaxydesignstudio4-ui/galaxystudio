@@ -61,6 +61,15 @@
 <script src="../icons.js"></script>
 <script src="admin.js"></script>
 <script>
+async function syncTestimonialsFromCloud(){
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_testimonials');
+  } catch (error) {
+    console.warn('[Testimonials Admin] Cloud sync failed:', error.message);
+  }
+}
+
 function renderTestimonials() {
   const list = getData('galaxy_testimonials')||[];
   document.getElementById('tSub').textContent = `${list.length} testimonial${list.length!==1?'s':''}`;
@@ -114,23 +123,42 @@ function openTestModal(t=null){
     </div>
   </div>`);
   ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
-  ov.querySelector('#saveBtn').onclick=()=>{
+  ov.querySelector('#saveBtn').onclick=async ()=>{
+    const saveBtn = ov.querySelector('#saveBtn');
+    const originalLabel = saveBtn.textContent;
     const name=ov.querySelector('#fName').value.trim();
     const quote=ov.querySelector('#fQuote').value.trim();
     if(!name||!quote){showToast('Name and quote are required','error');return;}
-    const list=getData('galaxy_testimonials')||[];
-    const obj={id:isEdit?t.id:nextId(list),name,company:ov.querySelector('#fComp').value.trim(),quote,rating:parseInt(ov.querySelector('#fRating').value)||5,avatarUrl:ov.querySelector('#fAvatar').value.trim()};
-    if(isEdit){const i=list.findIndex(x=>x.id===t.id);if(i>-1)list[i]=obj;}else list.push(obj);
-    setData('galaxy_testimonials',list);closeModal(ov);renderTestimonials();
-    showToast(isEdit?'Testimonial updated!':'Testimonial added!');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    try {
+      const list=getData('galaxy_testimonials')||[];
+      const obj={id:isEdit?t.id:nextId(list),name,company:ov.querySelector('#fComp').value.trim(),quote,rating:parseInt(ov.querySelector('#fRating').value)||5,avatarUrl:ov.querySelector('#fAvatar').value.trim()};
+      if(isEdit){const i=list.findIndex(x=>x.id===t.id);if(i>-1)list[i]=obj;}else list.push(obj);
+      setData('galaxy_testimonials',list);closeModal(ov);renderTestimonials();
+      showToast(isEdit?'Testimonial updated!':'Testimonial added!');
+    } catch (error) {
+      showToast(`Could not save testimonial: ${error?.message || 'Save failed.'}`,'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalLabel;
+    }
   };
 }
 window.editTest=id=>openTestModal((getData('galaxy_testimonials')||[]).find(x=>x.id===id));
-window.delTest=id=>confirmDelete('Delete this testimonial?',()=>{
-  setData('galaxy_testimonials',(getData('galaxy_testimonials')||[]).filter(x=>x.id!==id));
-  renderTestimonials();showToast('Deleted.','error');
+window.delTest=id=>confirmDelete('Delete this testimonial?',async ()=>{
+  try {
+    setData('galaxy_testimonials',(getData('galaxy_testimonials')||[]).filter(x=>x.id!==id));
+    renderTestimonials();showToast('Deleted.','error');
+  } catch (error) {
+    showToast(`Could not delete testimonial: ${error?.message || 'Delete failed.'}`,'error');
+  }
 });
-document.addEventListener('DOMContentLoaded',()=>{renderTestimonials();document.getElementById('addTestBtn').onclick=()=>openTestModal();});
+document.addEventListener('DOMContentLoaded',async ()=>{
+  await syncTestimonialsFromCloud();
+  renderTestimonials();
+  document.getElementById('addTestBtn').onclick=()=>openTestModal();
+});
 </script>
 </body>
 </html>

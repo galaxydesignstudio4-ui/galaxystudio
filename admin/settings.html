@@ -14,9 +14,10 @@
 .sec-save:hover{filter:brightness(1.15);}
 .sec-save:disabled{opacity:.5;cursor:not-allowed;}
 /* Logo crop */
-.crop-container{position:relative;width:100%;background:hsl(260 15% 6%);border-radius:var(--radius);overflow:hidden;display:none;cursor:crosshair;user-select:none;}
+.crop-container{position:relative;width:100%;background:hsl(260 15% 6%);border-radius:var(--radius);overflow:hidden;display:none;cursor:crosshair;user-select:none;border:1px solid hsl(250 80% 65% / 0.25);box-shadow:0 0 0 1px hsl(250 80% 65% / 0.12) inset;}
 .crop-container canvas{display:block;width:100%;}
-.crop-box{position:absolute;border:2px solid var(--primary);box-shadow:0 0 0 9999px rgba(0,0,0,0.55);pointer-events:none;}
+.crop-box{position:absolute;border:2px solid var(--primary);box-shadow:0 0 0 9999px rgba(0,0,0,0.55);pointer-events:none;border-radius:8px;}
+.crop-tip{font-size:12px;color:var(--muted);margin-top:8px;}
 /* QR */
 .qr-card{background:var(--card-bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;text-align:center;max-width:200px;}
 .qr-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:12px;}
@@ -110,11 +111,12 @@
             <!-- Crop tool -->
             <div id="cropArea" style="display:none;">
               <div class="divider"></div>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Drag to position the crop area, then click <strong style="color:var(--fg);">Save Crop</strong>.</p>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">Drag on the image to draw crop. Drag inside the box to reposition it, then click <strong style="color:var(--fg);">Save Crop</strong>.</p>
               <div class="crop-container" id="cropContainer">
                 <canvas id="cropCanvas"></canvas>
                 <div class="crop-box" id="cropBox"></div>
               </div>
+              <div class="crop-tip">Tip: Keep the logo centered for the best navbar look.</div>
               <div style="display:flex;gap:10px;margin-top:12px;">
                 <button class="btn btn-primary" id="saveCropBtn">✓ Save Crop</button>
                 <button class="btn btn-ghost" id="cancelCropBtn">Cancel</button>
@@ -189,9 +191,20 @@
 <script src="../icons.js"></script>
 <script src="admin.js"></script>
 <script>
+const SETTINGS_KEY = 'galaxy_settings';
+const LOGO_BUCKET = 'logos';
+
+async function syncSettingsFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud(SETTINGS_KEY);
+  } catch (error) {
+    console.warn('[Settings Admin] Cloud sync failed:', error.message);
+  }
+}
 /* ── Load settings ── */
 function loadSettings() {
-  const s = getData('galaxy_settings') || {};
+  const s = getData(SETTINGS_KEY) || {};
   const D = DEFAULTS.galaxy_settings;
   document.getElementById('sName').value     = s.studioName || D.studioName;
   document.getElementById('sTagline').value  = s.tagline    || D.tagline;
@@ -206,13 +219,14 @@ function loadSettings() {
     const p = document.getElementById('logoPreview');
     p.innerHTML = `<img src="${s.logo}" style="width:100%;height:100%;object-fit:contain;">`;
   }
+  document.getElementById('logoPreview')._storagePath = s.logoStoragePath || '';
   drawQR(s.qrUrl || '');
 }
 
 function patchSettings(patch) {
-  const s = getData('galaxy_settings') || {};
+  const s = getData(SETTINGS_KEY) || {};
   Object.assign(s, patch);
-  setData('galaxy_settings', s);
+  setData(SETTINGS_KEY, s);
 }
 
 /* ── Save sections ── */
@@ -260,9 +274,10 @@ window.updatePassword = () => {
 };
 
 /* ── Logo crop tool ── */
-let cropImg = null, cropSrc = '', cropDrag = false, cropStart = {x:0,y:0}, cropRect = {x:0,y:0,w:0,h:0};
+let cropImg = null, cropSrc = '', cropDrag = false, cropMode = 'draw', cropStart = {x:0,y:0}, cropRect = {x:0,y:0,w:0,h:0}, cropMoveOffset = {x:0,y:0};
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await syncSettingsFromCloud();
   loadSettings();
 
   document.getElementById('logoFile').onchange = async e => {
@@ -298,27 +313,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const box = document.getElementById('cropBox');
 
   container.addEventListener('mousedown', e => {
-    cropDrag = true;
     const r = container.getBoundingClientRect();
-    cropStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const insideBox = x >= cropRect.x && x <= cropRect.x + cropRect.w && y >= cropRect.y && y <= cropRect.y + cropRect.h;
+    cropDrag = true;
+    if (insideBox) {
+      cropMode = 'move';
+      cropMoveOffset = { x: x - cropRect.x, y: y - cropRect.y };
+    } else {
+      cropMode = 'draw';
+      cropStart = { x, y };
+    }
   });
   document.addEventListener('mousemove', e => {
     if (!cropDrag || !cropImg) return;
     const r = container.getBoundingClientRect();
-    const cx = e.clientX - r.left;
-    const cy = e.clientY - r.top;
-    const side = Math.min(Math.abs(cx - cropStart.x), Math.abs(cy - cropStart.y));
-    cropRect = {
-      x: Math.max(0, Math.min(cropStart.x, cx)),
-      y: Math.max(0, Math.min(cropStart.y, cy)),
-      w: side, h: side
-    };
+    const cx = Math.max(0, Math.min(e.clientX - r.left, container.offsetWidth));
+    const cy = Math.max(0, Math.min(e.clientY - r.top, container.offsetHeight));
+    if (cropMode === 'move') {
+      const maxX = Math.max(0, container.offsetWidth - cropRect.w);
+      const maxY = Math.max(0, container.offsetHeight - cropRect.h);
+      cropRect.x = Math.max(0, Math.min(cx - cropMoveOffset.x, maxX));
+      cropRect.y = Math.max(0, Math.min(cy - cropMoveOffset.y, maxY));
+    } else {
+      const side = Math.max(40, Math.min(Math.abs(cx - cropStart.x), Math.abs(cy - cropStart.y)));
+      const clampedSide = Math.min(side, container.offsetWidth, container.offsetHeight);
+      cropRect = {
+        x: Math.max(0, Math.min(cropStart.x, cx)),
+        y: Math.max(0, Math.min(cropStart.y, cy)),
+        w: clampedSide,
+        h: clampedSide
+      };
+      const maxX = Math.max(0, container.offsetWidth - cropRect.w);
+      const maxY = Math.max(0, container.offsetHeight - cropRect.h);
+      cropRect.x = Math.max(0, Math.min(cropRect.x, maxX));
+      cropRect.y = Math.max(0, Math.min(cropRect.y, maxY));
+    }
     updateCropBox(container, container.offsetWidth, container.offsetHeight);
   });
-  document.addEventListener('mouseup', () => { cropDrag = false; });
+  document.addEventListener('mouseup', () => { cropDrag = false; cropMode = 'draw'; });
 
-  document.getElementById('saveCropBtn').onclick = () => {
+  document.getElementById('saveCropBtn').onclick = async () => {
     if (!cropImg) return;
+    const saveCropBtn = document.getElementById('saveCropBtn');
+    const originalLabel = saveCropBtn.textContent;
+    saveCropBtn.disabled = true;
+    saveCropBtn.textContent = 'Saving...';
     const canvas = document.getElementById('cropCanvas');
     const scale  = cropImg.naturalWidth / canvas.width;
     const out = document.createElement('canvas');
@@ -328,12 +369,33 @@ document.addEventListener('DOMContentLoaded', () => {
       cropRect.x * scale, cropRect.y * scale, cropRect.w * scale, cropRect.h * scale,
       0, 0, 200, 200
     );
-    const logo = out.toDataURL('image/png');
-    const prev = document.getElementById('logoPreview');
-    prev.innerHTML = `<img src="${logo}" style="width:100%;height:100%;object-fit:contain;">`;
-    patchSettings({ logo });
-    document.getElementById('cropArea').style.display = 'none';
-    showToast('Logo saved!');
+    try {
+      let logo = out.toDataURL('image/png');
+      const current = getData(SETTINGS_KEY) || {};
+      let logoStoragePath = current.logoStoragePath || document.getElementById('logoPreview')._storagePath || '';
+      const blob = await new Promise(resolve => out.toBlob(resolve, 'image/png'));
+      if (blob) {
+        const file = new File([blob], 'galaxy-logo.png', { type: 'image/png' });
+        const uploaded = await uploadAsset(file, LOGO_BUCKET);
+        if (logoStoragePath && logoStoragePath !== uploaded.path) {
+          await removeAsset(LOGO_BUCKET, logoStoragePath);
+        }
+        logo = uploaded.url;
+        logoStoragePath = uploaded.path || '';
+      }
+      const prev = document.getElementById('logoPreview');
+      prev.innerHTML = `<img src="${logo}" style="width:100%;height:100%;object-fit:contain;">`;
+      prev._storagePath = logoStoragePath;
+      patchSettings({ logo, logoStoragePath });
+      document.getElementById('cropArea').style.display = 'none';
+      showToast('Logo saved!');
+    } catch (error) {
+      const message = error?.message || 'Upload/write rejected by Supabase.';
+      showToast(`Could not save logo: ${message}`, 'error');
+    } finally {
+      saveCropBtn.disabled = false;
+      saveCropBtn.textContent = originalLabel;
+    }
   };
   document.getElementById('cancelCropBtn').onclick = () => {
     document.getElementById('cropArea').style.display = 'none';

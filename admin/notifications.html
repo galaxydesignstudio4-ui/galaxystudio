@@ -62,6 +62,16 @@
 <script src="admin.js"></script>
 <script>
 const TYPE_COLOR={Info:'badge-blue','New Service':'badge-green','New Gallery':'badge-purple',Promotion:'badge-gold',Update:'badge-cyan'};
+
+async function syncNotificationsFromCloud(){
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_notifications');
+  } catch (error) {
+    console.warn('[Notifications Admin] Cloud sync failed:', error.message);
+  }
+}
+
 function renderNotifs(){
   const list=getData('galaxy_notifications')||[];
   document.getElementById('nSub').textContent=`${list.length} notification${list.length!==1?'s':''}`;
@@ -112,24 +122,56 @@ function openNotifModal(n=null){
     </div>
   </div>`);
   ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
-  ov.querySelector('#saveBtn').onclick=()=>{
+  ov.querySelector('#saveBtn').onclick=async ()=>{
+    const saveBtn = ov.querySelector('#saveBtn');
+    const originalLabel = saveBtn.textContent;
     const title=ov.querySelector('#nTitle').value.trim();
     const msg=ov.querySelector('#nMsg').value.trim();
     if(!title||!msg){showToast('Title and message are required','error');return;}
-    const list=getData('galaxy_notifications')||[];
-    const obj={id:isEdit?n.id:nextId(list),title,message:msg,type:ov.querySelector('#nType').value,active:ov.querySelector('#nActive').checked};
-    if(isEdit){const i=list.findIndex(x=>x.id===n.id);if(i>-1)list[i]=obj;}else list.push(obj);
-    setData('galaxy_notifications',list);closeModal(ov);renderNotifs();
-    showToast(isEdit?'Notification updated!':'Notification added!');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    try {
+      const list=getData('galaxy_notifications')||[];
+      const obj={id:isEdit?n.id:nextId(list),title,message:msg,type:ov.querySelector('#nType').value,active:ov.querySelector('#nActive').checked};
+      if(isEdit){const i=list.findIndex(x=>x.id===n.id);if(i>-1)list[i]=obj;}else list.push(obj);
+      setData('galaxy_notifications',list);closeModal(ov);renderNotifs();
+      showToast(isEdit?'Notification updated!':'Notification added!');
+    } catch (error) {
+      showToast(`Could not save notification: ${error?.message || 'Save failed.'}`,'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalLabel;
+    }
   };
 }
-window.toggleNotif=(id,active)=>{const list=getData('galaxy_notifications')||[];const i=list.findIndex(x=>x.id===id);if(i>-1){list[i].active=active;setData('galaxy_notifications',list);renderNotifs();}};
+window.toggleNotif=async (id,active)=>{
+  try {
+    const list=getData('galaxy_notifications')||[];
+    const i=list.findIndex(x=>x.id===id);
+    if(i>-1){
+      list[i].active=active;
+      setData('galaxy_notifications',list);
+      renderNotifs();
+    }
+  } catch (error) {
+    showToast(`Could not update status: ${error?.message || 'Save failed.'}`,'error');
+    renderNotifs();
+  }
+};
 window.editNotif=id=>openNotifModal((getData('galaxy_notifications')||[]).find(x=>x.id===id));
-window.delNotif=id=>confirmDelete('Delete this notification?',()=>{
-  setData('galaxy_notifications',(getData('galaxy_notifications')||[]).filter(x=>x.id!==id));
-  renderNotifs();showToast('Deleted.','error');
+window.delNotif=id=>confirmDelete('Delete this notification?',async ()=>{
+  try {
+    setData('galaxy_notifications',(getData('galaxy_notifications')||[]).filter(x=>x.id!==id));
+    renderNotifs();showToast('Deleted.','error');
+  } catch (error) {
+    showToast(`Could not delete notification: ${error?.message || 'Delete failed.'}`,'error');
+  }
 });
-document.addEventListener('DOMContentLoaded',()=>{renderNotifs();document.getElementById('addNotifBtn').onclick=()=>openNotifModal();});
+document.addEventListener('DOMContentLoaded',async ()=>{
+  await syncNotificationsFromCloud();
+  renderNotifs();
+  document.getElementById('addNotifBtn').onclick=()=>openNotifModal();
+});
 </script>
 </body>
 </html>

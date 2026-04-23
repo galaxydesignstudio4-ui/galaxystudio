@@ -2,8 +2,9 @@
    GALAXY DESIGN STUDIO — Admin JS v2
    ═══════════════════════════════════════════════════ */
 
-const DEFAULTS = {
-  galaxy_admin_password: 'galaxy2024',
+window.DEFAULTS = {
+  ...(window.DEFAULTS || {}),
+  galaxy_admin_password: 'admin123',
   galaxy_services: [
     {id:1,icon:'🎨',title:'Graphic Design',desc:'Stunning visuals that communicate your brand story with impact and clarity.',order:1},
     {id:2,icon:'📣',title:'Advertisement Design',desc:'Creative advertisement designs for digital and print that grab attention.',order:2},
@@ -15,39 +16,18 @@ const DEFAULTS = {
     {id:8,icon:'✏️',title:'CAD Design & 3D Modeling',desc:'Precision-engineered technical drawings and 3D CAD models.',order:8},
     {id:9,icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,title:'Digital Promotion Content',desc:'All-round creative and digital services to promote your business.',order:9},
   ],
-  galaxy_portfolio: [
-    {id:1,title:'AdAvatar — Brand Promo',category:'adavatar',client:'Premium Client',desc:'3D Pixar-style avatar ad for social media.',premium:true,featured:true,thumb:''},
-    {id:2,title:'Modern Logo Suite',category:'logos',client:'StartSmart Ghana',desc:'Complete logo package with multiple variations.',premium:false,featured:true,thumb:''},
-    {id:3,title:'Product 3D Visualization',category:'3d',client:'Kwame Industries',desc:'Photorealistic 3D product renders.',premium:false,featured:false,thumb:''},
-    {id:4,title:'E-Commerce UI Redesign',category:'uiux',client:'Serwaa Online Store',desc:'Full UI/UX overhaul.',premium:true,featured:true,thumb:''},
-  ],
-  galaxy_gallery: [
-    {id:1,type:'image',title:'Vibrant Poster Design',desc:'Music festival poster.',thumb:'',icon:'🎨'},
-    {id:2,type:'video',title:'TV Commercial Edit',desc:'30-second brand commercial.',url:'https://youtube.com/watch?v=example',thumb:'',icon:'🎬'},
-    {id:3,type:'image',title:'Minimalist Logo Collection',desc:'Tech startup logos.',thumb:'',icon:'🏷️'},
-    {id:4,type:'link',title:'UI Design Showcase',desc:'Live redesign project.',url:'https://example.com',thumb:'',icon:'🖥️'},
-  ],
-  galaxy_adavatar: [
-    {id:1,type:'image',title:'Avatar — Skincare Brand',desc:'Pixar-style character.',thumb:'',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>`},
-    {id:2,type:'video',title:'Product Launch Ad',desc:'Talking avatar demo.',url:'https://youtube.com/watch?v=example3',thumb:'',icon:'🎬'},
-    {id:3,type:'image',title:'Fashion Brand Avatar',desc:'Branded character.',thumb:'',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`},
-  ],
-  galaxy_testimonials: [
-    {id:1,name:'Kofi Asante',company:'Asante Tech Solutions',quote:'Galaxy Design Studio transformed our brand completely. Emmanuel is a creative genius!',rating:5,avatarUrl:''},
-    {id:2,name:'Ama Mensah',company:'StartSmart Ghana',quote:'The AdAvatar service is incredible. Our engagement went up 300%!',rating:5,avatarUrl:''},
-    {id:3,name:'Ernest Kwame',company:'Kwame Industries',quote:'The 3D animation was breathtaking. Top-tier work.',rating:5,avatarUrl:''},
-  ],
+  galaxy_portfolio: [],
+  galaxy_gallery: [],
+  galaxy_adavatar: [],
+  galaxy_testimonials: [],
   galaxy_team: [],
   galaxy_messages: [],
-  galaxy_notifications: [
-    {id:1,title:'New AdAvatar Service',message:'We now offer Pixar-style 3D avatar ads for your brand!',type:'New Service',active:true},
-    {id:2,title:'Affordable Pricing',message:'All services are very affordable. Contact us for a free quote!',type:'Promotion',active:true},
-  ],
+  galaxy_notifications: [],
   galaxy_settings: {
     studioName:'Galaxy Design Studio',tagline:'Creative & Digital Advertisement Studio',
     email:'galaxydesignstudio4@gmail.com',phone:'055-688-1003',
     location:'Tema, Accra, Ghana',facebook:'https://web.facebook.com/profile.php?id=61562678010128',
-    whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'',
+    whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'logo.png',
   },
   galaxy_about: {
     name:'Emmanuel Yirenkyi-Amoyaw',
@@ -57,6 +37,7 @@ const DEFAULTS = {
     youtube1:'https://youtube.com/@epictales-q6n',youtube2:'https://youtube.com/@biblesparksbs',avatar:'',
   },
 };
+const DEFAULTS = window.DEFAULTS;
 
 /* ─── Storage ─── */
 function getData(key) {
@@ -78,6 +59,38 @@ function initDefaults() {
   Object.entries(DEFAULTS).forEach(([k,v]) => {
     if(localStorage.getItem(k)===null) localStorage.setItem(k,JSON.stringify(v));
   });
+  if (localStorage.getItem('galaxy_admin_password') !== null) {
+    try {
+      const current = JSON.parse(localStorage.getItem('galaxy_admin_password'));
+      if (current === 'galaxy2024') localStorage.setItem('galaxy_admin_password', JSON.stringify('admin123'));
+    } catch {}
+  }
+}
+
+if (typeof window.__GALAXY_GET_DATA__ === 'function') {
+  getData = window.getData = window.__GALAXY_GET_DATA__;
+}
+if (typeof window.__GALAXY_SET_DATA__ === 'function') {
+  setData = window.setData = window.__GALAXY_SET_DATA__;
+}
+if (typeof window.__GALAXY_NEXT_ID__ === 'function') {
+  nextId = window.nextId = window.__GALAXY_NEXT_ID__;
+}
+if (typeof window.__GALAXY_INIT_DEFAULTS__ === 'function') {
+  initDefaults = window.initDefaults = window.__GALAXY_INIT_DEFAULTS__;
+}
+
+async function uploadAsset(file, bucket) {
+  if (typeof window.uploadMedia === 'function') {
+    return window.uploadMedia(file, bucket);
+  }
+  return { url: await fileToBase64(file), path: '' };
+}
+
+async function removeAsset(bucket, path) {
+  if (typeof window.deleteStoredMedia === 'function' && path) {
+    await window.deleteStoredMedia(bucket, path);
+  }
 }
 
 /* ─── Auth ─── */

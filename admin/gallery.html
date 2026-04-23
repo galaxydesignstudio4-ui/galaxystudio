@@ -18,10 +18,12 @@
 .g-card:hover .g-overlay{opacity:1}
 .g-thumb{aspect-ratio:1;background:hsl(260 15% 10%);display:flex;align-items:center;justify-content:center;font-size:36px;color:hsl(260,5%,28%);position:relative;overflow:hidden}
 .g-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.g-thumb video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .g-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:0.2s}
 .g-play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid rgba(255,255,255,0.3)}
 .g-type{position:absolute;top:7px;left:7px;background:hsl(260 20% 5% / 0.88);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:var(--muted);backdrop-filter:blur(4px)}
 .g-link-icon{position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:5px;background:hsl(250 80% 65% / 0.8);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.g-select{position:absolute;top:8px;right:8px;z-index:3;width:18px;height:18px;accent-color:hsl(250 80% 65%)}
 .g-footer{padding:8px 10px;border-top:1px solid var(--border)}
 .g-footer-title{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--fg);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .g-footer-desc{font-size:10px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:1px}
@@ -73,6 +75,14 @@
         <p class="page-sub" id="galSub"></p>
       </div>
       <div class="page-actions">
+        <select class="form-select" id="galFilter" style="max-width:160px;">
+          <option value="all">All Media</option>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+          <option value="link">Links</option>
+        </select>
+        <button class="btn btn-ghost" id="galSelectAllBtn">Select All</button>
+        <button class="btn btn-danger" id="galDeleteSelectedBtn" disabled>Delete Selected (0)</button>
         <button class="btn btn-ghost" id="addLinkBtn">🔗 Add Link</button>
         <button class="btn btn-ghost" id="addVideoBtn">▶ Add Video</button>
         <label class="btn btn-primary" style="cursor:pointer;">
@@ -107,12 +117,56 @@
 <script src="admin.js"></script>
 <script>
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+const GALLERY_BUCKET = 'gallery';
+let selectedGalleryIds = new Set();
+let galleryFilter = 'all';
+
+function stripExt(name='') {
+  return name.replace(/\.[^/.]+$/, '');
+}
+
+function isDirectVideoUrl(url='') {
+  return /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(url);
+}
+
+function getGalleryPreview(item) {
+  if (item.thumb) return `<img src="${item.thumb}" alt="">`;
+  if (item.type === 'video' && item.url && isDirectVideoUrl(item.url)) {
+    return `<video src="${item.url}" muted playsinline preload="metadata"></video>`;
+  }
+  return `<span>${escHtml(item.icon||'🖼️')}</span>`;
+}
+
+async function syncGalleryFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_gallery');
+  } catch (error) {
+    console.warn('[Gallery Admin] Cloud sync failed:', error.message);
+  }
+}
+
+async function deleteGalleryAssets(item) {
+  const paths = [...new Set([item?.storagePath, item?.thumbStoragePath].filter(Boolean))];
+  for (const path of paths) {
+    await removeAsset(GALLERY_BUCKET, path);
+  }
+}
 
 function renderGallery() {
-  const list = getData('galaxy_gallery') || [];
+  const all = getData('galaxy_gallery') || [];
+  const list = galleryFilter === 'all' ? all : all.filter((item) => (item.type || 'image') === galleryFilter);
   document.getElementById('galSub').textContent = `${list.length} item${list.length !== 1 ? 's' : ''} • images, videos & links`;
   const grid  = document.getElementById('galGrid');
   const empty = document.getElementById('galEmpty');
+  const deleteBtn = document.getElementById('galDeleteSelectedBtn');
+  const allVisibleSelected = list.length > 0 && list.every((item) => selectedGalleryIds.has(item.id));
+  const selectAllBtn = document.getElementById('galSelectAllBtn');
+  if (selectAllBtn) selectAllBtn.textContent = allVisibleSelected ? 'Unselect All' : 'Select All';
+  if (deleteBtn) {
+    deleteBtn.disabled = selectedGalleryIds.size === 0;
+    deleteBtn.textContent = `Delete Selected (${selectedGalleryIds.size})`;
+  }
   if (!list.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
 
@@ -121,10 +175,11 @@ function renderGallery() {
     return `
     <div class="g-card">
       <div class="g-thumb">
-        ${item.thumb ? `<img src="${item.thumb}" alt="">` : `<span>${escHtml(item.icon||'🖼')}</span>`}
+        ${getGalleryPreview(item)}
       </div>
       <span class="g-type">${typeLabel}</span>
-      ${item.type === 'link' ? '<span class="g-link-icon">↗</span>' : ''}
+      <input class="g-select" type="checkbox" ${selectedGalleryIds.has(item.id) ? 'checked' : ''} onchange="toggleGalSelection(${item.id}, this.checked)" onclick="event.stopPropagation()">
+      ${item.type === 'link' ? '<span class="g-link-icon" style="right:30px;">↗</span>' : ''}
       <div class="g-overlay">
         ${item.type === 'video' ? '<div class="g-play">▶</div>' : ''}
         <div style="display:flex;gap:6px;">
@@ -144,7 +199,7 @@ function editGalModal(item) {
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Type</label>
-        <select class="form-select" id="eType" onchange="toggleUrlField(this.value)">
+        <select class="form-select" id="eType">
           <option value="image" ${item.type==='image'?'selected':''}>🖼 Image</option>
           <option value="video" ${item.type==='video'?'selected':''}>▶ Video</option>
           <option value="link" ${item.type==='link'?'selected':''}>🔗 Link</option>
@@ -154,7 +209,11 @@ function editGalModal(item) {
         <label class="form-label" id="urlLabel">${item.type==='link'?'Link URL':'Video URL'}</label>
         <input class="form-input" id="eUrl" value="${escHtml(item.url||'')}" placeholder="https://...">
       </div>
-      <div class="form-group">
+      <div class="form-group" id="mediaFieldWrap" style="${item.type==='link'?'display:none':''}">
+        <label class="form-label" id="mediaLabel">${item.type==='video'?'Replace Video File':'Replace Image File'}</label>
+        <input type="file" id="eMedia" accept="${item.type==='video'?'video/*':'image/*'}" class="form-input" style="padding:8px;cursor:pointer;">
+      </div>
+      <div class="form-group" id="thumbFieldWrap" style="${item.type==='image'?'display:none':''}">
         <label class="form-label">Thumbnail</label>
         <input type="file" id="eThumb" accept="image/*" class="form-input" style="padding:8px;cursor:pointer;">
         <div class="img-preview-box" id="eThumbPrev">${item.thumb?`<img src="${item.thumb}">`:'<span class="placeholder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>'}</div>
@@ -168,37 +227,146 @@ function editGalModal(item) {
     </div>
   </div>`);
 
-  let thumbData = item.thumb || '';
+  let mediaFile = null;
+  let thumbFile = null;
+  let thumbPreview = item.thumb || '';
+  let mediaPreview = item.thumb || item.url || '';
 
-  window.toggleUrlField = (type) => {
+  const syncFields = (type) => {
     const wrap = ov.querySelector('#urlFieldWrap');
     const lbl  = ov.querySelector('#urlLabel');
+    const mediaWrap = ov.querySelector('#mediaFieldWrap');
+    const mediaInput = ov.querySelector('#eMedia');
+    const mediaLabel = ov.querySelector('#mediaLabel');
+    const thumbWrap = ov.querySelector('#thumbFieldWrap');
     wrap.style.display = type === 'image' ? 'none' : '';
+    mediaWrap.style.display = type === 'link' ? 'none' : '';
+    thumbWrap.style.display = type === 'image' ? 'none' : '';
     if (lbl) lbl.textContent = type === 'link' ? 'Link URL' : 'Video URL';
+    if (mediaLabel) mediaLabel.textContent = type === 'video' ? 'Replace Video File' : 'Replace Image File';
+    if (mediaInput) mediaInput.accept = type === 'video' ? 'video/*' : 'image/*';
   };
 
-  ov.querySelector('#eThumb').onchange = async e => {
+  ov.querySelector('#eType').onchange = e => syncFields(e.target.value);
+  syncFields(item.type);
+
+  ov.querySelector('#eMedia').onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); e.target.value=''; return; }
-    thumbData = await fileToBase64(file);
+    mediaFile = file;
+    mediaPreview = URL.createObjectURL(file);
+    if (ov.querySelector('#eType').value === 'image') {
+      const prev = ov.querySelector('#eThumbPrev');
+      prev.innerHTML = `<img src="${mediaPreview}">`;
+    }
+  };
+
+  ov.querySelector('#eThumb').onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); e.target.value=''; return; }
+    thumbFile = file;
+    thumbPreview = URL.createObjectURL(file);
     const prev = ov.querySelector('#eThumbPrev');
-    prev.innerHTML = `<img src="${thumbData}">`;
+    prev.innerHTML = `<img src="${thumbPreview}">`;
   };
   ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
-  ov.querySelector('#saveBtn').onclick = () => {
-    const list = getData('galaxy_gallery') || [];
-    const idx  = list.findIndex(x => x.id === item.id);
-    if (idx > -1) {
-      list[idx] = { ...item,
-        type:  ov.querySelector('#eType').value,
-        url:   ov.querySelector('#eUrl')?.value.trim() || '',
-        thumb: thumbData,
-        title: ov.querySelector('#eTitle').value.trim(),
-        desc:  ov.querySelector('#eDesc').value.trim(),
-      };
-      setData('galaxy_gallery', list);
+  ov.querySelector('#saveBtn').onclick = async () => {
+    const saveBtn = ov.querySelector('#saveBtn');
+    const originalLabel = saveBtn.textContent;
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    try {
+      const list = getData('galaxy_gallery') || [];
+      const idx  = list.findIndex(x => x.id === item.id);
+      const type = ov.querySelector('#eType').value;
+      const urlField = ov.querySelector('#eUrl')?.value.trim() || '';
+
+    let nextUrl = item.url || '';
+    let nextThumb = item.thumb || '';
+    let nextStoragePath = item.storagePath || '';
+    let nextThumbStoragePath = item.thumbStoragePath || '';
+
+    if (type !== item.type && item.type === 'image') {
+      nextThumb = item.thumb || '';
+      nextThumbStoragePath = item.storagePath || item.thumbStoragePath || '';
+      nextUrl = '';
+      nextStoragePath = '';
     }
-    closeModal(ov); renderGallery(); showToast('Item updated!');
+
+    if (mediaFile && type !== 'link') {
+      const uploaded = await uploadAsset(mediaFile, GALLERY_BUCKET);
+      if (nextStoragePath && nextStoragePath !== uploaded.path) {
+        await removeAsset(GALLERY_BUCKET, nextStoragePath);
+      }
+      nextUrl = uploaded.url;
+      nextStoragePath = uploaded.path || '';
+      if (type === 'image') {
+        if (nextThumbStoragePath && nextThumbStoragePath !== nextStoragePath) {
+          await removeAsset(GALLERY_BUCKET, nextThumbStoragePath);
+        }
+        nextThumb = uploaded.url;
+        nextThumbStoragePath = '';
+      }
+    }
+
+    if (thumbFile && type !== 'image') {
+      const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
+      if (nextThumbStoragePath && nextThumbStoragePath !== uploadedThumb.path) {
+        await removeAsset(GALLERY_BUCKET, nextThumbStoragePath);
+      }
+      nextThumb = uploadedThumb.url;
+      nextThumbStoragePath = uploadedThumb.path || '';
+    }
+
+    if (type === 'image') {
+      nextUrl = nextUrl || nextThumb || mediaPreview || '';
+      nextThumb = nextThumb || nextUrl;
+      if (!nextThumb) { showToast('Please upload an image file.','error'); return; }
+    }
+
+    if (type === 'video') {
+      if (!mediaFile) {
+        if (urlField && nextStoragePath && urlField !== item.url) {
+          await removeAsset(GALLERY_BUCKET, nextStoragePath);
+          nextStoragePath = '';
+        }
+        nextUrl = urlField || nextUrl;
+      }
+      if (!nextUrl) { showToast('Please add a video URL or upload a video file.','error'); return; }
+    }
+
+    if (type === 'link') {
+      nextUrl = urlField;
+      if (!nextUrl) { showToast('Link URL is required.','error'); return; }
+      if (nextStoragePath && item.type !== 'link') {
+        nextThumb = nextThumb || item.thumb || '';
+        nextThumbStoragePath = nextThumbStoragePath || item.storagePath || '';
+        await removeAsset(GALLERY_BUCKET, nextStoragePath);
+        nextStoragePath = '';
+      }
+    }
+
+      if (idx > -1) {
+        list[idx] = { ...item,
+          type,
+          url: nextUrl,
+          thumb: type === 'image' ? (nextUrl || nextThumb) : nextThumb,
+          storagePath: nextStoragePath,
+          thumbStoragePath: type === 'image' ? '' : nextThumbStoragePath,
+          title: ov.querySelector('#eTitle').value.trim(),
+          desc:  ov.querySelector('#eDesc').value.trim(),
+          icon:  type === 'video' ? '🎬' : type === 'link' ? '🔗' : '🖼️',
+        };
+        setData('galaxy_gallery', list);
+      }
+      closeModal(ov); renderGallery(); showToast('Item updated!');
+    } catch (error) {
+      const message = error?.message || 'Upload/write rejected by Supabase.';
+      showToast(`Could not update item: ${message}`, 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalLabel;
+    }
   };
 }
 
@@ -232,31 +400,57 @@ function addVideoModal() {
     </div>
   </div>`);
 
-  let thumbData = '';
+  let thumbFile = null;
+  let thumbPreview = '';
 
   window.checkVideoBtn = () => {
     const url   = ov.querySelector('#vUrl').value.trim();
-    const ready = url && thumbData;
+    const ready = url && thumbFile;
     ov.querySelector('#addVidBtn').disabled = !ready;
   };
 
   ov.querySelector('#vThumbArea').onclick = () => ov.querySelector('#vThumb').click();
-  ov.querySelector('#vThumb').onchange = async e => {
+  ov.querySelector('#vThumb').onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); return; }
-    thumbData = await fileToBase64(file);
+    thumbFile = file;
+    thumbPreview = URL.createObjectURL(file);
     const area = ov.querySelector('#vThumbArea'); area.style.display = 'none';
-    const prev = ov.querySelector('#vPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${thumbData}">`;
+    const prev = ov.querySelector('#vPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${thumbPreview}">`;
     checkVideoBtn();
   };
   ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
-  ov.querySelector('#addVidBtn').onclick = () => {
+  ov.querySelector('#addVidBtn').onclick = async () => {
+    const addBtn = ov.querySelector('#addVidBtn');
+    const originalLabel = addBtn.textContent;
     const url = ov.querySelector('#vUrl').value.trim();
-    if (!url || !thumbData) { showToast('URL and thumbnail are required','error'); return; }
-    const list = getData('galaxy_gallery') || [];
-    list.push({ id:nextId(list), type:'video', url, thumb:thumbData, title:ov.querySelector('#vTitle').value.trim(), desc:ov.querySelector('#vDesc').value.trim(), icon:'🎬' });
-    setData('galaxy_gallery', list); closeModal(ov); renderGallery();
-    showToast('Video added to gallery!');
+    if (!url || !thumbFile) { showToast('URL and thumbnail are required','error'); return; }
+    addBtn.disabled = true;
+    addBtn.textContent = 'Adding...';
+    try {
+      const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
+      const list = getData('galaxy_gallery') || [];
+      list.push({
+        id:nextId(list),
+        type:'video',
+        url,
+        thumb:uploadedThumb.url,
+        thumbStoragePath: uploadedThumb.path || '',
+        storagePath: '',
+        createdAt: new Date().toISOString(),
+        title:ov.querySelector('#vTitle').value.trim(),
+        desc:ov.querySelector('#vDesc').value.trim(),
+        icon:'🎬'
+      });
+      setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+      showToast('Video added to gallery!');
+    } catch (error) {
+      const message = error?.message || 'Upload/write rejected by Supabase.';
+      showToast(`Could not add video: ${message}`, 'error');
+    } finally {
+      addBtn.disabled = false;
+      addBtn.textContent = originalLabel;
+    }
   };
 }
 
@@ -288,30 +482,54 @@ function addLinkModal() {
     </div>
   </div>`);
 
-  let thumbData = '';
+  let thumbFile = null;
   const checkBtn = () => {
     const url = ov.querySelector('#lUrl').value.trim();
-    ov.querySelector('#addLinkCardBtn').disabled = !(url && thumbData);
+    ov.querySelector('#addLinkCardBtn').disabled = !(url && thumbFile);
   };
 
   ov.querySelector('#lThumbArea').onclick = () => ov.querySelector('#lThumb').click();
   ov.querySelector('#lUrl').oninput = checkBtn;
-  ov.querySelector('#lThumb').onchange = async e => {
+  ov.querySelector('#lThumb').onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     if (file.size > MAX_SIZE) { showToast('File too large — max 50MB','error'); return; }
-    thumbData = await fileToBase64(file);
+    thumbFile = file;
     ov.querySelector('#lThumbArea').style.display = 'none';
-    const prev = ov.querySelector('#lPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${thumbData}">`;
+    const prev = ov.querySelector('#lPrev'); prev.style.display = ''; prev.innerHTML = `<img src="${URL.createObjectURL(file)}">`;
     checkBtn();
   };
   ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
-  ov.querySelector('#addLinkCardBtn').onclick = () => {
+  ov.querySelector('#addLinkCardBtn').onclick = async () => {
+    const addBtn = ov.querySelector('#addLinkCardBtn');
+    const originalLabel = addBtn.textContent;
     const url = ov.querySelector('#lUrl').value.trim();
-    if (!url || !thumbData) { showToast('URL and thumbnail are required','error'); return; }
-    const list = getData('galaxy_gallery') || [];
-    list.push({ id:nextId(list), type:'link', url, thumb:thumbData, title:ov.querySelector('#lTitle').value.trim(), desc:ov.querySelector('#lDesc').value.trim(), icon:'🔗' });
-    setData('galaxy_gallery', list); closeModal(ov); renderGallery();
-    showToast('Link card added!');
+    if (!url || !thumbFile) { showToast('URL and thumbnail are required','error'); return; }
+    addBtn.disabled = true;
+    addBtn.textContent = 'Adding...';
+    try {
+      const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
+      const list = getData('galaxy_gallery') || [];
+      list.push({
+        id:nextId(list),
+        type:'link',
+        url,
+        thumb:uploadedThumb.url,
+        thumbStoragePath: uploadedThumb.path || '',
+        storagePath: '',
+        createdAt: new Date().toISOString(),
+        title:ov.querySelector('#lTitle').value.trim(),
+        desc:ov.querySelector('#lDesc').value.trim(),
+        icon:'🔗'
+      });
+      setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+      showToast('Link card added!');
+    } catch (error) {
+      const message = error?.message || 'Upload/write rejected by Supabase.';
+      showToast(`Could not add link card: ${message}`, 'error');
+    } finally {
+      addBtn.disabled = false;
+      addBtn.textContent = originalLabel;
+    }
   };
 }
 
@@ -336,39 +554,107 @@ async function processFiles(arr) {
   const lbl  = document.getElementById('progLabel');
   prog.style.display = ''; lbl.style.display = '';
 
-  const list = getData('galaxy_gallery') || [];
-  for (let i = 0; i < arr.length; i++) {
-    const f   = arr[i];
-    const pct = Math.round(((i + 1) / arr.length) * 100);
-    bar.style.width = pct + '%';
-    lbl.textContent = `Uploading ${i + 1} / ${arr.length} files...`;
-    const b64 = await fileToBase64(f);
-    list.push({
-      id:    nextId(list),
-      type:  f.type.startsWith('video') ? 'video' : 'image',
-      thumb: b64,
-      title: f.name.replace(/\.[^/.]+$/, ''),
-      desc:  '',
-      icon:  f.type.startsWith('video') ? '🎬' : '🖼️',
-    });
+  try {
+    const list = getData('galaxy_gallery') || [];
+    for (let i = 0; i < arr.length; i++) {
+      const f   = arr[i];
+      const pct = Math.round(((i + 1) / arr.length) * 100);
+      bar.style.width = pct + '%';
+      lbl.textContent = `Uploading ${i + 1} / ${arr.length} files...`;
+      const uploaded = await uploadAsset(f, GALLERY_BUCKET);
+      const isVideo = f.type.startsWith('video');
+      list.push({
+        id:    nextId(list),
+        type:  isVideo ? 'video' : 'image',
+        url:   isVideo ? uploaded.url : uploaded.url,
+        thumb: isVideo ? '' : uploaded.url,
+        storagePath: uploaded.path || '',
+        thumbStoragePath: '',
+        createdAt: new Date().toISOString(),
+        title: stripExt(f.name),
+        desc:  '',
+        icon:  isVideo ? '🎬' : '🖼️',
+      });
+    }
+    setData('galaxy_gallery', list);
+    renderGallery();
+    showToast(`${arr.length} file(s) uploaded!`);
+  } catch (error) {
+    const message = error?.message || 'Upload/write rejected by Supabase.';
+    showToast(`Upload failed: ${message}`, 'error');
+  } finally {
+    setTimeout(() => { prog.style.display = 'none'; lbl.style.display = 'none'; bar.style.width = '0%'; }, 800);
   }
-  setData('galaxy_gallery', list);
-  renderGallery();
-  setTimeout(() => { prog.style.display = 'none'; lbl.style.display = 'none'; bar.style.width = '0%'; }, 800);
-  showToast(`${arr.length} file(s) uploaded!`);
 }
 
 window.editGal = id => {
   const item = (getData('galaxy_gallery')||[]).find(x => x.id === id);
   if (item) editGalModal(item);
 };
-window.delGal = id => confirmDelete('Delete this gallery item?', () => {
-  setData('galaxy_gallery', (getData('galaxy_gallery')||[]).filter(x => x.id !== id));
-  renderGallery(); showToast('Item deleted.', 'error');
+window.toggleGalSelection = (id, checked) => {
+  if (checked) selectedGalleryIds.add(id);
+  else selectedGalleryIds.delete(id);
+  renderGallery();
+};
+window.delGal = id => confirmDelete('Delete this gallery item?', async () => {
+  const list = getData('galaxy_gallery')||[];
+  const item = list.find(x => x.id === id);
+  try {
+    if (item) await deleteGalleryAssets(item);
+    setData('galaxy_gallery', list.filter(x => x.id !== id));
+    selectedGalleryIds.delete(id);
+    renderGallery(); showToast('Item deleted.', 'error');
+  } catch (error) {
+    const message = error?.message || 'Delete rejected by Supabase.';
+    showToast(`Could not delete item: ${message}`, 'error');
+  }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await syncGalleryFromCloud();
+  let list = getData('galaxy_gallery') || [];
+  if ((!Array.isArray(list) || !list.length) && typeof window.recoverGalleryFromStorage === 'function') {
+    try {
+      const recovered = await window.recoverGalleryFromStorage();
+      if (Array.isArray(recovered) && recovered.length) {
+        list = recovered;
+      }
+    } catch (error) {
+      console.warn('[Gallery Admin] Recovery from storage failed:', error.message);
+    }
+  }
   renderGallery();
+  const filterEl = document.getElementById('galFilter');
+  if (filterEl) {
+    filterEl.onchange = (e) => {
+      galleryFilter = e.target.value;
+      renderGallery();
+    };
+  }
+  document.getElementById('galSelectAllBtn').onclick = () => {
+    const all = getData('galaxy_gallery') || [];
+    const visible = galleryFilter === 'all' ? all : all.filter((item) => (item.type || 'image') === galleryFilter);
+    const allVisibleSelected = visible.length > 0 && visible.every((item) => selectedGalleryIds.has(item.id));
+    if (allVisibleSelected) visible.forEach((item) => selectedGalleryIds.delete(item.id));
+    else visible.forEach((item) => selectedGalleryIds.add(item.id));
+    renderGallery();
+  };
+  document.getElementById('galDeleteSelectedBtn').onclick = () => confirmDelete(`Delete ${selectedGalleryIds.size} selected gallery item(s)?`, async () => {
+    if (!selectedGalleryIds.size) return;
+    const ids = new Set(selectedGalleryIds);
+    const list = getData('galaxy_gallery') || [];
+    try {
+      for (const item of list) {
+        if (ids.has(item.id)) await deleteGalleryAssets(item);
+      }
+      setData('galaxy_gallery', list.filter((item) => !ids.has(item.id)));
+      selectedGalleryIds.clear();
+      renderGallery();
+      showToast(`${ids.size} gallery item(s) deleted.`,'error');
+    } catch (error) {
+      showToast(`Could not delete selected items: ${error?.message || 'Delete failed.'}`,'error');
+    }
+  });
   document.getElementById('addVideoBtn').onclick = addVideoModal;
   document.getElementById('addLinkBtn').onclick  = addLinkModal;
 

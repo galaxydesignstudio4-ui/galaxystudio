@@ -61,6 +61,15 @@
 <script src="../icons.js"></script>
 <script src="admin.js"></script>
 <script>
+async function syncTeamFromCloud(){
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_team');
+  } catch (error) {
+    console.warn('[Team Admin] Cloud sync failed:', error.message);
+  }
+}
+
 function renderTeam(){
   const list=getData('galaxy_team')||[];
   document.getElementById('teamSub').textContent=`${list.length} member${list.length!==1?'s':''}`;
@@ -111,27 +120,50 @@ function openMemberModal(m=null){
   let avatarData=m?.avatar||'';
   ov.querySelector('#mAvatarFile').onchange=async e=>{
     const file=e.target.files[0];if(!file)return;
-    avatarData=await fileToBase64(file);
-    const p=ov.querySelector('#mAvatarPrev');
-    p.innerHTML=`<img src="${avatarData}" style="width:56px;height:56px;object-fit:cover;">`;
+    try {
+      avatarData=await fileToBase64(file);
+      const p=ov.querySelector('#mAvatarPrev');
+      p.innerHTML=`<img src="${avatarData}" style="width:56px;height:56px;object-fit:cover;">`;
+    } catch (error) {
+      showToast(`Could not read image: ${error?.message || 'Upload failed.'}`,'error');
+    }
   };
   ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
-  ov.querySelector('#saveBtn').onclick=()=>{
+  ov.querySelector('#saveBtn').onclick=async ()=>{
+    const saveBtn = ov.querySelector('#saveBtn');
+    const originalLabel = saveBtn.textContent;
     const name=ov.querySelector('#mName').value.trim();
     if(!name){showToast('Name is required','error');return;}
-    const list=getData('galaxy_team')||[];
-    const obj={id:isEdit?m.id:nextId(list),name,role:ov.querySelector('#mRole').value.trim(),bio:ov.querySelector('#mBio').value.trim(),order:parseInt(ov.querySelector('#mOrder').value)||list.length+1,avatar:avatarData};
-    if(isEdit){const i=list.findIndex(x=>x.id===m.id);if(i>-1)list[i]=obj;}else list.push(obj);
-    setData('galaxy_team',list);closeModal(ov);renderTeam();
-    showToast(isEdit?'Member updated!':'Member added!');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    try {
+      const list=getData('galaxy_team')||[];
+      const obj={id:isEdit?m.id:nextId(list),name,role:ov.querySelector('#mRole').value.trim(),bio:ov.querySelector('#mBio').value.trim(),order:parseInt(ov.querySelector('#mOrder').value)||list.length+1,avatar:avatarData};
+      if(isEdit){const i=list.findIndex(x=>x.id===m.id);if(i>-1)list[i]=obj;}else list.push(obj);
+      setData('galaxy_team',list);closeModal(ov);renderTeam();
+      showToast(isEdit?'Member updated!':'Member added!');
+    } catch (error) {
+      showToast(`Could not save member: ${error?.message || 'Save failed.'}`,'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalLabel;
+    }
   };
 }
 window.editMember=id=>openMemberModal((getData('galaxy_team')||[]).find(x=>x.id===id));
-window.delMember=id=>confirmDelete('Delete this team member?',()=>{
-  setData('galaxy_team',(getData('galaxy_team')||[]).filter(x=>x.id!==id));
-  renderTeam();showToast('Deleted.','error');
+window.delMember=id=>confirmDelete('Delete this team member?',async ()=>{
+  try {
+    setData('galaxy_team',(getData('galaxy_team')||[]).filter(x=>x.id!==id));
+    renderTeam();showToast('Deleted.','error');
+  } catch (error) {
+    showToast(`Could not delete member: ${error?.message || 'Delete failed.'}`,'error');
+  }
 });
-document.addEventListener('DOMContentLoaded',()=>{renderTeam();document.getElementById('addMemberBtn').onclick=()=>openMemberModal();});
+document.addEventListener('DOMContentLoaded',async ()=>{
+  await syncTeamFromCloud();
+  renderTeam();
+  document.getElementById('addMemberBtn').onclick=()=>openMemberModal();
+});
 </script>
 </body>
 </html>

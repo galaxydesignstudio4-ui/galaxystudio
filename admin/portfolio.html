@@ -18,6 +18,7 @@
 .p-badges{position:absolute;top:8px;left:8px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}
 .p-actions{position:absolute;top:8px;right:8px;display:flex;gap:5px;z-index:2;opacity:0;transition:0.2s}
 .p-card:hover .p-actions{opacity:1}
+.p-select{position:absolute;top:8px;right:8px;z-index:3;width:18px;height:18px;accent-color:hsl(250 80% 65%)}
 .p-info{padding:13px 14px}
 .p-title{font-family:"Space Grotesk",sans-serif;font-size:13px;font-weight:600;margin-bottom:4px}
 .p-meta{font-size:11px;color:var(--muted)}</style>
@@ -65,6 +66,11 @@
         <p class="page-sub" id="portSub">Upload images and add project details.</p>
       </div>
       <div class="page-actions">
+        <select class="form-select" id="portFilter" style="max-width:190px;">
+          <option value="all">All Categories</option>
+        </select>
+        <button class="btn btn-ghost" id="portSelectAllBtn">Select All</button>
+        <button class="btn btn-danger" id="portDeleteSelectedBtn" disabled>Delete Selected (0)</button>
         <button class="btn btn-primary" id="addPortBtn">+ Add Project</button>
       </div>
     </div>
@@ -89,12 +95,43 @@
 <script src="admin.js"></script>
 <script>
 const CAT_MAP={logos:'Logos & Branding',videos:'Videos','3d':'3D Animation',uiux:'UI/UX Design',graphic:'Graphic Design',cad:'CAD Design',branding:'Branding',adavatar:'AdAvatar',ad:'Advertisement'};
+const PORTFOLIO_BUCKET='portfolio';
+let selectedPortfolioIds = new Set();
+let portfolioFilter = 'all';
+
+function stripExt(name='') {
+  return name.replace(/\.[^/.]+$/, '');
+}
+
+async function syncPortfolioFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_portfolio');
+  } catch (error) {
+    console.warn('[Portfolio Admin] Cloud sync failed:', error.message);
+  }
+}
+
+async function deletePortfolioAssets(item) {
+  if (item?.storagePath) {
+    await removeAsset(PORTFOLIO_BUCKET, item.storagePath);
+  }
+}
 
 function renderPort() {
-  const list = getData('galaxy_portfolio')||[];
+  const all = getData('galaxy_portfolio')||[];
+  const list = portfolioFilter === 'all' ? all : all.filter((item) => (item.category || '') === portfolioFilter);
   document.getElementById('portSub').textContent=`${list.length} project${list.length!==1?'s':''}`;
   const empty=document.getElementById('portEmpty');
   const grid=document.getElementById('portGrid');
+  const deleteBtn = document.getElementById('portDeleteSelectedBtn');
+  const allVisibleSelected = list.length > 0 && list.every((item) => selectedPortfolioIds.has(item.id));
+  const selectAllBtn = document.getElementById('portSelectAllBtn');
+  if (selectAllBtn) selectAllBtn.textContent = allVisibleSelected ? 'Unselect All' : 'Select All';
+  if (deleteBtn) {
+    deleteBtn.disabled = selectedPortfolioIds.size === 0;
+    deleteBtn.textContent = `Delete Selected (${selectedPortfolioIds.size})`;
+  }
   if(!list.length){grid.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
   grid.innerHTML=list.map(p=>`
@@ -106,7 +143,8 @@ function renderPort() {
           ${p.featured?'<span class="badge badge-purple">Featured</span>':''}
           <span class="badge" style="background:hsl(260 15% 14%);color:var(--muted);border:1px solid var(--border);">${escHtml(CAT_MAP[p.category]||p.category||'')}</span>
         </div>
-        <div class="p-actions">
+        <input class="p-select" type="checkbox" ${selectedPortfolioIds.has(p.id) ? 'checked' : ''} onchange="togglePortSelection(${p.id}, this.checked)" onclick="event.stopPropagation()">
+        <div class="p-actions" style="right:32px;">
           <button class="btn btn-ghost btn-sm btn-icon" onclick="editPort(${p.id})" style="background:hsl(260 20% 8% / 0.9);">✏️</button>
           <button class="btn btn-danger btn-sm btn-icon" onclick="delPort(${p.id})" style="background:hsl(260 20% 8% / 0.9);">🗑️</button>
         </div>
@@ -143,36 +181,132 @@ function openPortModal(p=null) {
       </div>
     </div>
     <div class="modal-footer">
+      <div id="saveErr" style="display:none;margin-right:auto;font-size:12px;color:hsl(0 70% 68%);"></div>
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
       <button class="btn btn-primary" id="saveBtn">Save Project</button>
     </div>
   </div>`);
 
-  let thumbData = isEdit?p.thumb||'':'';
-  ov.querySelector('#fImg').onchange = async e=>{
+  let thumbData = isEdit ? p.thumb || '' : '';
+  let selectedFile = null;
+
+  ov.querySelector('#fImg').onchange = e=>{
     const file=e.target.files[0]; if(!file) return;
-    thumbData = await fileToBase64(file);
+    selectedFile = file;
+    thumbData = URL.createObjectURL(file);
     const prev=ov.querySelector('#imgPrev');
     prev.innerHTML=`<img src="${thumbData}">`;
   };
   ov.querySelector('#cancelBtn').onclick=()=>closeModal(ov);
-  ov.querySelector('#saveBtn').onclick=()=>{
+  ov.querySelector('#saveBtn').onclick=async ()=>{
+    const errEl = ov.querySelector('#saveErr');
+    const saveBtn = ov.querySelector('#saveBtn');
+    if (errEl) errEl.style.display = 'none';
+    saveBtn.disabled = true;
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    try {
     const title=ov.querySelector('#fTitle').value.trim();
     if(!title){showToast('Title is required','error');return;}
     const list=getData('galaxy_portfolio')||[];
-    const obj={id:isEdit?p.id:nextId(list),title,desc:ov.querySelector('#fDesc').value.trim(),category:ov.querySelector('#fCat').value,client:ov.querySelector('#fClient').value.trim(),featured:ov.querySelector('#fFeat').checked,premium:ov.querySelector('#fPrem').checked,thumb:thumbData};
+
+    let uploaded = null;
+    if (selectedFile) {
+      uploaded = await uploadAsset(selectedFile, PORTFOLIO_BUCKET);
+      thumbData = uploaded.url;
+    }
+
+    const obj={
+      ...(p||{}),
+      id:isEdit?p.id:nextId(list),
+      title,
+      desc:ov.querySelector('#fDesc').value.trim(),
+      category:ov.querySelector('#fCat').value,
+      client:ov.querySelector('#fClient').value.trim(),
+      featured:ov.querySelector('#fFeat').checked,
+      premium:ov.querySelector('#fPrem').checked,
+      thumb:thumbData,
+      storagePath: uploaded?.path || p?.storagePath || '',
+    };
+
+    if (selectedFile && isEdit && p?.storagePath && p.storagePath !== obj.storagePath) {
+      await removeAsset(PORTFOLIO_BUCKET, p.storagePath);
+    }
+
     if(isEdit){const i=list.findIndex(x=>x.id===p.id);if(i>-1)list[i]=obj;}else list.push(obj);
     setData('galaxy_portfolio',list);closeModal(ov);renderPort();
     showToast(isEdit?'Project updated!':'Project added!');
+    } catch (error) {
+      if (errEl) {
+        errEl.textContent = `Save failed: ${error?.message || 'Upload/write rejected by Supabase.'}`;
+        errEl.style.display = '';
+      }
+      showToast('Save failed. Please check Supabase permissions and try again.','error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    }
   };
 }
 
 window.editPort=id=>openPortModal((getData('galaxy_portfolio')||[]).find(x=>x.id===id));
-window.delPort=id=>confirmDelete('Delete this project?',()=>{
-  setData('galaxy_portfolio',(getData('galaxy_portfolio')||[]).filter(x=>x.id!==id));
-  renderPort();showToast('Project deleted.','error');
+window.togglePortSelection=(id,checked)=>{
+  if (checked) selectedPortfolioIds.add(id);
+  else selectedPortfolioIds.delete(id);
+  renderPort();
+};
+window.delPort=id=>confirmDelete('Delete this project?',async ()=>{
+  const list = getData('galaxy_portfolio')||[];
+  const item = list.find(x=>x.id===id);
+  try {
+    if (item) await deletePortfolioAssets(item);
+    setData('galaxy_portfolio', list.filter(x => x.id !== id));
+    selectedPortfolioIds.delete(id);
+    renderPort();showToast('Project deleted.','error');
+  } catch (error) {
+    const message = error?.message || 'Delete rejected by Supabase.';
+    showToast(`Could not delete project: ${message}`, 'error');
+  }
 });
-document.addEventListener('DOMContentLoaded',()=>{renderPort();document.getElementById('addPortBtn').onclick=()=>openPortModal();});
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await syncPortfolioFromCloud();
+  const filter = document.getElementById('portFilter');
+  if (filter) {
+    const categoryOptions = Object.entries(CAT_MAP).map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+    filter.insertAdjacentHTML('beforeend', categoryOptions);
+    filter.onchange = (e) => {
+      portfolioFilter = e.target.value;
+      renderPort();
+    };
+  }
+  document.getElementById('portSelectAllBtn').onclick = () => {
+    const all = getData('galaxy_portfolio')||[];
+    const visible = portfolioFilter === 'all' ? all : all.filter((item) => (item.category || '') === portfolioFilter);
+    const allVisibleSelected = visible.length > 0 && visible.every((item) => selectedPortfolioIds.has(item.id));
+    if (allVisibleSelected) visible.forEach((item) => selectedPortfolioIds.delete(item.id));
+    else visible.forEach((item) => selectedPortfolioIds.add(item.id));
+    renderPort();
+  };
+  document.getElementById('portDeleteSelectedBtn').onclick = () => confirmDelete(`Delete ${selectedPortfolioIds.size} selected project(s)?`, async () => {
+    if (!selectedPortfolioIds.size) return;
+    const ids = new Set(selectedPortfolioIds);
+    const list = getData('galaxy_portfolio')||[];
+    try {
+      for (const item of list) {
+        if (ids.has(item.id)) await deletePortfolioAssets(item);
+      }
+      setData('galaxy_portfolio', list.filter((item) => !ids.has(item.id)));
+      selectedPortfolioIds.clear();
+      renderPort();
+      showToast(`${ids.size} project(s) deleted.`,'error');
+    } catch (error) {
+      showToast(`Could not delete selected projects: ${error?.message || 'Delete failed.'}`,'error');
+    }
+  });
+  renderPort();
+  document.getElementById('addPortBtn').onclick=()=>openPortModal();
+});
 </script>
 </body>
 </html>

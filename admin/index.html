@@ -52,7 +52,8 @@
         <p class="page-sub">Welcome back, Emmanuel 👋</p>
       </div>
       <div class="page-actions">
-        <a class="btn btn-ghost btn-sm" href="../index.html" target="_blank">↗ View Live Site</a>
+        <button class="btn btn-ghost btn-sm" id="recoverStorageBtn">↻ Recover from Storage</button>
+        <a class="btn btn-ghost btn-sm" href="../index.html">↗ View Live Site</a>
       </div>
     </div>
     <div class="page-body">
@@ -82,7 +83,41 @@
 <script src="../icons.js"></script>
 <script src="admin.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+async function syncDashboardData() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  await Promise.all([
+    window.loadFromCloud('galaxy_services').catch(() => {}),
+    window.loadFromCloud('galaxy_portfolio').catch(() => {}),
+    window.loadFromCloud('galaxy_messages').catch(() => {}),
+    window.loadFromCloud('galaxy_team').catch(() => {}),
+  ]);
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const recoverBtn = document.getElementById('recoverStorageBtn');
+  recoverBtn?.addEventListener('click', async () => {
+    if (typeof window.recoverMediaFromStorageNow !== 'function') {
+      showToast('Recovery tool unavailable in this build.', 'error');
+      return;
+    }
+    const originalLabel = recoverBtn.textContent;
+    recoverBtn.disabled = true;
+    recoverBtn.textContent = 'Recovering...';
+    try {
+      const result = await window.recoverMediaFromStorageNow();
+      const count = Number(result?.galleryCount || 0);
+      const aboutDone = Boolean(result?.aboutRecovered);
+      showToast(`Recovery complete: ${count} gallery item(s) restored${aboutDone ? ', About image restored.' : '.'}`);
+      setTimeout(() => window.location.reload(), 700);
+    } catch (error) {
+      showToast(`Recovery failed: ${error?.message || 'Unknown error'}`, 'error');
+    } finally {
+      recoverBtn.disabled = false;
+      recoverBtn.textContent = originalLabel;
+    }
+  });
+
+  await syncDashboardData();
   const services   = getData('galaxy_services') || [];
   const portfolio  = getData('galaxy_portfolio') || [];
   const messages   = getData('galaxy_messages') || [];

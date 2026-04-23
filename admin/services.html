@@ -83,6 +83,15 @@
 <script src="../icons.js"></script>
 <script src="admin.js"></script>
 <script>
+async function syncServicesFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud('galaxy_services');
+  } catch (error) {
+    console.warn('[Services Admin] Cloud sync failed:', error.message);
+  }
+}
+
 function renderSvc() {
   const list = getData('galaxy_services')||[];
   document.getElementById('svcSub').textContent = `${list.length} service${list.length!==1?'s':''}`;
@@ -178,7 +187,11 @@ window.delSvc  = id => confirmDelete('Delete this service?',()=>{
   renderSvc(); showToast('Service deleted.','error');
 });
 
-document.addEventListener('DOMContentLoaded',()=>{ renderSvc(); document.getElementById('addSvcBtn').onclick=()=>openSvcModal(); });
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await syncServicesFromCloud();
+  renderSvc();
+  document.getElementById('addSvcBtn').onclick=()=>openSvcModal();
+});
 </script>
 </body>
 </html>

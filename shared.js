@@ -174,7 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('mouseleave', () => btn.style.filter = '');
 
     const tryLogin = () => {
-      const stored = localStorage.getItem('galaxy_admin_password') || 'galaxy2024';
+      let stored = 'admin123';
+      try {
+        const raw = localStorage.getItem('galaxy_admin_password');
+        if (raw !== null) {
+          stored = JSON.parse(raw);
+        }
+      } catch {}
       if (input.value === stored) {
         localStorage.setItem('galaxy_admin_session', 'authenticated');
         const loc = window.location.pathname;
@@ -212,60 +218,435 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3200);
   };
 
-  /* ── Lightbox ── */
-  window.openLightbox = (items, index = 0) => {
-    let current = index;
+  /* ── Lightbox / Carousel ── */
+  function defaultLightboxMedia(item) {
+    if (!item) return '';
+    if (item.type === 'video' && item.url) {
+      if (item.url.includes('youtube') || item.url.includes('youtu.be')) {
+        return `<div class="lightbox-media-frame"><iframe src="${item.url.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen title="${escHtml(item.title || 'Video')}"></iframe></div>`;
+      }
+      return `<video src="${escHtml(item.url)}" controls playsinline></video>`;
+    }
+    return `<img src="${escHtml(item.src || item.url || '')}" alt="${escHtml(item.title || '')}">`;
+  }
+
+  function applyDynamicLightboxState(scope) {
+    const videoEl = scope.querySelector('.lightbox-video');
+    const videoWrap = scope.querySelector('[data-lightbox-video-wrap]');
+    if (!videoEl || !videoWrap) return;
+
+    const syncOrientation = () => {
+      if (videoEl.videoWidth && videoEl.videoHeight && videoEl.videoHeight > videoEl.videoWidth) {
+        videoWrap.classList.add('portrait');
+      } else {
+        videoWrap.classList.remove('portrait');
+      }
+    };
+
+    videoEl.addEventListener('loadedmetadata', syncOrientation, { once: true });
+    syncOrientation();
+  }
+
+  window.openCarouselLightbox = ({
+    items = [],
+    index = 0,
+    getMediaHtml = defaultLightboxMedia,
+    getTitle = (item) => item?.title || '',
+    getDesc = (item) => item?.desc || '',
+    getActionHtml = () => '',
+    swipeHint = 'Swipe or use arrows'
+  } = {}) => {
+    if (!Array.isArray(items) || !items.length) return;
+
+    let current = Math.max(0, Math.min(index, items.length - 1));
+    let touchStartX = 0;
+    let touchDeltaX = 0;
+
     const overlay = document.createElement('div');
     overlay.className = 'lightbox-overlay';
 
     const render = (i) => {
-      const item = items[i];
-      const isVideo = item.type === 'video';
-      const videoEmbed = item.url
-        ? (item.url.includes('youtube') || item.url.includes('youtu.be')
-            ? `<iframe src="${item.url.replace('watch?v=','embed/')}" width="800" height="450" frameborder="0" allowfullscreen style="border-radius:12px;max-width:90vw;max-height:70vh;"></iframe>`
-            : `<video src="${item.url}" controls style="max-width:90vw;max-height:70vh;border-radius:12px;"></video>`)
-        : '';
+      const item = items[i] || {};
+      const mediaHtml = getMediaHtml(item, i) || defaultLightboxMedia(item);
+      const title = escHtml(getTitle(item, i) || '');
+      const desc = escHtml(getDesc(item, i) || '');
+      const actionHtml = getActionHtml(item, i) || '';
 
       overlay.innerHTML = `
-        <button class="lightbox-close" id="lbClose">✕</button>
-        ${items.length > 1 ? `<button class="lightbox-nav lightbox-prev" id="lbPrev">&#8592;</button>` : ''}
+        <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close viewer">✕</button>
+        ${items.length > 1 ? '<button class="lightbox-nav lightbox-prev" type="button" data-lightbox-prev aria-label="Previous item">&#8592;</button>' : ''}
         <div class="lightbox-content">
-          ${isVideo ? videoEmbed : `<img src="${item.src||item.url||''}" alt="${item.title||''}">`}
-          <div class="lightbox-info">
-            ${item.title ? `<strong>${item.title}</strong>` : ''}
-            ${item.desc ? `<span>${item.desc}</span>` : ''}
-            ${items.length > 1 ? `<span style="color:hsl(260,5%,40%);font-size:12px;">${i+1} / ${items.length}</span>` : ''}
+          <div class="lightbox-panel">
+            <div class="lightbox-media-shell">
+              <div class="lightbox-media">${mediaHtml}</div>
+            </div>
+            <div class="lightbox-meta">
+              <div class="lightbox-copy">
+                ${title ? `<strong>${title}</strong>` : ''}
+                ${desc ? `<span>${desc}</span>` : ''}
+              </div>
+              <div class="lightbox-side">
+                ${items.length > 1 ? `<div class="lightbox-counter">${i + 1} / ${items.length}</div>` : ''}
+                <div class="lightbox-hint">${escHtml(items.length > 1 ? swipeHint : 'Tap outside or press Escape')}</div>
+              </div>
+            </div>
+            ${actionHtml ? `<div class="lightbox-actions">${actionHtml}</div>` : ''}
           </div>
         </div>
-        ${items.length > 1 ? `<button class="lightbox-nav lightbox-next" id="lbNext">&#8594;</button>` : ''}
+        ${items.length > 1 ? '<button class="lightbox-nav lightbox-next" type="button" data-lightbox-next aria-label="Next item">&#8594;</button>' : ''}
       `;
+
+      applyDynamicLightboxState(overlay);
     };
+
+    const navigate = (step) => {
+      if (items.length < 2) return;
+      current = (current + step + items.length) % items.length;
+      render(current);
+    };
+
+    const keyHandler = (e) => {
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') navigate(-1);
+      if (e.key === 'ArrowRight') navigate(1);
+    };
+
+    const handleTouchStart = (e) => {
+      if (e.touches.length !== 1 || items.length < 2) return;
+      touchStartX = e.touches[0].clientX;
+      touchDeltaX = 0;
+    };
+
+    const handleTouchMove = (e) => {
+      if (!touchStartX || e.touches.length !== 1) return;
+      touchDeltaX = e.touches[0].clientX - touchStartX;
+    };
+
+    const handleTouchEnd = () => {
+      if (Math.abs(touchDeltaX) > 52) {
+        navigate(touchDeltaX > 0 ? -1 : 1);
+      }
+      touchStartX = 0;
+      touchDeltaX = 0;
+    };
+
+    const close = () => {
+      overlay.remove();
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', keyHandler);
+      overlay.removeEventListener('touchstart', handleTouchStart);
+      overlay.removeEventListener('touchmove', handleTouchMove);
+      overlay.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target.closest('[data-lightbox-close]')) {
+        close();
+        return;
+      }
+      if (e.target.closest('[data-lightbox-prev]')) {
+        navigate(-1);
+        return;
+      }
+      if (e.target.closest('[data-lightbox-next]')) {
+        navigate(1);
+      }
+    });
+
+    overlay.addEventListener('touchstart', handleTouchStart, { passive: true });
+    overlay.addEventListener('touchmove', handleTouchMove, { passive: true });
+    overlay.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     render(current);
     document.body.appendChild(overlay);
     document.body.style.overflow = 'hidden';
-
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay || e.target.id === 'lbClose') close();
-      if (e.target.id === 'lbPrev') { current = (current - 1 + items.length) % items.length; render(current); }
-      if (e.target.id === 'lbNext') { current = (current + 1) % items.length; render(current); }
-    });
-
-    function keyHandler(e) {
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowLeft')  { current = (current - 1 + items.length) % items.length; render(current); }
-      if (e.key === 'ArrowRight') { current = (current + 1) % items.length; render(current); }
-    }
     document.addEventListener('keydown', keyHandler);
-
-    function close() {
-      overlay.remove();
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', keyHandler);
-    }
   };
 
+  window.openLightbox = (items, index = 0) => {
+    window.openCarouselLightbox({ items, index });
+  };
 
+  const pageName = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+
+  function escHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function studioMarkup(name) {
+    const parts = String(name || 'Galaxy Design Studio').trim().split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) return escHtml(parts[0] || 'Galaxy Studio');
+    return `${escHtml(parts[0])} <span class="gradient-text">${escHtml(parts.slice(1).join(' '))}</span>`;
+  }
+
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    return (parts[0]?.[0] || 'G') + (parts[1]?.[0] || '');
+  }
+
+  function renderIcon(name) {
+    if (typeof ICONS !== 'undefined' && ICONS[name]) return ICONS[name];
+    return `<span>${escHtml(name || '✦')}</span>`;
+  }
+
+  function featureListForService(service) {
+    const map = {
+      graphic: ['Poster & Flyer Design', 'Social Media Graphics', 'Print & Digital Assets', 'Brand Consistency'],
+      ad: ['Digital Ads', 'Campaign Visuals', 'Promo Materials', 'Audience-Focused Concepts'],
+      logo: ['Logo Concepts', 'Brand Identity', 'Merch Design', 'Brand Guidelines'],
+      video: ['Commercial Editing', 'Social Media Cuts', 'Color Grading', 'Motion Graphics'],
+      animation3d: ['3D Product Renders', 'Animated Ads', 'Visual Effects', 'Presentation Visuals'],
+      avatar: ['Talking Avatar Ads', 'Product Promotion', 'Social Media Ready', 'Premium Storytelling'],
+      uiux: ['Web Interfaces', 'App Design', 'User Flows', 'Conversion-Focused Layouts'],
+      cad: ['2D Drafting', '3D Modeling', 'Technical Drawings', 'Production-Ready Files'],
+      promotion: ['Social Media Content', 'Digital Marketing Assets', 'Creative Campaign Support', 'Brand Promotion'],
+    };
+    return map[service.icon] || ['Custom Concepts', 'Professional Delivery', 'Affordable Pricing', 'Brand-Focused Execution'];
+  }
+
+  function categoryLabel(category) {
+    const map = {
+      logos: 'Logos & Branding',
+      videos: 'Videos',
+      '3d': '3D Animation',
+      uiux: 'UI/UX Design',
+      graphic: 'Graphic Design',
+      cad: 'CAD Design',
+      branding: 'Branding',
+      adavatar: 'AdAvatar',
+      ad: 'Advertisement',
+    };
+    return map[category] || category || 'Project';
+  }
+
+  function categoryIcon(category) {
+    const map = {
+      logos: 'logo',
+      videos: 'video',
+      '3d': 'animation3d',
+      uiux: 'uiux',
+      graphic: 'graphic',
+      cad: 'cad',
+      branding: 'promotion',
+      adavatar: 'avatar',
+      ad: 'ad',
+    };
+    return map[category] || 'graphic';
+  }
+
+  function applyPublicBranding(settings, about) {
+    const studioName = settings?.studioName || 'Galaxy Design Studio';
+    document.querySelectorAll('.logo-text').forEach((el) => {
+      el.innerHTML = studioMarkup(studioName);
+    });
+    document.querySelectorAll('.footer-logo span').forEach((el) => {
+      if (el.querySelector('.gradient-text')) el.innerHTML = studioMarkup(studioName);
+    });
+
+    document.querySelectorAll('.nav-logo .logo-icon, .footer-logo .logo-icon').forEach((el) => {
+      if (settings?.logo) {
+        el.classList.add('has-custom-logo');
+        el.innerHTML = `<img src="${escHtml(settings.logo)}" alt="${escHtml(studioName)} logo">`;
+      } else {
+        el.classList.remove('has-custom-logo');
+      }
+    });
+
+    document.querySelectorAll('footer .footer-desc').forEach((el) => {
+      el.textContent = settings?.tagline || `${studioName} by ${about?.name || 'Emmanuel Yirenkyi-Amoyaw'}.`;
+    });
+    document.querySelectorAll('footer a[href^="mailto:"]').forEach((el) => {
+      const email = settings?.email || 'galaxydesignstudio4@gmail.com';
+      el.href = `mailto:${email}`;
+      el.textContent = email;
+    });
+    document.querySelectorAll('footer a[href^="tel:"]').forEach((el) => {
+      const phone = settings?.phone || '055-688-1003';
+      el.href = `tel:${phone.replace(/\s+/g, '')}`;
+      el.textContent = phone;
+    });
+    document.querySelectorAll('footer .footer-contact-item > span:last-child').forEach((el) => {
+      if (!el.closest('a')) el.textContent = settings?.location || 'Tema, Accra, Ghana';
+    });
+    document.querySelectorAll('footer a[href*="wa.me/"]').forEach((el) => {
+      el.href = `https://wa.me/${settings?.whatsapp || '233556881003'}`;
+    });
+    document.querySelectorAll('.footer-bottom a').forEach((el) => {
+      el.href = settings?.novatech || '#';
+    });
+
+    document.querySelectorAll('.footer-socials').forEach((group) => {
+      const links = group.querySelectorAll('a');
+      if (links[0] && about?.facebook) links[0].href = about.facebook;
+      if (links[1] && about?.youtube1) links[1].href = about.youtube1;
+      if (links[2] && about?.youtube2) links[2].href = about.youtube2;
+    });
+  }
+
+  function renderHomePage(data) {
+    const services = data.galaxy_services || [];
+    const portfolio = data.galaxy_portfolio || [];
+    const testimonials = data.galaxy_testimonials || [];
+
+    const adavatar = services.find((item) => item.signature) || services.find((item) => item.icon === 'avatar');
+    const adavatarCard = document.querySelector('#services .adavatar-card');
+    if (adavatarCard) {
+      adavatarCard.innerHTML = `
+        <div class="adavatar-inner">
+          <div class="adavatar-icon-wrap">${renderIcon(adavatar?.icon || 'avatar')}</div>
+          <div class="adavatar-body">
+            <div class="adavatar-badge">New · Premium Service</div>
+            <h2 class="adavatar-title gold-gradient-text">${escHtml(adavatar?.title || 'AdAvatar')}</h2>
+            <p class="adavatar-desc">${escHtml(adavatar?.desc || 'Our signature service — a 3D animated Pixar-style avatar that talks and promotes your product or business.')}</p>
+            <div class="adavatar-btns">
+              <a class="btn btn-gold" href="contact.html">Get Your AdAvatar →</a>
+              <a class="btn btn-gold-outline" href="adavatar.html">View Samples & Gallery</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const servicesGrid = document.querySelector('#services .services-grid');
+    if (servicesGrid && services.length) {
+      const palette = [
+        ['hsl(250 80% 65% / 0.12)', 'hsl(250,80%,75%)'],
+        ['hsl(210 80% 65% / 0.12)', 'hsl(210,80%,75%)'],
+        ['hsl(320 70% 60% / 0.12)', 'hsl(320,70%,75%)'],
+        ['hsl(200 100% 60% / 0.12)', 'hsl(200,100%,70%)'],
+        ['hsl(230 80% 65% / 0.12)', 'hsl(230,80%,80%)'],
+        ['hsl(270 70% 65% / 0.12)', 'hsl(270,70%,80%)'],
+      ];
+      const display = services.filter((item) => item.id !== adavatar?.id).slice(0, 6);
+      servicesGrid.innerHTML = display.map((service, index) => {
+        const [bg, color] = palette[index % palette.length];
+        return `
+          <div class="service-card animate-in visible" style="--delay:${index * 60}ms">
+            <div class="service-icon" style="background:${bg};color:${color};">${renderIcon(service.icon)}</div>
+            <h3 style="color:${color}">${escHtml(service.title || 'Service')}</h3>
+            <p>${escHtml(service.desc || '')}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const projectGrid = document.querySelector('#portfolio .projects-grid');
+    if (projectGrid && portfolio.length) {
+      const featured = portfolio.filter((item) => item.featured).slice(0, 6);
+      const display = featured.length ? featured : portfolio.slice(0, 6);
+      projectGrid.innerHTML = display.map((project, index) => `
+        <a class="project-card${project.premium ? ' premium' : ''} animate-in visible" href="portfolio.html" style="--delay:${index * 60}ms">
+          ${project.premium ? '<div class="premium-badge">Premium</div>' : ''}
+          <div class="project-thumb">
+            ${project.thumb
+              ? `<img src="${escHtml(project.thumb)}" alt="${escHtml(project.title || 'Project')}">`
+              : `<div class="project-thumb-placeholder">${renderIcon(categoryIcon(project.category || 'graphic'))}</div>`
+            }
+          </div>
+          <div class="project-info">
+            <h3>${escHtml(project.title || 'Untitled')}</h3>
+            <span class="category-badge"${project.category === 'adavatar' ? ' style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);"' : ''}>${escHtml(categoryLabel(project.category))}</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    const testimonialGrid = document.querySelector('#testimonials .testimonials-grid');
+    if (testimonialGrid && testimonials.length) {
+      testimonialGrid.innerHTML = testimonials.slice(0, 6).map((item, index) => `
+        <div class="testimonial-card animate-in visible" style="--delay:${index * 80}ms">
+          <div class="quote-icon">"</div>
+          <p class="testimonial-text">${escHtml(item.quote || '')}</p>
+          <div class="stars">${'★ '.repeat(Number(item.rating || 5)).trim()}</div>
+          <div class="testimonial-author">
+            <div class="avatar-circle">${escHtml(initials(item.name || 'Client'))}</div>
+            <div>
+              <div class="author-name">${escHtml(item.name || 'Client')}</div>
+              <div class="author-company">${escHtml(item.company || '')}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function renderServicesPage(services) {
+    const listEl = document.querySelector('.services-list');
+    if (!listEl || !services.length) return;
+    listEl.innerHTML = services.slice().sort((a, b) => (a.order || 999) - (b.order || 999)).map((service, index) => `
+      <div class="service-row${service.signature ? ' adavatar-row' : ''} animate-in visible" style="--delay:${index * 60}ms">
+        <div class="service-row-icon" style="background:${service.signature ? 'rgba(245,158,11,0.12)' : 'hsl(250 80% 65% / 0.12)'};color:${service.signature ? '#f59e0b' : 'var(--primary)'};">${renderIcon(service.icon)}</div>
+        <div class="service-row-body">
+          <div class="service-row-header">
+            <h3 class="service-row-title${service.signature ? ' gold-gradient-text' : ''}">${escHtml(service.title || 'Service')}</h3>
+            ${service.signature ? '<span class="service-sig-badge" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.35);color:#fcd34d;">★ Signature Service</span>' : ''}
+          </div>
+          <p class="service-row-desc">${escHtml(service.desc || '')}</p>
+          <div class="service-features">
+            ${featureListForService(service).map((feature) => `<div class="feature-item"><div class="feature-check"${service.signature ? ' style="background:rgba(245,158,11,0.15);color:#f59e0b;"' : ''}>✓</div>${escHtml(feature)}</div>`).join('')}
+          </div>
+          ${service.signature ? '<div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;"><a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">Get Your AdAvatar →</a><a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a></div>' : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderAboutPage(about) {
+    if (!about) return;
+    const card = document.querySelector('.owner-card');
+    if (!card) return;
+    const avatarMarkup = about.avatar
+      ? `<img src="${escHtml(about.avatar)}" alt="${escHtml(about.name || 'Owner')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+      : escHtml(initials(about.name || 'Emmanuel'));
+    card.innerHTML = `
+      <div class="owner-avatar">${avatarMarkup}</div>
+      <div class="owner-body">
+        <h2 class="owner-name">${escHtml(about.name || 'Emmanuel Yirenkyi-Amoyaw')}</h2>
+        <p class="owner-role">${escHtml(about.role || 'Owner & Creative Director')}</p>
+        <p class="owner-bio">${escHtml(about.bio || '')}</p>
+        <div class="owner-socials">
+          ${about.facebook ? `<a class="owner-social" href="${escHtml(about.facebook)}" target="_blank" rel="noopener">Facebook</a>` : ''}
+          ${about.youtube1 ? `<a class="owner-social" href="${escHtml(about.youtube1)}" target="_blank" rel="noopener">Epic Tales</a>` : ''}
+          ${about.youtube2 ? `<a class="owner-social" href="${escHtml(about.youtube2)}" target="_blank" rel="noopener">Bible Sparks</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  async function hydratePublicSite() {
+    if (window.location.pathname.includes('/admin/')) return;
+    if (typeof window.getData !== 'function') return;
+
+    const keys = new Set(['galaxy_settings', 'galaxy_about']);
+    if (pageName === 'index.html' || pageName === '') {
+      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials'].forEach((key) => keys.add(key));
+    }
+    if (pageName === 'services.html') keys.add('galaxy_services');
+
+    const data = {};
+    for (const key of keys) {
+      if (typeof window.loadFromCloud === 'function') {
+        try {
+          data[key] = await window.loadFromCloud(key);
+          continue;
+        } catch {}
+      }
+      data[key] = window.getData(key);
+    }
+
+    applyPublicBranding(data.galaxy_settings || {}, data.galaxy_about || {});
+    if (pageName === 'index.html' || pageName === '') renderHomePage(data);
+    if (pageName === 'services.html') renderServicesPage(data.galaxy_services || []);
+    if (pageName === 'about.html') renderAboutPage(data.galaxy_about || {});
+  }
+
+  hydratePublicSite().catch((error) => {
+    console.warn('[Shared] Public hydration failed:', error.message);
+  });
 
 });

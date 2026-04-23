@@ -136,6 +136,47 @@
 }
 .value-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
 .value-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+.team-about-section { margin-bottom: 64px; }
+.team-about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+@media (max-width: 900px) { .team-about-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .team-about-grid { grid-template-columns: 1fr; } }
+.team-about-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px 18px;
+  text-align: center;
+  transition: var(--transition);
+}
+.team-about-card:hover {
+  border-color: hsl(250 80% 65% / 0.35);
+  transform: translateY(-3px);
+}
+.team-about-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, hsl(250,80%,55%), hsl(200,100%,50%));
+  border: 2px solid hsl(250 80% 65% / 0.3);
+  overflow: hidden;
+}
+.team-about-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.team-about-name { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.team-about-role { font-size: 12px; color: var(--primary); margin-bottom: 8px; }
+.team-about-bio { font-size: 13px; color: var(--muted); line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -195,6 +236,14 @@
           </a>
         </div>
       </div>
+    </div>
+
+    <div class="team-about-section animate-in" id="aboutTeamSection" style="display:none;">
+      <div class="section-header" style="margin-bottom:20px;">
+        <span class="section-label">Members</span>
+        <h2 class="section-title"><span class="gradient-text">Members</span></h2>
+      </div>
+      <div class="team-about-grid" id="aboutTeamGrid"></div>
     </div>
 
     <!-- Mission & Vision -->
@@ -276,5 +325,80 @@
 <script src="db.js"></script>
 <script src="icons.js"></script>
 <script src="shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof window.getData !== 'function') return;
+  let about = getData('galaxy_about') || {};
+  let team = getData('galaxy_team') || [];
+  if (typeof window.loadFromCloud === 'function') {
+    try {
+      const cloud = await window.loadFromCloud('galaxy_about');
+      if (cloud && typeof cloud === 'object') about = cloud;
+    } catch {}
+    try {
+      const cloudTeam = await window.loadFromCloud('galaxy_team');
+      if (Array.isArray(cloudTeam)) team = cloudTeam;
+    } catch {}
+  }
+  if (!about.avatar && typeof window.recoverAboutAvatarFromStorage === 'function') {
+    try {
+      const recovered = await window.recoverAboutAvatarFromStorage();
+      if (recovered && typeof recovered === 'object') about = recovered;
+    } catch {}
+  }
+
+  const ownerCard = document.querySelector('.owner-card');
+  if (!ownerCard) return;
+  const avatarEl = ownerCard.querySelector('.owner-avatar');
+  const nameEl = ownerCard.querySelector('.owner-name');
+  const roleEl = ownerCard.querySelector('.owner-role');
+  const bioEl = ownerCard.querySelector('.owner-bio');
+  const socialLinks = ownerCard.querySelectorAll('.owner-social');
+
+  if (avatarEl) {
+    if (about.avatar) {
+      avatarEl.innerHTML = `<img src="${String(about.avatar).replace(/"/g, '&quot;')}" alt="${String(about.name || 'Owner').replace(/"/g, '&quot;')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    } else {
+      const parts = String(about.name || 'Emmanuel').trim().split(/\s+/).filter(Boolean);
+      avatarEl.textContent = (parts[0]?.[0] || 'E') + (parts[1]?.[0] || '');
+    }
+  }
+  if (nameEl && about.name) nameEl.textContent = about.name;
+  if (roleEl && about.role) roleEl.textContent = about.role;
+  if (bioEl && about.bio) bioEl.textContent = about.bio;
+  if (socialLinks[0] && about.facebook) socialLinks[0].href = about.facebook;
+  if (socialLinks[1] && about.youtube1) socialLinks[1].href = about.youtube1;
+  if (socialLinks[2] && about.youtube2) socialLinks[2].href = about.youtube2;
+
+  const aboutTeamSection = document.getElementById('aboutTeamSection');
+  const aboutTeamGrid = document.getElementById('aboutTeamGrid');
+  if (aboutTeamSection && aboutTeamGrid) {
+    const orderedTeam = (Array.isArray(team) ? team : [])
+      .slice()
+      .sort((a, b) => (a?.order || 999) - (b?.order || 999));
+    if (orderedTeam.length) {
+      aboutTeamSection.style.display = '';
+      aboutTeamGrid.innerHTML = orderedTeam.map((member) => {
+        const safeName = String(member?.name || '');
+        const initials = safeName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
+        const avatar = member?.avatar
+          ? `<img src="${String(member.avatar).replace(/"/g, '&quot;')}" alt="${safeName.replace(/"/g, '&quot;')}">`
+          : initials;
+        return `
+          <article class="team-about-card">
+            <div class="team-about-avatar">${avatar}</div>
+            <div class="team-about-name">${safeName.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <div class="team-about-role">${String(member?.role || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <div class="team-about-bio">${String(member?.bio || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          </article>
+        `;
+      }).join('');
+    } else {
+      aboutTeamSection.style.display = 'none';
+      aboutTeamGrid.innerHTML = '';
+    }
+  }
+});
+</script>
 </body>
 </html>

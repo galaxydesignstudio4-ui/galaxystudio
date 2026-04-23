@@ -342,68 +342,131 @@
 <script src="icons.js"></script>
 <script src="shared.js"></script>
 <script>
-// Portfolio filter
-const filterBtns = document.querySelectorAll('.filter-btn');
-const cards = document.querySelectorAll('.project-card');
+const CAT_MAP = { logos:'Logos & Branding', videos:'Videos', '3d':'3D Animation', uiux:'UI/UX Design', graphic:'Graphic Design', cad:'CAD Design', branding:'Branding', adavatar:'AdAvatar', ad:'Advertisement' };
+const CATEGORY_ICONS = { logos:'🏷️', videos:'🎬', '3d':'📦', uiux:'🖥️', graphic:'🖼️', cad:'📐', branding:'✨', adavatar:'👤', ad:'📣' };
+let activeFilter = 'all';
+let portfolioItems = [];
 
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const f = btn.dataset.filter;
-    cards.forEach(card => {
-      const cat = card.dataset.category;
-      card.classList.toggle('hidden', f !== 'all' && cat !== f);
-    });
-  });
-});
+function escapeHtml(value) {
+  return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
-// Project card click modal
-const projects = [
-  { title:'AdAvatar — Brand Promo', category:'AdAvatar', client:'Premium Client', desc:'A stunning 3D Pixar-style avatar ad created for social media promotion.' },
-  { title:'Modern Logo Suite', category:'Logos & Branding', client:'StartSmart Ghana', desc:'A complete modern logo package with multiple variations and brand color palette.' },
-  { title:'Product 3D Visualization', category:'3D Animation', client:'Kwame Industries', desc:'Photorealistic 3D product renders for e-commerce and marketing campaigns.' },
-  { title:'E-Commerce UI Redesign', category:'UI/UX Design', client:'Serwaa Online Store', desc:'Full UI/UX overhaul of an e-commerce platform — improved conversion by 40%.' },
-  { title:'Event Poster Series', category:'Graphic Design', client:'Local Arts Festival', desc:'A series of vibrant event posters designed for print and digital distribution.' },
-  { title:'Brand Commercial Edit', category:'Videos', client:'Accra Brands Ltd', desc:'Professional commercial video editing with color grading and motion graphics.' },
-  { title:'Complete Brand Identity', category:'Branding', client:'Nova Startup', desc:'Full brand identity package including logo, colors, typography, and guidelines.' },
-  { title:'Technical CAD Drawing', category:'CAD Design', client:'Engineering Firm', desc:'Precision 2D and 3D technical CAD drawings for industrial manufacturing.' },
-  { title:'Digital Ad Campaign', category:'Advertisement', client:'Digital Agency', desc:'Multi-platform digital advertising campaign with 5 ad variations.' },
-  { title:'AdAvatar — Product Launch', category:'AdAvatar', client:'Premium Client 2', desc:'Talking Pixar-style avatar ad for a major product launch campaign.' },
-  { title:'Restaurant Brand Identity', category:'Logos & Branding', client:'Accra Eats', desc:'Warm and appetizing brand identity for a Ghanaian restaurant chain.' },
-  { title:'Architectural 3D Render', category:'3D Animation', client:'Property Developer', desc:'Photorealistic architectural visualization for a luxury residential project.' },
-];
+function renderPortfolio() {
+  const grid = document.getElementById('portfolioGrid');
+  if (!grid) return;
 
-cards.forEach((card, i) => {
-  card.addEventListener('click', () => {
-    const p = projects[i];
-    if (!p) return;
-    const overlay = document.createElement('div');
-    overlay.className = 'lightbox-overlay';
-    overlay.innerHTML = `
-      <button class="lightbox-close" id="lbClose">✕</button>
-      <div class="lightbox-content" style="max-width:500px;width:90vw;">
-        <div style="width:100%;aspect-ratio:4/3;background:hsl(260 15% 12%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:0.4;">${card.querySelector('.project-thumb-placeholder').textContent}</div>
-        <div style="text-align:center;padding:16px;">
-          <h3 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;">${p.title}</h3>
-          <div style="margin-bottom:12px;"><span class="category-badge">${p.category}</span></div>
-          <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:8px;">${p.desc}</p>
-          <p style="font-size:13px;color:hsl(260,5%,45%);">Client: ${p.client}</p>
-        </div>
+  if (!portfolioItems.length) {
+    grid.innerHTML = `<div class="no-results">No portfolio projects yet.</div>`;
+    return;
+  }
+
+  grid.innerHTML = portfolioItems.map((project, index) => `
+    <div class="project-card${project.premium ? ' premium' : ''} animate-in visible" data-id="${project.id}" data-category="${escapeHtml(project.category || '')}" style="--delay:${index * 60}ms">
+      ${project.premium ? '<div class="premium-badge">★ Premium</div>' : ''}
+      <div class="project-thumb">
+        ${project.thumb
+          ? `<img src="${escapeHtml(project.thumb)}" alt="${escapeHtml(project.title || 'Project')}">`
+          : `<div class="project-thumb-placeholder">${escapeHtml(CATEGORY_ICONS[project.category] || '🖼️')}</div>`
+        }
+        <div class="project-overlay"><span>View Project</span></div>
       </div>
-    `;
-    document.body.appendChild(overlay);
-    document.body.style.overflow = 'hidden';
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay || e.target.id === 'lbClose') {
-        overlay.remove();
-        document.body.style.overflow = '';
+      <div class="project-info">
+        <h3>${escapeHtml(project.title || 'Untitled')}</h3>
+        <span class="category-badge"${project.category === 'adavatar' ? ' style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);"' : ''}>${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span>
+      </div>
+    </div>
+  `).join('');
+
+  applyFilter(activeFilter);
+}
+
+function applyFilter(filter) {
+  activeFilter = filter;
+  const grid = document.getElementById('portfolioGrid');
+  const cards = [...grid.querySelectorAll('.project-card')];
+  grid.querySelector('.no-results')?.remove();
+
+  let visible = 0;
+  cards.forEach(card => {
+    const isVisible = filter === 'all' || card.dataset.category === filter;
+    card.classList.toggle('hidden', !isVisible);
+    if (isVisible) visible += 1;
+  });
+
+  if (!visible) {
+    const empty = document.createElement('div');
+    empty.className = 'no-results';
+    empty.textContent = 'No projects match this category yet.';
+    grid.appendChild(empty);
+  }
+}
+
+function openProjectLightbox(project) {
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.innerHTML = `
+    <button class="lightbox-close" id="lbClose">✕</button>
+    <div class="lightbox-content" style="max-width:620px;width:90vw;">
+      ${project.thumb
+        ? `<img src="${escapeHtml(project.thumb)}" alt="${escapeHtml(project.title || 'Project')}" style="width:100%;display:block;border-radius:12px;">`
+        : `<div style="width:100%;aspect-ratio:4/3;background:hsl(260 15% 12%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:0.4;">${escapeHtml(CATEGORY_ICONS[project.category] || '🖼️')}</div>`
       }
-    });
-    document.addEventListener('keydown', function esc(e) {
-      if (e.key === 'Escape') { overlay.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', esc); }
+      <div style="text-align:center;padding:16px;">
+        <h3 style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px;">${escapeHtml(project.title || 'Untitled')}</h3>
+        <div style="margin-bottom:12px;"><span class="category-badge">${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span></div>
+        <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:8px;">${escapeHtml(project.desc || 'No description yet.')}</p>
+        <p style="font-size:13px;color:hsl(260,5%,45%);">Client: ${escapeHtml(project.client || 'Not specified')}</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay || e.target.id === 'lbClose') {
+      overlay.remove();
+      document.body.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', esc);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const filterBtns = [...document.querySelectorAll('.filter-btn')];
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(entry => entry.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilter(btn.dataset.filter);
     });
   });
+
+  const grid = document.getElementById('portfolioGrid');
+  grid.addEventListener('click', event => {
+    const card = event.target.closest('.project-card');
+    if (!card) return;
+    const project = portfolioItems.find(item => String(item.id) === card.dataset.id);
+    if (project) openProjectLightbox(project);
+  });
+
+  portfolioItems = getData('galaxy_portfolio') || [];
+  renderPortfolio();
+  if (typeof window.loadFromCloud === 'function') {
+    try {
+      const cloudItems = await window.loadFromCloud('galaxy_portfolio');
+      if (Array.isArray(cloudItems)) {
+        portfolioItems = cloudItems;
+      }
+    } catch (error) {
+      console.warn('[Portfolio] Cloud sync failed:', error.message);
+    }
+  }
+  renderPortfolio();
 });
 </script>
 </body>

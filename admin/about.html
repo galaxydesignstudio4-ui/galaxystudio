@@ -88,6 +88,17 @@
 <script src="admin.js"></script>
 <script>
 const ABOUT_KEY='galaxy_about';
+const ABOUT_BUCKET='avatars';
+
+async function syncAboutFromCloud(){
+  if (typeof window.loadFromCloud !== 'function') return;
+  try {
+    await window.loadFromCloud(ABOUT_KEY);
+  } catch (error) {
+    console.warn('[About Admin] Cloud sync failed:', error.message);
+  }
+}
+
 function loadAbout(){
   const d=getData(ABOUT_KEY)||DEFAULTS.galaxy_about;
   document.getElementById('oName').value=d.name||'';
@@ -97,27 +108,48 @@ function loadAbout(){
   document.getElementById('oYt1').value=d.youtube1||'';
   document.getElementById('oYt2').value=d.youtube2||'';
   if(d.avatar){const p=document.getElementById('avatarPrev');p.innerHTML=`<img src="${d.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;p._src=d.avatar;}
+  document.getElementById('avatarPrev')._storagePath = d.avatarStoragePath || '';
 }
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await syncAboutFromCloud();
   loadAbout();
-  document.getElementById('avatarFile').onchange=async e=>{
+  document.getElementById('avatarFile').onchange=e=>{
     const file=e.target.files[0];if(!file)return;
-    const b64=await fileToBase64(file);
+    const b64=URL.createObjectURL(file);
     const p=document.getElementById('avatarPrev');
     p.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    p._src=b64;e.target.value='';
+    p._src=b64;p._file=file;e.target.value='';
   };
   document.getElementById('ownerForm').onsubmit=async e=>{
     e.preventDefault();
     const btn=document.getElementById('saveBtn');
+    const originalText = 'Save Changes';
     btn.textContent='Saving…';btn.disabled=true;
-    await new Promise(r=>setTimeout(r,500));
-    const p=document.getElementById('avatarPrev');
-    const obj={name:document.getElementById('oName').value.trim(),role:document.getElementById('oRole').value.trim(),bio:document.getElementById('oBio').value.trim(),facebook:document.getElementById('oFb').value.trim(),youtube1:document.getElementById('oYt1').value.trim(),youtube2:document.getElementById('oYt2').value.trim(),avatar:p._src||(getData(ABOUT_KEY)||{}).avatar||''};
-    setData(ABOUT_KEY,obj);
-    btn.textContent='✓ Saved!';btn.style.background='hsl(145 60% 35%)';
-    setTimeout(()=>{btn.textContent='Save Changes';btn.style.background='';btn.disabled=false;},2200);
-    showToast('Owner profile saved!');
+    try {
+      const p=document.getElementById('avatarPrev');
+      const current = getData(ABOUT_KEY)||{};
+      let avatar = p._src || current.avatar || '';
+      let avatarStoragePath = p._storagePath || current.avatarStoragePath || '';
+      if (p._file) {
+        const uploaded = await uploadAsset(p._file, ABOUT_BUCKET);
+        if (avatarStoragePath && avatarStoragePath !== uploaded.path) {
+          await removeAsset(ABOUT_BUCKET, avatarStoragePath);
+        }
+        avatar = uploaded.url;
+        avatarStoragePath = uploaded.path || '';
+      }
+      const obj={name:document.getElementById('oName').value.trim(),role:document.getElementById('oRole').value.trim(),bio:document.getElementById('oBio').value.trim(),facebook:document.getElementById('oFb').value.trim(),youtube1:document.getElementById('oYt1').value.trim(),youtube2:document.getElementById('oYt2').value.trim(),avatar,avatarStoragePath};
+      setData(ABOUT_KEY,obj);
+      btn.textContent='✓ Saved!';btn.style.background='hsl(145 60% 35%)';
+      setTimeout(()=>{btn.textContent=originalText;btn.style.background='';btn.disabled=false;},2200);
+      showToast('Owner profile saved!');
+    } catch (error) {
+      const message = error?.message || 'Upload/write rejected by Supabase.';
+      showToast(`Could not save owner profile: ${message}`, 'error');
+      btn.textContent = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }
   };
 });
 </script>
