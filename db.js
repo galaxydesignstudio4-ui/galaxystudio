@@ -88,6 +88,7 @@ const AUTH_STORAGE_KEY = 'galaxy_supabase_session';
 const AUTH_MARKER_KEY = 'galaxy_admin_session';
 const AUTH_EMAIL_KEY = 'galaxy_admin_user_email';
 const SYNC_ERROR_PREFIX = 'galaxy_sync_error_';
+const SYNC_PENDING_PREFIX = 'galaxy_sync_pending_';
 
 function cloneValue(value) {
   if (value === null || value === undefined) return value;
@@ -138,6 +139,18 @@ function lsRemove(key) {
 
 function syncErrorKey(key) {
   return `${SYNC_ERROR_PREFIX}${key}`;
+}
+
+function syncPendingKey(key) {
+  return `${SYNC_PENDING_PREFIX}${key}`;
+}
+
+function hasSyncError(key) {
+  return !!lsGetRaw(syncErrorKey(key));
+}
+
+function hasSyncPending(key) {
+  return !!lsGetRaw(syncPendingKey(key));
 }
 
 function ensureLocalDefaults() {
@@ -939,7 +952,7 @@ const GalaxyDB = (() => {
 
   async function getAll(key) {
     await init();
-    if (mode === 'local') {
+    if (mode === 'local' || hasSyncError(key) || hasSyncPending(key)) {
       return sortValue(key, lsGet(key) ?? getDefaultValue(key));
     }
 
@@ -976,7 +989,11 @@ const GalaxyDB = (() => {
     const appValue = OBJECT_KEYS.has(key) ? { ...getDefaultValue(key), ...(value || {}) } : sortValue(key, Array.isArray(value) ? value : []);
     lsSet(key, appValue);
 
-    if (mode === 'local') return appValue;
+    if (mode === 'local') {
+      lsRemove(syncErrorKey(key));
+      lsRemove(syncPendingKey(key));
+      return appValue;
+    }
 
     const table = getTable(key);
     const cacheKey = getCacheKey(key);
@@ -992,6 +1009,7 @@ const GalaxyDB = (() => {
           await redis.setJSON(cacheKey, toDbValue(key, appValue));
         } catch {}
         lsRemove(syncErrorKey(key));
+        lsRemove(syncPendingKey(key));
         return appValue;
       }
 
@@ -1010,7 +1028,9 @@ const GalaxyDB = (() => {
         await redis.setJSON(cacheKey, OBJECT_KEYS.has(key) ? [dbValue] : dbValue);
       } catch {}
       lsRemove(syncErrorKey(key));
+      lsRemove(syncPendingKey(key));
     } catch (error) {
+      lsRemove(syncPendingKey(key));
       lsSet(syncErrorKey(key), {
         failedAt: new Date().toISOString(),
         message: error.message || 'Cloud write failed',
@@ -1150,6 +1170,8 @@ function setData(key, value) {
     ? { ...getDefaultValue(key), ...(value || {}) }
     : sortValue(key, Array.isArray(value) ? value : []);
   lsSet(key, normalized);
+  lsSet(syncPendingKey(key), { startedAt: new Date().toISOString() });
+  lsRemove(syncErrorKey(key));
   GalaxyDB.setAll(key, normalized).catch((error) => {
     console.warn(`[GalaxyDB] Background sync failed for ${key}:`, error.message);
   });
