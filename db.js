@@ -89,6 +89,7 @@ const AUTH_MARKER_KEY = 'galaxy_admin_session';
 const AUTH_EMAIL_KEY = 'galaxy_admin_user_email';
 const SYNC_ERROR_PREFIX = 'galaxy_sync_error_';
 const SYNC_PENDING_PREFIX = 'galaxy_sync_pending_';
+const UNSUPPORTED_COLUMN_CACHE = {};
 
 function cloneValue(value) {
   if (value === null || value === undefined) return value;
@@ -473,6 +474,39 @@ function toDbValue(key, value) {
   if (OBJECT_KEYS.has(key)) return toRow(key, value || {});
   const list = Array.isArray(value) ? value : [];
   return list.map((item) => toRow(key, item)).filter(Boolean);
+}
+
+function unsupportedColumnsForTable(table) {
+  if (!UNSUPPORTED_COLUMN_CACHE[table]) {
+    UNSUPPORTED_COLUMN_CACHE[table] = new Set();
+  }
+  return UNSUPPORTED_COLUMN_CACHE[table];
+}
+
+function sanitizeDbValueForTable(table, dbValue) {
+  const blocked = unsupportedColumnsForTable(table);
+  if (!blocked.size) return dbValue;
+
+  const strip = (row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+    const cleaned = { ...row };
+    blocked.forEach((column) => {
+      delete cleaned[column];
+    });
+    return cleaned;
+  };
+
+  return Array.isArray(dbValue) ? dbValue.map(strip) : strip(dbValue);
+}
+
+function getMissingColumnFromError(error) {
+  const message = String(error?.message || '');
+  const code = String(error?.code || '');
+  const detail = String(error?.details || '');
+  const combined = `${message} ${detail}`;
+  if (code !== 'PGRST204' && !/schema cache/i.test(combined)) return '';
+  const match = combined.match(/"([^"]+)"\s+column/i) || combined.match(/column\s+'([^']+)'/i);
+  return match?.[1] || '';
 }
 
 function normalizeAuthSession(payload) {
@@ -1112,7 +1146,7 @@ const GalaxyDB = (() => {
 
     const table = getTable(key);
     const cacheKey = getCacheKey(key);
-    const dbValue = toDbValue(key, appValue);
+    const rawDbValue = toDbValue(key, appValue);
 
     try {
       await redis.del(cacheKey);
@@ -1127,16 +1161,26 @@ const GalaxyDB = (() => {
         lsRemove(syncPendingKey(key));
         return appValue;
       }
-
-      if (OBJECT_KEYS.has(key)) {
-        await supabase.from(table).upsert(dbValue);
-      } else {
-        await supabase._fetch(`/rest/v1/${table}?id=gte.0`, {
-          method: 'DELETE',
-          headers: { Prefer: 'return=minimal' },
-        });
-        if (dbValue.length) {
-          await supabase.from(table).insert(dbValue);
+      let dbValue = sanitizeDbValueForTable(table, rawDbValue);
+      while (true) {
+        try {
+          if (OBJECT_KEYS.has(key)) {
+            await supabase.from(table).upsert(dbValue);
+          } else {
+            await supabase._fetch(`/rest/v1/${table}?id=gte.0`, {
+              method: 'DELETE',
+              headers: { Prefer: 'return=minimal' },
+            });
+            if (dbValue.length) {
+              await supabase.from(table).insert(dbValue);
+            }
+          }
+          break;
+        } catch (error) {
+          const missingColumn = getMissingColumnFromError(error);
+          if (!missingColumn) throw error;
+          unsupportedColumnsForTable(table).add(missingColumn);
+          dbValue = sanitizeDbValueForTable(table, rawDbValue);
         }
       }
       try {

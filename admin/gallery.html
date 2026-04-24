@@ -183,7 +183,9 @@ function isGenericTitle(value='') {
     || /^(whatsapp|signal|telegram) (image|video)( \d+)?$/.test(normalized)
     || /^dsc[\s_-]?\d+/.test(normalized)
     || /^pxl[\s_-]?\d+/.test(normalized)
-    || /^[a-f0-9]{12,}$/i.test(normalized.replace(/\s+/g, ''));
+    || /^[a-f0-9]{12,}$/i.test(normalized.replace(/\s+/g, ''))
+    || /^\d{10,}[\s_-]*[a-z0-9]{4,}$/i.test(normalized)
+    || /^[a-z0-9]{10,}[\s_-]+\d{4,}[a-z0-9]*$/i.test(normalized);
 }
 
 function formatUrlTitle(url='') {
