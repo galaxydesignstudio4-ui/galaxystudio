@@ -252,10 +252,27 @@ function sortGalleryItemsNewestFirst(list = []) {
 async function saveGalleryItems(list) {
   const ordered = sortGalleryItemsNewestFirst(list);
   if (typeof window.saveDataNow === 'function') {
-    return window.saveDataNow('galaxy_gallery', ordered);
+    try {
+      await window.saveDataNow('galaxy_gallery', ordered);
+      return { items: ordered, synced: true, error: null };
+    } catch (error) {
+      console.warn('[Gallery Admin] Falling back to local gallery save:', error.message);
+      return { items: ordered, synced: false, error };
+    }
   }
   setData('galaxy_gallery', ordered);
-  return ordered;
+  return { items: ordered, synced: true, error: null };
+}
+
+function getGallerySyncState() {
+  return typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_gallery')
+    : null;
+}
+
+function gallerySyncWarning(error, action='Changes saved locally.') {
+  const syncMessage = getGallerySyncState()?.error?.message || error?.message || 'Cloud sync failed.';
+  return `${action} Supabase sync needs attention: ${syncMessage}`;
 }
 
 function extractDetectionText(results) {
@@ -410,8 +427,12 @@ async function autoNameExistingGalleryItems({ onlyGeneric = false, silent = fals
   }
 
   if (changed) {
-    await saveGalleryItems(updated);
+    const result = await saveGalleryItems(updated);
     renderGallery();
+    if (!silent && result?.synced === false) {
+      showToast(gallerySyncWarning(result.error, `${changed} gallery item(s) updated locally.`));
+      return changed;
+    }
   }
   if (!silent) {
     showToast(changed ? `${changed} gallery item(s) auto-named.` : 'No gallery titles needed renaming.');
@@ -650,7 +671,11 @@ function editGalModal(item) {
           desc:  ov.querySelector('#eDesc').value.trim(),
           icon:  type === 'video' ? '🎬' : type === 'link' ? '🔗' : '🖼️',
         };
-        await saveGalleryItems(list);
+        const result = await saveGalleryItems(list);
+        if (result?.synced === false) {
+          closeModal(ov); renderGallery(); showToast(gallerySyncWarning(result.error, 'Item updated locally.'));
+          return;
+        }
       }
       closeModal(ov); renderGallery(); showToast('Item updated!');
     } catch (error) {
@@ -743,8 +768,8 @@ function addVideoModal() {
         desc:ov.querySelector('#vDesc').value.trim(),
         icon:'🎬'
       });
-      await saveGalleryItems(list); closeModal(ov); renderGallery();
-      showToast('Video added to gallery!');
+      const result = await saveGalleryItems(list); closeModal(ov); renderGallery();
+      showToast(result?.synced === false ? gallerySyncWarning(result.error, 'Video added locally to gallery.') : 'Video added to gallery!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
       showToast(`Could not add video: ${message}`, 'error');
@@ -830,8 +855,8 @@ function addLinkModal() {
         desc:ov.querySelector('#lDesc').value.trim(),
         icon:'🔗'
       });
-      await saveGalleryItems(list); closeModal(ov); renderGallery();
-      showToast('Link card added!');
+      const result = await saveGalleryItems(list); closeModal(ov); renderGallery();
+      showToast(result?.synced === false ? gallerySyncWarning(result.error, 'Link card added locally.') : 'Link card added!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
       showToast(`Could not add link card: ${message}`, 'error');
@@ -892,9 +917,9 @@ async function processFiles(arr) {
         icon:  isVideo ? '🎬' : '🖼️',
       });
     }
-    await saveGalleryItems(list);
+    const result = await saveGalleryItems(list);
     renderGallery();
-    showToast(`${arr.length} file(s) uploaded!`);
+    showToast(result?.synced === false ? gallerySyncWarning(result.error, `${arr.length} file(s) uploaded locally.`) : `${arr.length} file(s) uploaded!`);
   } catch (error) {
     const message = error?.message || 'Upload/write rejected by Supabase.';
     showToast(`Upload failed: ${message}`, 'error');
@@ -921,11 +946,11 @@ window.delGal = id => confirmDelete('Delete this gallery item?', async () => {
     setGallerySelected(matchId, false);
     const persist = saveGalleryItems(nextList);
     renderGallery();
-    await persist;
+    const result = await persist;
     if (item) {
       Promise.allSettled([deleteGalleryAssets(item)]).catch(() => {});
     }
-    showToast('Item deleted.');
+    showToast(result?.synced === false ? gallerySyncWarning(result.error, 'Item deleted locally.') : 'Item deleted.');
   } catch (error) {
     await syncGalleryFromCloud();
     renderGallery();
@@ -941,11 +966,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     : null;
   await syncGalleryFromCloud();
   let list = getData('galaxy_gallery') || [];
-  if (initialSyncState && initialSyncState.hasPending && Array.isArray(localBeforeSync) && localBeforeSync.length) {
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
     try {
-      await saveGalleryItems(localBeforeSync);
-      await syncGalleryFromCloud();
-      list = getData('galaxy_gallery') || localBeforeSync;
+      const recovery = await saveGalleryItems(localBeforeSync);
+      list = localBeforeSync;
+      if (recovery?.synced) {
+        await syncGalleryFromCloud();
+        list = getData('galaxy_gallery') || localBeforeSync;
+      } else {
+        showToast(gallerySyncWarning(recovery.error, 'Recovered local gallery changes.'));
+      }
     } catch (error) {
       console.warn('[Gallery Admin] Cloud recovery failed:', error.message);
       list = localBeforeSync;
@@ -978,9 +1008,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       selectedGalleryIds.clear();
       const persist = saveGalleryItems(nextList);
       renderGallery();
-      await persist;
+      const result = await persist;
       Promise.allSettled(doomedItems.map((item) => deleteGalleryAssets(item))).catch(() => {});
-      showToast(`${ids.size} gallery item(s) deleted.`);
+      showToast(result?.synced === false ? gallerySyncWarning(result.error, `${ids.size} gallery item(s) deleted locally.`) : `${ids.size} gallery item(s) deleted.`);
     } catch (error) {
       await syncGalleryFromCloud();
       renderGallery();

@@ -113,10 +113,27 @@ function sortAdavatarItemsNewestFirst(list = []) {
 async function saveAdavatarItems(list) {
   const ordered = sortAdavatarItemsNewestFirst(list);
   if (typeof window.saveDataNow === 'function') {
-    return window.saveDataNow('galaxy_adavatar', ordered);
+    try {
+      await window.saveDataNow('galaxy_adavatar', ordered);
+      return { items: ordered, synced: true, error: null };
+    } catch (error) {
+      console.warn('[AdAvatar Admin] Falling back to local AdAvatar save:', error.message);
+      return { items: ordered, synced: false, error };
+    }
   }
   setData('galaxy_adavatar', ordered);
-  return ordered;
+  return { items: ordered, synced: true, error: null };
+}
+
+function getAVSyncState() {
+  return typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_adavatar')
+    : null;
+}
+
+function avSyncWarning(error, action='Changes saved locally.') {
+  const syncMessage = getAVSyncState()?.error?.message || error?.message || 'Cloud sync failed.';
+  return `${action} Supabase sync needs attention: ${syncMessage}`;
 }
 
 function stripExt(name='') {
@@ -241,7 +258,7 @@ function addAVVideoModal(){
         icon:'🎬',
         createdAt:new Date().toISOString(),
       });
-      await saveAdavatarItems(list);closeModal(ov);renderAV();showToast('Video added!');
+      const result = await saveAdavatarItems(list);closeModal(ov);renderAV();showToast(result?.synced === false ? avSyncWarning(result.error, 'Video added locally.') : 'Video added!');
     } catch (error) {
       showToast(`Could not add video: ${error?.message || 'Upload failed.'}`,'error');
     } finally {
@@ -323,7 +340,7 @@ function editAVModal(item){
 
         list[i]={...item,url:nextUrl,storagePath:nextStoragePath,thumb:nextThumb,thumbStoragePath:nextThumbStoragePath,title:ov.querySelector('#eTitle').value.trim(),desc:ov.querySelector('#eDesc').value.trim()};
       }
-      await saveAdavatarItems(list);closeModal(ov);renderAV();showToast('Item updated!');
+      const result = await saveAdavatarItems(list);closeModal(ov);renderAV();showToast(result?.synced === false ? avSyncWarning(result.error, 'Item updated locally.') : 'Item updated!');
     } catch (error) {
       showToast(`Could not update item: ${error?.message || 'Save failed.'}`,'error');
     } finally {
@@ -359,8 +376,8 @@ async function uploadAVFiles(files){
         createdAt:new Date().toISOString(),
       });
     }
-    await saveAdavatarItems(list);renderAV();
-    showToast(`${ok.length} file(s) uploaded!`);
+    const result = await saveAdavatarItems(list);renderAV();
+    showToast(result?.synced === false ? avSyncWarning(result.error, `${ok.length} file(s) uploaded locally.`) : `${ok.length} file(s) uploaded!`);
   } catch (error) {
     showToast(`Upload failed: ${error?.message || 'Upload rejected.'}`,'error');
   } finally {
@@ -386,11 +403,11 @@ window.delAV=id=>confirmDelete('Delete this item?',async ()=>{
     setAVSelected(matchId, false);
     const persist = saveAdavatarItems(nextList);
     renderAV();
-    await persist;
+    const result = await persist;
     if (item) {
       Promise.allSettled([deleteAVAssets(item)]).catch(() => {});
     }
-    showToast('Deleted.');
+    showToast(result?.synced === false ? avSyncWarning(result.error, 'Deleted locally.') : 'Deleted.');
   } catch (error) {
     await syncAVFromCloud();
     renderAV();
@@ -403,10 +420,14 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     ? window.getSyncState('galaxy_adavatar')
     : null;
   await syncAVFromCloud();
-  if (initialSyncState && initialSyncState.hasPending && Array.isArray(localBeforeSync) && localBeforeSync.length) {
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
     try {
-      await saveAdavatarItems(localBeforeSync);
-      await syncAVFromCloud();
+      const recovery = await saveAdavatarItems(localBeforeSync);
+      if (recovery?.synced) {
+        await syncAVFromCloud();
+      } else {
+        showToast(avSyncWarning(recovery.error, 'Recovered local AdAvatar changes.'));
+      }
     } catch (error) {
       console.warn('[AdAvatar Admin] Cloud recovery failed:', error.message);
     }
@@ -437,9 +458,9 @@ document.addEventListener('DOMContentLoaded',async ()=>{
       selectedAVIds.clear();
       const persist = saveAdavatarItems(nextList);
       renderAV();
-      await persist;
+      const result = await persist;
       Promise.allSettled(doomedItems.map((item)=>deleteAVAssets(item))).catch(() => {});
-      showToast(`${ids.size} AdAvatar item(s) deleted.`);
+      showToast(result?.synced === false ? avSyncWarning(result.error, `${ids.size} AdAvatar item(s) deleted locally.`) : `${ids.size} AdAvatar item(s) deleted.`);
     } catch (error) {
       await syncAVFromCloud();
       renderAV();

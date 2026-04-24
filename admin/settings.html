@@ -246,20 +246,42 @@ function loadSettings() {
   renderQrPreview(qrState);
 }
 
-function patchSettings(patch) {
-  const s = getData(SETTINGS_KEY) || {};
-  Object.assign(s, patch);
-  setData(SETTINGS_KEY, s);
+function getSettingsSyncState() {
+  return typeof window.getSyncState === 'function'
+    ? window.getSyncState(SETTINGS_KEY)
+    : null;
+}
+
+function settingsSyncWarning(error, action='Changes saved locally.') {
+  const syncMessage = getSettingsSyncState()?.error?.message || error?.message || 'Cloud sync failed.';
+  return `${action} Supabase sync needs attention: ${syncMessage}`;
+}
+
+async function saveSettingsState(value, { replace = false } = {}) {
+  const next = replace
+    ? { ...DEFAULTS.galaxy_settings, ...(value || {}) }
+    : { ...(getData(SETTINGS_KEY) || {}), ...(value || {}) };
+  if (typeof window.saveDataNow === 'function') {
+    try {
+      await window.saveDataNow(SETTINGS_KEY, next);
+      return { settings: next, synced: true, error: null };
+    } catch (error) {
+      console.warn('[Settings Admin] Falling back to local settings save:', error.message);
+      return { settings: next, synced: false, error };
+    }
+  }
+  setData(SETTINGS_KEY, next);
+  return { settings: next, synced: true, error: null };
 }
 
 /* ── Save sections ── */
-window.saveStudio = () => {
-  patchSettings({ studioName: document.getElementById('sName').value.trim(), tagline: document.getElementById('sTagline').value.trim() });
-  showToast('Studio info saved!');
+window.saveStudio = async () => {
+  const result = await saveSettingsState({ studioName: document.getElementById('sName').value.trim(), tagline: document.getElementById('sTagline').value.trim() });
+  showToast(result?.synced === false ? settingsSyncWarning(result.error, 'Studio info saved locally.') : 'Studio info saved!');
 };
-window.saveContact = () => {
-  patchSettings({ email:document.getElementById('sEmail').value.trim(), phone:document.getElementById('sPhone').value.trim(), location:document.getElementById('sLocation').value.trim(), facebook:document.getElementById('sFacebook').value.trim(), whatsapp:document.getElementById('sWhatsapp').value.trim() });
-  showToast('Contact details saved!');
+window.saveContact = async () => {
+  const result = await saveSettingsState({ email:document.getElementById('sEmail').value.trim(), phone:document.getElementById('sPhone').value.trim(), location:document.getElementById('sLocation').value.trim(), facebook:document.getElementById('sFacebook').value.trim(), whatsapp:document.getElementById('sWhatsapp').value.trim() });
+  showToast(result?.synced === false ? settingsSyncWarning(result.error, 'Contact details saved locally.') : 'Contact details saved!');
 };
 async function persistQrState(nextState) {
   const settings = getData(SETTINGS_KEY) || {};
@@ -268,7 +290,7 @@ async function persistQrState(nextState) {
     try { await removeAsset(LOGO_BUCKET, previous.storagePath); } catch {}
   }
   qrState = normalizeQrSetting(nextState);
-  patchSettings({ qrUrl: serializeQrSetting(qrState) });
+  return saveSettingsState({ qrUrl: serializeQrSetting(qrState) });
 }
 
 function getGeneratedQrImageUrl(targetUrl='') {
@@ -379,13 +401,15 @@ window.saveQR = async () => {
   const nextState = qrState.mode === 'upload' && qrState.imageUrl
     ? { ...qrState, targetUrl }
     : { mode: 'generated', targetUrl, imageUrl: getGeneratedQrImageUrl(targetUrl), storagePath: '' };
-  await persistQrState(nextState);
+  const result = await persistQrState(nextState);
   renderQrPreview(qrState);
-  showToast(qrState.mode === 'upload' ? 'Uploaded QR image saved!' : 'Generated QR saved!');
+  showToast(result?.synced === false
+    ? settingsSyncWarning(result.error, qrState.mode === 'upload' ? 'Uploaded QR image saved locally.' : 'Generated QR saved locally.')
+    : (qrState.mode === 'upload' ? 'Uploaded QR image saved!' : 'Generated QR saved!'));
 };
-window.saveNova = () => {
-  patchSettings({ novatech: document.getElementById('sNova').value.trim() });
-  showToast('Nova Tech link saved!');
+window.saveNova = async () => {
+  const result = await saveSettingsState({ novatech: document.getElementById('sNova').value.trim() });
+  showToast(result?.synced === false ? settingsSyncWarning(result.error, 'Nova Tech link saved locally.') : 'Nova Tech link saved!');
 };
 
 /* ── Password ── */
@@ -418,7 +442,23 @@ window.updatePassword = () => {
 let cropImg = null, cropSrc = '', cropDrag = false, cropMode = 'draw', cropStart = {x:0,y:0}, cropRect = {x:0,y:0,w:0,h:0}, cropMoveOffset = {x:0,y:0};
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const localBeforeSync = getData(SETTINGS_KEY) || DEFAULTS.galaxy_settings || {};
+  const initialSyncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState(SETTINGS_KEY)
+    : null;
   await syncSettingsFromCloud();
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && localBeforeSync && typeof localBeforeSync === 'object') {
+    try {
+      const recovery = await saveSettingsState(localBeforeSync, { replace: true });
+      if (recovery?.synced) {
+        await syncSettingsFromCloud();
+      } else {
+        showToast(settingsSyncWarning(recovery.error, 'Recovered local settings changes.'));
+      }
+    } catch (error) {
+      console.warn('[Settings Admin] Cloud recovery failed:', error.message);
+    }
+  }
   loadSettings();
   document.getElementById('useGeneratedQrBtn').onclick = () => {
     const targetUrl = document.getElementById('sQrUrl').value.trim();
@@ -442,9 +482,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         imageUrl: uploaded.url,
         storagePath: uploaded.path || '',
       };
-      await persistQrState(qrState);
+      const result = await persistQrState(qrState);
       renderQrPreview(qrState);
-      showToast('QR image uploaded and saved!');
+      showToast(result?.synced === false ? settingsSyncWarning(result.error, 'QR image uploaded and saved locally.') : 'QR image uploaded and saved!');
     } catch (error) {
       showToast(`Could not upload QR image: ${error?.message || 'Upload failed.'}`, 'error');
     } finally {
@@ -558,10 +598,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const prev = document.getElementById('logoPreview');
       prev.innerHTML = `<img src="${logo}" style="width:100%;height:100%;object-fit:contain;">`;
       prev._storagePath = logoStoragePath;
-      patchSettings({ logo, logoStoragePath });
+      const result = await saveSettingsState({ logo, logoStoragePath });
       renderQrPreview(qrState);
       document.getElementById('cropArea').style.display = 'none';
-      showToast('Logo saved!');
+      showToast(result?.synced === false ? settingsSyncWarning(result.error, 'Logo saved locally.') : 'Logo saved!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
       showToast(`Could not save logo: ${message}`, 'error');
