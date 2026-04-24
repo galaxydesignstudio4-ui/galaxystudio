@@ -23,26 +23,16 @@
 .qr-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:12px;}
 .qr-preview{width:280px;max-width:100%;aspect-ratio:1;border-radius:40px;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .qr-placeholder{font-size:11px;color:#777;line-height:1.5;padding:0 12px;}
-.qr-shell{position:relative;width:100%;height:100%;border-radius:36px;padding:14px;background:linear-gradient(135deg,hsl(250 80% 65%),hsl(220 90% 58%),hsl(192 95% 58%));box-shadow:inset 0 0 0 1px hsl(255 100% 100% / 0.12),0 16px 34px hsl(245 82% 58% / 0.22);}
-.qr-shell::before{content:'';position:absolute;inset:9px;border-radius:28px;background:radial-gradient(circle at 20% 20%,hsl(255 100% 100% / 0.12),transparent 28%),linear-gradient(160deg,hsl(258 24% 12%),hsl(250 24% 8%));}
-.qr-orbit{position:absolute;inset:14px;border-radius:28px;border:1px solid hsl(255 100% 100% / 0.1);z-index:0;}
-.qr-art{position:relative;z-index:1;width:100%;height:100%;border-radius:28px;background:linear-gradient(180deg,#ffffff,#f5f8ff);padding:18px;overflow:hidden;}
-.qr-art.is-generated{padding:0;background:radial-gradient(circle at 18% 18%,hsl(250 80% 65% / 0.12),transparent 30%),radial-gradient(circle at 84% 84%,hsl(192 95% 58% / 0.16),transparent 34%),linear-gradient(180deg,#ffffff,#eff4ff);}
-.qr-art img,.qr-art svg{width:100%;height:100%;object-fit:contain;display:block;border-radius:22px;}
-.qr-generated-wrap{position:relative;width:100%;height:100%;border-radius:28px;overflow:hidden;}
+.qr-shell{position:relative;width:100%;height:100%;border-radius:40px;padding:3px;background:linear-gradient(135deg,#7a5cff 0%,#8d73ff 42%,#28d8ff 100%);box-shadow:0 22px 46px rgba(0,0,0,0.28);}
+.qr-shell::before{content:'';position:absolute;inset:3px;border-radius:37px;background:#131018;}
+.qr-art{position:relative;z-index:1;width:100%;height:100%;border-radius:37px;background:#131018;padding:16px;overflow:hidden;}
+.qr-art.is-generated{padding:0;background:#131018;}
+.qr-art img,.qr-art svg{width:100%;height:100%;object-fit:contain;display:block;border-radius:30px;}
+.qr-generated-wrap{position:relative;width:100%;height:100%;border-radius:30px;overflow:hidden;background:#131018;}
 .qr-generated-svg{width:100%;height:100%;display:block;}
-.qr-finder-accent{position:absolute;z-index:2;width:58px;height:58px;border-radius:20px;border:2px solid hsl(236 89% 64% / 0.48);box-shadow:0 0 0 8px hsl(236 89% 64% / 0.08),inset 0 0 0 10px hsl(0 0% 100% / 0.92);pointer-events:none;}
-.qr-finder-accent.top-left{top:20px;left:20px;}
-.qr-finder-accent.top-right{top:20px;right:20px;}
-.qr-finder-accent.bottom-left{bottom:20px;left:20px;}
-.qr-finder-accent::after{content:'';position:absolute;inset:14px;border-radius:12px;background:linear-gradient(135deg,hsl(250 80% 65%),hsl(192 95% 58%));}
-.qr-logo-badge{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:2;width:74px;height:74px;border-radius:26px;padding:12px;background:linear-gradient(135deg,hsl(250 80% 65%),hsl(220 90% 58%),hsl(192 95% 58%));border:5px solid #fff;box-shadow:0 18px 34px hsl(245 82% 58% / 0.32);}
-.qr-logo-badge img{width:100%;height:100%;object-fit:contain;display:block;}
-.qr-spark{position:absolute;z-index:0;border-radius:999px;background:hsl(48 100% 76%);box-shadow:0 0 18px hsl(48 100% 76% / 0.65);}
-.qr-spark.one{width:12px;height:12px;top:20px;right:34px;}
-.qr-spark.two{width:9px;height:9px;bottom:34px;left:26px;}
-.qr-spark.three{width:14px;height:14px;bottom:46px;right:26px;}
-@media (max-width:560px){.qr-preview{width:240px;border-radius:34px;}.qr-shell{border-radius:30px;}.qr-art{border-radius:24px;}.qr-logo-badge{width:64px;height:64px;border-radius:22px;padding:10px;}.qr-finder-accent{width:48px;height:48px;border-radius:17px;}}
+.qr-logo-badge{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:3;width:70px;height:70px;border-radius:22px;padding:10px;background:transparent;border:none;box-shadow:none;}
+.qr-logo-badge img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,0.35));}
+@media (max-width:560px){.qr-preview{width:240px;border-radius:34px;}.qr-shell{border-radius:34px;}.qr-shell::before{border-radius:31px;}.qr-art{border-radius:31px;padding:14px;}.qr-art img,.qr-art svg{border-radius:24px;}.qr-generated-wrap{border-radius:24px;}.qr-logo-badge{width:58px;height:58px;border-radius:18px;padding:8px;}}
 </style>
 </head>
 <body>
@@ -318,41 +308,32 @@ function getGeneratedQrArt(targetUrl='') {
   const visualId = nextQrVisualId();
   return `
     <div class="qr-generated-wrap">
-      <span class="qr-finder-accent top-left"></span>
-      <span class="qr-finder-accent top-right"></span>
-      <span class="qr-finder-accent bottom-left"></span>
       <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Design Studio QR code">
         <defs>
-          <linearGradient id="${visualId}-grad" x1="8%" y1="8%" x2="92%" y2="92%">
-            <stop offset="0%" stop-color="#5c4dff"/>
-            <stop offset="52%" stop-color="#2372ff"/>
-            <stop offset="100%" stop-color="#14d6ff"/>
+          <linearGradient id="${visualId}-frame" x1="4%" y1="8%" x2="96%" y2="92%">
+            <stop offset="0%" stop-color="#7a5cff"/>
+            <stop offset="55%" stop-color="#8f75ff"/>
+            <stop offset="100%" stop-color="#28d8ff"/>
           </linearGradient>
-          <linearGradient id="${visualId}-paper" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="100%" stop-color="#eef4ff"/>
+          <linearGradient id="${visualId}-qr" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#bf9bff"/>
+            <stop offset="100%" stop-color="#9a7dff"/>
           </linearGradient>
-          <radialGradient id="${visualId}-glow" cx="50%" cy="50%" r="65%">
-            <stop offset="0%" stop-color="#8eb2ff" stop-opacity="0.35"/>
-            <stop offset="100%" stop-color="#8eb2ff" stop-opacity="0"/>
-          </radialGradient>
-          <pattern id="${visualId}-dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
-            <circle cx="11" cy="11" r="1.7" fill="#d9e6ff"/>
-          </pattern>
           <mask id="${visualId}-mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
             <rect width="420" height="420" fill="black"/>
-            <image href="${maskUrl}" x="54" y="54" width="312" height="312" preserveAspectRatio="xMidYMid meet"/>
+            <image href="${maskUrl}" x="52" y="52" width="316" height="316" preserveAspectRatio="xMidYMid meet"/>
           </mask>
         </defs>
-        <rect x="16" y="16" width="388" height="388" rx="70" fill="url(#${visualId}-paper)"/>
-        <circle cx="86" cy="92" r="64" fill="url(#${visualId}-glow)"/>
-        <circle cx="336" cy="334" r="84" fill="url(#${visualId}-glow)"/>
-        <rect x="42" y="42" width="336" height="336" rx="48" fill="white"/>
-        <rect x="54" y="54" width="312" height="312" rx="40" fill="url(#${visualId}-dots)" opacity="0.85"/>
+        <rect x="18" y="18" width="384" height="384" rx="62" fill="#131018" stroke="url(#${visualId}-frame)" stroke-width="6"/>
+        <path d="M44 66V42H68" fill="none" stroke="#8f75ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M352 42H376V66" fill="none" stroke="#2dd8ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M44 354V378H68" fill="none" stroke="#8f75ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M352 378H376V354" fill="none" stroke="#2dd8ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <g mask="url(#${visualId}-mask)">
-          <rect x="54" y="54" width="312" height="312" rx="40" fill="url(#${visualId}-grad)"/>
+          <rect x="52" y="52" width="316" height="316" rx="26" fill="url(#${visualId}-qr)"/>
         </g>
-        <image href="${imageUrl}" x="54" y="54" width="312" height="312" preserveAspectRatio="xMidYMid meet" opacity="0.06"/>
+        <rect x="168" y="168" width="84" height="84" rx="24" fill="#131018"/>
+        <image href="${imageUrl}" x="52" y="52" width="316" height="316" preserveAspectRatio="xMidYMid meet" opacity="0.04"/>
       </svg>
     </div>
   `;
@@ -367,10 +348,6 @@ function getQrMarkup(imageUrl, logoUrl, options = {}) {
       : getQrPlaceholderMarkup();
   return `
     <div class="qr-shell${useGeneratedTheme ? ' is-generated' : ''}">
-      <span class="qr-orbit"></span>
-      <span class="qr-spark one"></span>
-      <span class="qr-spark two"></span>
-      <span class="qr-spark three"></span>
       <div class="qr-art${useGeneratedTheme ? ' is-generated' : ''}">${media}</div>
       <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Design Studio logo" loading="eager" decoding="async"></div>
     </div>
