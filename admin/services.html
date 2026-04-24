@@ -184,7 +184,7 @@ function openSvcModal(s=null) {
 window.editSvc = id => openSvcModal((getData('galaxy_services')||[]).find(x=>x.id===id));
 window.delSvc  = id => confirmDelete('Delete this service?',()=>{
   setData('galaxy_services',(getData('galaxy_services')||[]).filter(x=>x.id!==id));
-  renderSvc(); showToast('Service deleted.','error');
+  renderSvc(); showToast('Service deleted.');
 });
 
 document.addEventListener('DOMContentLoaded', async ()=>{

@@ -102,7 +102,7 @@ window.markRead=id=>{
 };
 window.delMsg=id=>confirmDelete('Delete this message permanently?',()=>{
   setData('galaxy_messages',(getData('galaxy_messages')||[]).filter(m=>m.id!==id));
-  renderMessages();showToast('Message deleted.','error');
+  renderMessages();showToast('Message deleted.');
 });
 document.addEventListener('DOMContentLoaded',()=>{
   renderMessages();

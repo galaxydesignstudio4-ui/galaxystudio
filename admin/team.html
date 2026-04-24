@@ -154,7 +154,7 @@ window.editMember=id=>openMemberModal((getData('galaxy_team')||[]).find(x=>x.id=
 window.delMember=id=>confirmDelete('Delete this team member?',async ()=>{
   try {
     setData('galaxy_team',(getData('galaxy_team')||[]).filter(x=>x.id!==id));
-    renderTeam();showToast('Deleted.','error');
+    renderTeam();showToast('Deleted.');
   } catch (error) {
     showToast(`Could not delete member: ${error?.message || 'Delete failed.'}`,'error');
   }

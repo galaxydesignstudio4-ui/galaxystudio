@@ -84,18 +84,147 @@
   border-top: 1px solid var(--border);
   text-align: center;
 }
-.qr-display p { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.qr-display p { font-size: 12px; color: var(--muted); margin-top: 12px; }
 .qr-code-box {
-  width: 120px; height: 120px;
-  background: #fff;
-  border-radius: var(--radius);
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 18% 18%, hsl(250 80% 65% / 0.32), transparent 34%),
+    radial-gradient(circle at 85% 20%, hsl(192 95% 58% / 0.24), transparent 28%),
+    linear-gradient(145deg, hsl(258 34% 13%), hsl(248 28% 8%));
+  border-radius: 42px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 18px;
+  border: 1px solid hsl(250 80% 65% / 0.28);
+  box-shadow:
+    0 24px 70px rgba(0,0,0,0.34),
+    inset 0 1px 0 hsl(250 90% 90% / 0.08);
 }
-.qr-code-box svg, .qr-code-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.qr-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 36px;
+  padding: 14px;
+  background: linear-gradient(135deg, hsl(250 80% 65%), hsl(222 86% 57%), hsl(192 95% 58%));
+  box-shadow:
+    inset 0 0 0 1px hsl(255 100% 100% / 0.12),
+    0 16px 34px hsl(245 82% 58% / 0.22);
+}
+.qr-shell::before {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 20% 20%, hsl(255 100% 100% / 0.12), transparent 28%),
+    linear-gradient(160deg, hsl(255 20% 10%), hsl(250 22% 6%));
+}
+.qr-orbit {
+  position: absolute;
+  inset: 14px;
+  border-radius: 28px;
+  border: 1px solid hsl(255 100% 100% / 0.1);
+  z-index: 0;
+}
+.qr-art {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #ffffff, #f5f8ff);
+  padding: 18px;
+  overflow: hidden;
+}
+.qr-art.is-generated {
+  padding: 0;
+  background:
+    radial-gradient(circle at 18% 18%, hsl(250 80% 65% / 0.12), transparent 30%),
+    radial-gradient(circle at 84% 84%, hsl(192 95% 58% / 0.16), transparent 34%),
+    linear-gradient(180deg, #ffffff, #eff4ff);
+}
+.qr-art img,
+.qr-art svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 22px;
+}
+.qr-generated-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+}
+.qr-generated-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.qr-finder-accent {
+  position: absolute;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  border: 2px solid hsl(236 89% 64% / 0.48);
+  box-shadow:
+    0 0 0 8px hsl(236 89% 64% / 0.08),
+    inset 0 0 0 10px hsl(0 0% 100% / 0.92);
+  pointer-events: none;
+}
+.qr-finder-accent.top-left { top: 20px; left: 20px; }
+.qr-finder-accent.top-right { top: 20px; right: 20px; }
+.qr-finder-accent.bottom-left { bottom: 20px; left: 20px; }
+.qr-finder-accent::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, hsl(250 80% 65%), hsl(192 95% 58%));
+}
+.qr-logo-badge {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 74px;
+  height: 74px;
+  border-radius: 26px;
+  padding: 12px;
+  background: linear-gradient(135deg, hsl(250 80% 65%), hsl(222 86% 57%), hsl(192 95% 58%));
+  box-shadow: 0 18px 34px hsl(245 82% 58% / 0.32);
+  border: 5px solid #fff;
+}
+.qr-logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.qr-spark {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  background: hsl(48 100% 76%);
+  box-shadow: 0 0 18px hsl(48 100% 76% / 0.65);
+}
+.qr-spark.one { width: 12px; height: 12px; top: 20px; right: 34px; }
+.qr-spark.two { width: 9px; height: 9px; bottom: 34px; left: 26px; }
+.qr-spark.three { width: 14px; height: 14px; bottom: 46px; right: 26px; }
+@media (max-width: 560px) {
+  .qr-code-box { width: min(100%, 280px); padding: 14px; border-radius: 34px; }
+  .qr-shell { border-radius: 30px; }
+  .qr-art { border-radius: 24px; }
+  .qr-logo-badge { width: 64px; height: 64px; border-radius: 22px; padding: 10px; }
+  .qr-finder-accent { width: 48px; height: 48px; border-radius: 17px; }
+}
 
 /* Info cards */
 .info-cards { display: flex; flex-direction: column; gap: 14px; }
@@ -316,11 +445,23 @@
 <script src="icons.js"></script>
 <script src="shared.js"></script>
 <script>
-const QR_IMAGE_API = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=';
+const QR_IMAGE_API = 'https://api.qrserver.com/v1/create-qr-code/?size=720x720&format=png&margin=0&data=';
+const QR_MASK_IMAGE_API = 'https://api.qrserver.com/v1/create-qr-code/?size=720x720&format=png&margin=0&color=255-255-255&bgcolor=0-0-0&data=';
+let qrVisualSeed = 0;
 
 function getGeneratedQrImageUrl(targetUrl='') {
   const cleanTarget = String(targetUrl || '').trim();
   return cleanTarget ? `${QR_IMAGE_API}${encodeURIComponent(cleanTarget)}` : '';
+}
+
+function getGeneratedQrMaskUrl(targetUrl='') {
+  const cleanTarget = String(targetUrl || '').trim();
+  return cleanTarget ? `${QR_MASK_IMAGE_API}${encodeURIComponent(cleanTarget)}` : '';
+}
+
+function nextQrVisualId() {
+  qrVisualSeed += 1;
+  return `galaxy-qr-${qrVisualSeed}`;
 }
 
 function normalisePhoneHref(phone='') {
@@ -329,17 +470,94 @@ function normalisePhoneHref(phone='') {
   return digits.startsWith('+') ? digits : `+${digits}`;
 }
 
-function renderContactQr(rawQr) {
+function getQrLogoUrl(logo='') {
+  const fallback = 'logo-512.png';
+  const target = logo || fallback;
+  return typeof window.__resolveAssetUrl__ === 'function' ? window.__resolveAssetUrl__(target) : target;
+}
+
+function getQrPlaceholderMarkup(emptyText='QR not set yet') {
+  return `<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="160" height="160" rx="28" fill="white"/><text x="80" y="78" font-size="14" text-anchor="middle" fill="#7a7a7a">${emptyText}</text><text x="80" y="99" font-size="14" text-anchor="middle" fill="#7a7a7a">yet</text></svg>`;
+}
+
+function getGeneratedQrArt(targetUrl='') {
+  const maskUrl = getGeneratedQrMaskUrl(targetUrl);
+  const imageUrl = getGeneratedQrImageUrl(targetUrl);
+  if (!maskUrl || !imageUrl) return getQrPlaceholderMarkup('QR not set');
+  const visualId = nextQrVisualId();
+  return `
+    <div class="qr-generated-wrap">
+      <span class="qr-finder-accent top-left"></span>
+      <span class="qr-finder-accent top-right"></span>
+      <span class="qr-finder-accent bottom-left"></span>
+      <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Design Studio QR code">
+        <defs>
+          <linearGradient id="${visualId}-grad" x1="8%" y1="8%" x2="92%" y2="92%">
+            <stop offset="0%" stop-color="#5c4dff"/>
+            <stop offset="52%" stop-color="#2372ff"/>
+            <stop offset="100%" stop-color="#14d6ff"/>
+          </linearGradient>
+          <linearGradient id="${visualId}-paper" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#eef4ff"/>
+          </linearGradient>
+          <radialGradient id="${visualId}-glow" cx="50%" cy="50%" r="65%">
+            <stop offset="0%" stop-color="#8eb2ff" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#8eb2ff" stop-opacity="0"/>
+          </radialGradient>
+          <pattern id="${visualId}-dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="11" cy="11" r="1.7" fill="#d9e6ff"/>
+          </pattern>
+          <mask id="${visualId}-mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
+            <rect width="420" height="420" fill="black"/>
+            <image href="${maskUrl}" x="54" y="54" width="312" height="312" preserveAspectRatio="xMidYMid meet"/>
+          </mask>
+        </defs>
+        <rect x="16" y="16" width="388" height="388" rx="70" fill="url(#${visualId}-paper)"/>
+        <circle cx="86" cy="92" r="64" fill="url(#${visualId}-glow)"/>
+        <circle cx="336" cy="334" r="84" fill="url(#${visualId}-glow)"/>
+        <rect x="42" y="42" width="336" height="336" rx="48" fill="white"/>
+        <rect x="54" y="54" width="312" height="312" rx="40" fill="url(#${visualId}-dots)" opacity="0.85"/>
+        <g mask="url(#${visualId}-mask)">
+          <rect x="54" y="54" width="312" height="312" rx="40" fill="url(#${visualId}-grad)"/>
+        </g>
+        <image href="${imageUrl}" x="54" y="54" width="312" height="312" preserveAspectRatio="xMidYMid meet" opacity="0.06"/>
+      </svg>
+    </div>
+  `;
+}
+
+function getQrMarkup(imageUrl, logoUrl, emptyText='QR not set yet', options = {}) {
+  const useGeneratedTheme = options.mode === 'generated' && options.targetUrl;
+  const media = useGeneratedTheme
+    ? getGeneratedQrArt(options.targetUrl)
+    : imageUrl
+      ? `<img src="${imageUrl}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`
+      : getQrPlaceholderMarkup(emptyText);
+  return `
+    <div class="qr-shell${useGeneratedTheme ? ' is-generated' : ''}">
+      <span class="qr-orbit"></span>
+      <span class="qr-spark one"></span>
+      <span class="qr-spark two"></span>
+      <span class="qr-spark three"></span>
+      <div class="qr-art${useGeneratedTheme ? ' is-generated' : ''}">${media}</div>
+      <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Design Studio logo" loading="eager" decoding="async"></div>
+    </div>
+  `;
+}
+
+function renderContactQr(rawQr, logo='') {
   const qrBox = document.getElementById('qrBox');
   const qrCaption = document.getElementById('qrCaption');
   if (!qrBox || !qrCaption || typeof window.normalizeQrSetting !== 'function') return;
   const config = window.normalizeQrSetting(rawQr);
   const qrImage = config.mode === 'upload' ? config.imageUrl : getGeneratedQrImageUrl(config.targetUrl);
+  const logoUrl = getQrLogoUrl(logo);
   if (qrImage) {
-    qrBox.innerHTML = `<img src="${qrImage}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`;
+    qrBox.innerHTML = getQrMarkup(qrImage, logoUrl, 'QR not set', { mode: config.mode, targetUrl: config.targetUrl });
     qrCaption.textContent = 'Scan to visit Galaxy Design Studio';
   } else {
-    qrBox.innerHTML = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="120" height="120" rx="12" fill="white"/><text x="60" y="58" font-size="10" text-anchor="middle" fill="#777">QR not set</text><text x="60" y="74" font-size="10" text-anchor="middle" fill="#777">yet</text></svg>`;
+    qrBox.innerHTML = getQrMarkup('', logoUrl, 'QR not set', { mode: config.mode, targetUrl: config.targetUrl });
     qrCaption.textContent = 'Set your QR code in the admin panel';
   }
 }
@@ -389,7 +607,7 @@ async function applyContactSettings() {
   const novaLink = document.getElementById('footerNovaLink');
   if (novaLink) novaLink.href = novatech || '#';
 
-  renderContactQr(settings.qrUrl || '');
+  renderContactQr(settings.qrUrl || '', settings.logo || '');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -221,6 +221,26 @@ function galleryItemTimestamp(item = {}) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function gallerySelectionKey(id) {
+  return String(id ?? '');
+}
+
+function isGallerySelected(id) {
+  return selectedGalleryIds.has(gallerySelectionKey(id));
+}
+
+function setGallerySelected(id, checked) {
+  const key = gallerySelectionKey(id);
+  if (!key) return;
+  if (checked) selectedGalleryIds.add(key);
+  else selectedGalleryIds.delete(key);
+}
+
+function pruneGallerySelection(list = []) {
+  const validKeys = new Set((Array.isArray(list) ? list : []).map((item) => gallerySelectionKey(item?.id)).filter(Boolean));
+  selectedGalleryIds = new Set([...selectedGalleryIds].filter((key) => validKeys.has(key)));
+}
+
 function sortGalleryItemsNewestFirst(list = []) {
   return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
     const byDate = galleryItemTimestamp(b) - galleryItemTimestamp(a);
@@ -417,12 +437,13 @@ async function deleteGalleryAssets(item) {
 
 function renderGallery() {
   const all = sortGalleryItemsNewestFirst(getData('galaxy_gallery') || []);
+  pruneGallerySelection(all);
   const list = galleryFilter === 'all' ? all : all.filter((item) => (item.type || 'image') === galleryFilter);
   document.getElementById('galSub').textContent = `${list.length} item${list.length !== 1 ? 's' : ''} • images, videos & links`;
   const grid  = document.getElementById('galGrid');
   const empty = document.getElementById('galEmpty');
   const deleteBtn = document.getElementById('galDeleteSelectedBtn');
-  const allVisibleSelected = list.length > 0 && list.every((item) => selectedGalleryIds.has(item.id));
+  const allVisibleSelected = list.length > 0 && list.every((item) => isGallerySelected(item.id));
   const selectAllBtn = document.getElementById('galSelectAllBtn');
   if (selectAllBtn) selectAllBtn.textContent = allVisibleSelected ? 'Unselect All' : 'Select All';
   if (deleteBtn) {
@@ -440,13 +461,13 @@ function renderGallery() {
         ${getGalleryPreview(item)}
       </div>
       <span class="g-type">${typeLabel}</span>
-      <input class="g-select" type="checkbox" ${selectedGalleryIds.has(item.id) ? 'checked' : ''} onchange="toggleGalSelection(${item.id}, this.checked)" onclick="event.stopPropagation()">
+      <input class="g-select" type="checkbox" ${isGallerySelected(item.id) ? 'checked' : ''} onchange='toggleGalSelection(${JSON.stringify(gallerySelectionKey(item.id))}, this.checked)' onclick="event.stopPropagation()">
       ${item.type === 'link' ? '<span class="g-link-icon" style="right:30px;">↗</span>' : ''}
       <div class="g-overlay">
         ${item.type === 'video' ? '<div class="g-play">▶</div>' : ''}
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost btn-sm" onclick="editGal(${item.id})" style="background:hsl(260 20% 10%);">✏️ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="delGal(${item.id})">🗑️</button>
+          <button class="btn btn-ghost btn-sm" onclick='editGal(${JSON.stringify(item.id)})' style="background:hsl(260 20% 10%);">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick='delGal(${JSON.stringify(item.id)})'>🗑️</button>
         </div>
       </div>
       ${item.title ? `<div class="g-footer"><div class="g-footer-title">${escHtml(item.title)}</div>${item.desc ? `<div class="g-footer-desc">${escHtml(item.desc)}</div>` : ''}</div>` : ''}
@@ -883,23 +904,31 @@ async function processFiles(arr) {
 }
 
 window.editGal = id => {
-  const item = (getData('galaxy_gallery')||[]).find(x => x.id === id);
+  const matchId = gallerySelectionKey(id);
+  const item = (getData('galaxy_gallery')||[]).find((x) => gallerySelectionKey(x.id) === matchId);
   if (item) editGalModal(item);
 };
 window.toggleGalSelection = (id, checked) => {
-  if (checked) selectedGalleryIds.add(id);
-  else selectedGalleryIds.delete(id);
+  setGallerySelected(id, checked);
   renderGallery();
 };
 window.delGal = id => confirmDelete('Delete this gallery item?', async () => {
   const list = getData('galaxy_gallery')||[];
-  const item = list.find(x => x.id === id);
+  const matchId = gallerySelectionKey(id);
+  const item = list.find((x) => gallerySelectionKey(x.id) === matchId);
+  const nextList = list.filter((x) => gallerySelectionKey(x.id) !== matchId);
   try {
-    if (item) await deleteGalleryAssets(item);
-    await saveGalleryItems(list.filter(x => x.id !== id));
-    selectedGalleryIds.delete(id);
-    renderGallery(); showToast('Item deleted.', 'error');
+    setGallerySelected(matchId, false);
+    const persist = saveGalleryItems(nextList);
+    renderGallery();
+    await persist;
+    if (item) {
+      Promise.allSettled([deleteGalleryAssets(item)]).catch(() => {});
+    }
+    showToast('Item deleted.');
   } catch (error) {
+    await syncGalleryFromCloud();
+    renderGallery();
     const message = error?.message || 'Delete rejected by Supabase.';
     showToast(`Could not delete item: ${message}`, 'error');
   }
@@ -912,16 +941,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     : null;
   await syncGalleryFromCloud();
   let list = getData('galaxy_gallery') || [];
-  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
+  if (initialSyncState && initialSyncState.hasPending && Array.isArray(localBeforeSync) && localBeforeSync.length) {
     try {
       await saveGalleryItems(localBeforeSync);
       await syncGalleryFromCloud();
       list = getData('galaxy_gallery') || localBeforeSync;
-      showToast('Recovered local gallery changes to cloud.');
     } catch (error) {
       console.warn('[Gallery Admin] Cloud recovery failed:', error.message);
       list = localBeforeSync;
-      showToast(`Gallery sync needs attention: ${error?.message || 'Cloud save failed.'}`, 'error');
     }
   }
   renderGallery();
@@ -936,24 +963,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('galSelectAllBtn').onclick = () => {
     const all = getData('galaxy_gallery') || [];
     const visible = galleryFilter === 'all' ? all : all.filter((item) => (item.type || 'image') === galleryFilter);
-    const allVisibleSelected = visible.length > 0 && visible.every((item) => selectedGalleryIds.has(item.id));
-    if (allVisibleSelected) visible.forEach((item) => selectedGalleryIds.delete(item.id));
-    else visible.forEach((item) => selectedGalleryIds.add(item.id));
+    const allVisibleSelected = visible.length > 0 && visible.every((item) => isGallerySelected(item.id));
+    if (allVisibleSelected) visible.forEach((item) => setGallerySelected(item.id, false));
+    else visible.forEach((item) => setGallerySelected(item.id, true));
     renderGallery();
   };
   document.getElementById('galDeleteSelectedBtn').onclick = () => confirmDelete(`Delete ${selectedGalleryIds.size} selected gallery item(s)?`, async () => {
     if (!selectedGalleryIds.size) return;
     const ids = new Set(selectedGalleryIds);
     const list = getData('galaxy_gallery') || [];
+    const doomedItems = list.filter((item) => ids.has(gallerySelectionKey(item.id)));
+    const nextList = list.filter((item) => !ids.has(gallerySelectionKey(item.id)));
     try {
-      for (const item of list) {
-        if (ids.has(item.id)) await deleteGalleryAssets(item);
-      }
-      await saveGalleryItems(list.filter((item) => !ids.has(item.id)));
       selectedGalleryIds.clear();
+      const persist = saveGalleryItems(nextList);
       renderGallery();
-      showToast(`${ids.size} gallery item(s) deleted.`,'error');
+      await persist;
+      Promise.allSettled(doomedItems.map((item) => deleteGalleryAssets(item))).catch(() => {});
+      showToast(`${ids.size} gallery item(s) deleted.`);
     } catch (error) {
+      await syncGalleryFromCloud();
+      renderGallery();
       showToast(`Could not delete selected items: ${error?.message || 'Delete failed.'}`,'error');
     }
   });

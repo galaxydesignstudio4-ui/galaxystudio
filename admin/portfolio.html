@@ -262,7 +262,7 @@ window.delPort=id=>confirmDelete('Delete this project?',async ()=>{
     if (item) await deletePortfolioAssets(item);
     setData('galaxy_portfolio', list.filter(x => x.id !== id));
     selectedPortfolioIds.delete(id);
-    renderPort();showToast('Project deleted.','error');
+    renderPort();showToast('Project deleted.');
   } catch (error) {
     const message = error?.message || 'Delete rejected by Supabase.';
     showToast(`Could not delete project: ${message}`, 'error');
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       setData('galaxy_portfolio', list.filter((item) => !ids.has(item.id)));
       selectedPortfolioIds.clear();
       renderPort();
-      showToast(`${ids.size} project(s) deleted.`,'error');
+      showToast(`${ids.size} project(s) deleted.`);
     } catch (error) {
       showToast(`Could not delete selected projects: ${error?.message || 'Delete failed.'}`,'error');
     }

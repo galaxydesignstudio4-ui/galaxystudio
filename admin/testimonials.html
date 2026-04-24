@@ -149,7 +149,7 @@ window.editTest=id=>openTestModal((getData('galaxy_testimonials')||[]).find(x=>x
 window.delTest=id=>confirmDelete('Delete this testimonial?',async ()=>{
   try {
     setData('galaxy_testimonials',(getData('galaxy_testimonials')||[]).filter(x=>x.id!==id));
-    renderTestimonials();showToast('Deleted.','error');
+    renderTestimonials();showToast('Deleted.');
   } catch (error) {
     showToast(`Could not delete testimonial: ${error?.message || 'Delete failed.'}`,'error');
   }

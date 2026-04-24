@@ -77,6 +77,26 @@ const ADAVATAR_BUCKET='avatars';
 let selectedAVIds = new Set();
 let avFilter = 'all';
 
+function avSelectionKey(id) {
+  return String(id ?? '');
+}
+
+function isAVSelected(id) {
+  return selectedAVIds.has(avSelectionKey(id));
+}
+
+function setAVSelected(id, checked) {
+  const key = avSelectionKey(id);
+  if (!key) return;
+  if (checked) selectedAVIds.add(key);
+  else selectedAVIds.delete(key);
+}
+
+function pruneAVSelection(list = []) {
+  const validKeys = new Set((Array.isArray(list) ? list : []).map((item) => avSelectionKey(item?.id)).filter(Boolean));
+  selectedAVIds = new Set([...selectedAVIds].filter((key) => validKeys.has(key)));
+}
+
 function adavatarItemTimestamp(item = {}) {
   const timestamp = Date.parse(item?.createdAt || '');
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -133,11 +153,12 @@ async function deleteAVAssets(item) {
 
 function renderAV(){
   const all=sortAdavatarItemsNewestFirst(getData('galaxy_adavatar')||[]);
+  pruneAVSelection(all);
   const list=avFilter==='all'?all:all.filter((item)=>(item.type||'image')===avFilter);
   document.getElementById('avSub').textContent=`${list.length} item${list.length!==1?'s':''} • images & videos shown on the AdAvatar page`;
   const grid=document.getElementById('avGrid');
   const deleteBtn = document.getElementById('avDeleteSelectedBtn');
-  const allVisibleSelected = list.length > 0 && list.every((item) => selectedAVIds.has(item.id));
+  const allVisibleSelected = list.length > 0 && list.every((item) => isAVSelected(item.id));
   const selectAllBtn = document.getElementById('avSelectAllBtn');
   if (selectAllBtn) selectAllBtn.textContent = allVisibleSelected ? 'Unselect All' : 'Select All';
   if (deleteBtn) {
@@ -151,12 +172,12 @@ function renderAV(){
         ${getAVPreview(item)}
       </div>
       <span style="position:absolute;top:7px;left:7px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;color:#fcd34d;">${item.type==='video'?'▶ Video':'🖼 Image'}</span>
-      <input class="av-select" type="checkbox" ${selectedAVIds.has(item.id)?'checked':''} onchange="toggleAVSelection(${item.id}, this.checked)" onclick="event.stopPropagation()">
+      <input class="av-select" type="checkbox" ${isAVSelected(item.id)?'checked':''} onchange='toggleAVSelection(${JSON.stringify(avSelectionKey(item.id))}, this.checked)' onclick="event.stopPropagation()">
       <div class="av-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;transition:0.2s;">
         ${item.type==='video'?'<div style="width:44px;height:44px;border-radius:50%;background:rgba(245,158,11,0.8);display:flex;align-items:center;justify-content:center;font-size:18px;color:#1a0f00;">▶</div>':''}
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost btn-sm" onclick="editAV(${item.id})" style="background:hsl(260 20% 10%);">✏️ Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="delAV(${item.id})">🗑️</button>
+          <button class="btn btn-ghost btn-sm" onclick='editAV(${JSON.stringify(item.id)})' style="background:hsl(260 20% 10%);">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick='delAV(${JSON.stringify(item.id)})'>🗑️</button>
         </div>
       </div>
       ${item.title?`<div style="padding:8px 10px;border-top:1px solid rgba(245,158,11,0.15);font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#fcd34d;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${escHtml(item.title)}</div>`:''}
@@ -347,21 +368,32 @@ async function uploadAVFiles(files){
   }
 }
 
-window.editAV=id=>editAVModal((getData('galaxy_adavatar')||[]).find(x=>x.id===id));
+window.editAV=id=>{
+  const matchId = avSelectionKey(id);
+  const item = (getData('galaxy_adavatar')||[]).find((x)=>avSelectionKey(x.id)===matchId);
+  if (item) editAVModal(item);
+};
 window.toggleAVSelection=(id,checked)=>{
-  if (checked) selectedAVIds.add(id);
-  else selectedAVIds.delete(id);
+  setAVSelected(id, checked);
   renderAV();
 };
 window.delAV=id=>confirmDelete('Delete this item?',async ()=>{
   const list = getData('galaxy_adavatar')||[];
-  const item = list.find(x=>x.id===id);
+  const matchId = avSelectionKey(id);
+  const item = list.find((x)=>avSelectionKey(x.id)===matchId);
+  const nextList = list.filter((x)=>avSelectionKey(x.id)!==matchId);
   try {
-    if (item) await deleteAVAssets(item);
-    await saveAdavatarItems(list.filter(x=>x.id!==id));
-    selectedAVIds.delete(id);
-    renderAV();showToast('Deleted.','error');
+    setAVSelected(matchId, false);
+    const persist = saveAdavatarItems(nextList);
+    renderAV();
+    await persist;
+    if (item) {
+      Promise.allSettled([deleteAVAssets(item)]).catch(() => {});
+    }
+    showToast('Deleted.');
   } catch (error) {
+    await syncAVFromCloud();
+    renderAV();
     showToast(`Could not delete item: ${error?.message || 'Delete failed.'}`,'error');
   }
 });
@@ -371,14 +403,12 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     ? window.getSyncState('galaxy_adavatar')
     : null;
   await syncAVFromCloud();
-  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
+  if (initialSyncState && initialSyncState.hasPending && Array.isArray(localBeforeSync) && localBeforeSync.length) {
     try {
       await saveAdavatarItems(localBeforeSync);
       await syncAVFromCloud();
-      showToast('Recovered local AdAvatar changes to cloud.');
     } catch (error) {
       console.warn('[AdAvatar Admin] Cloud recovery failed:', error.message);
-      showToast(`AdAvatar sync needs attention: ${error?.message || 'Cloud save failed.'}`,'error');
     }
   }
   renderAV();
@@ -392,24 +422,27 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   document.getElementById('avSelectAllBtn').onclick=()=>{
     const all=getData('galaxy_adavatar')||[];
     const visible=avFilter==='all'?all:all.filter((item)=>(item.type||'image')===avFilter);
-    const allVisibleSelected = visible.length>0 && visible.every((item)=>selectedAVIds.has(item.id));
-    if (allVisibleSelected) visible.forEach((item)=>selectedAVIds.delete(item.id));
-    else visible.forEach((item)=>selectedAVIds.add(item.id));
+    const allVisibleSelected = visible.length>0 && visible.every((item)=>isAVSelected(item.id));
+    if (allVisibleSelected) visible.forEach((item)=>setAVSelected(item.id, false));
+    else visible.forEach((item)=>setAVSelected(item.id, true));
     renderAV();
   };
   document.getElementById('avDeleteSelectedBtn').onclick=()=>confirmDelete(`Delete ${selectedAVIds.size} selected AdAvatar item(s)?`, async ()=>{
     if (!selectedAVIds.size) return;
     const ids = new Set(selectedAVIds);
     const list = getData('galaxy_adavatar')||[];
+    const doomedItems = list.filter((item)=>ids.has(avSelectionKey(item.id)));
+    const nextList = list.filter((item)=>!ids.has(avSelectionKey(item.id)));
     try {
-      for (const item of list) {
-        if (ids.has(item.id)) await deleteAVAssets(item);
-      }
-      await saveAdavatarItems(list.filter((item)=>!ids.has(item.id)));
       selectedAVIds.clear();
+      const persist = saveAdavatarItems(nextList);
       renderAV();
-      showToast(`${ids.size} AdAvatar item(s) deleted.`,'error');
+      await persist;
+      Promise.allSettled(doomedItems.map((item)=>deleteAVAssets(item))).catch(() => {});
+      showToast(`${ids.size} AdAvatar item(s) deleted.`);
     } catch (error) {
+      await syncAVFromCloud();
+      renderAV();
       showToast(`Could not delete selected items: ${error?.message || 'Delete failed.'}`,'error');
     }
   });

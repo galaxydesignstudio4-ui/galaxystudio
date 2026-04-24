@@ -162,7 +162,7 @@ window.editNotif=id=>openNotifModal((getData('galaxy_notifications')||[]).find(x
 window.delNotif=id=>confirmDelete('Delete this notification?',async ()=>{
   try {
     setData('galaxy_notifications',(getData('galaxy_notifications')||[]).filter(x=>x.id!==id));
-    renderNotifs();showToast('Deleted.','error');
+    renderNotifs();showToast('Deleted.');
   } catch (error) {
     showToast(`Could not delete notification: ${error?.message || 'Delete failed.'}`,'error');
   }
