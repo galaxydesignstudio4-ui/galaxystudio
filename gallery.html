@@ -412,7 +412,7 @@
       </div>
       <div class="recent-list" id="recentList"></div>
     </div>
-    <div class="gallery-masonry" id="galleryMasonry">
+    <div class="gallery-masonry" id="galleryMasonry" style="visibility:hidden;">
 
       <div class="gallery-item animate-in" data-index="0" style="--delay:0ms">
         <div class="media-badge">🖼 Image</div>
@@ -704,6 +704,7 @@ function renderGallery(list) {
     if (countEl) countEl.textContent = '0';
     if (recentWrap) recentWrap.style.display = 'none';
     container.innerHTML = `<div class="no-results" style="column-span:all;text-align:center;padding:48px 0;color:var(--muted);">No gallery items yet.</div>`;
+    container.style.visibility = 'visible';
     return;
   }
   if (countEl) countEl.textContent = String(list.length);
@@ -772,11 +773,11 @@ function renderGallery(list) {
       if (selectedIndex >= 0) openGalleryViewer(list, selectedIndex);
     });
   });
+  container.style.visibility = 'visible';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   let list = getData('galaxy_gallery') || [];
-  renderGallery(list);
   if (typeof window.loadFromCloud === 'function') {
     try {
       const cloudList = await window.loadFromCloud('galaxy_gallery');

@@ -55,7 +55,7 @@ const BASE_DEFAULTS = {
     whatsapp: '233556881003',
     novatech: '#',
     qrUrl: '',
-    logo: 'logo.png',
+    logo: 'logo-512.png',
     logoStoragePath: '',
   },
   galaxy_about: {

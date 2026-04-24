@@ -394,6 +394,38 @@ document.addEventListener('DOMContentLoaded', () => {
     return `<span>${escHtml(name || '✦')}</span>`;
   }
 
+  function applyStandardLogoChrome() {
+    document.querySelectorAll('.nav-logo .logo-icon, .footer-logo .logo-icon').forEach((el) => {
+      const isFooterLogo = Boolean(el.closest('.footer-logo'));
+      const hasCustomLogo = el.classList.contains('has-custom-logo');
+      el.style.width = isFooterLogo ? '34px' : '38px';
+      el.style.height = isFooterLogo ? '34px' : '38px';
+      el.style.borderRadius = hasCustomLogo ? '0' : '10px';
+      el.style.background = hasCustomLogo
+        ? 'transparent'
+        : 'linear-gradient(135deg, hsl(250,80%,65%), hsl(220,80%,55%), hsl(200,100%,60%))';
+      el.style.border = hasCustomLogo ? 'none' : '1px solid hsl(250 80% 72% / 0.34)';
+      el.style.boxShadow = hasCustomLogo ? 'none' : '0 0 16px hsl(250 80% 65% / 0.5)';
+      el.style.boxSizing = 'border-box';
+      el.style.flexShrink = '0';
+      el.style.overflow = hasCustomLogo ? 'visible' : 'hidden';
+      el.style.padding = '0';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+    });
+    document.querySelectorAll('.nav-logo .logo-icon img, .footer-logo .logo-icon img').forEach((img) => {
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.style.padding = '0';
+      img.style.borderRadius = '0';
+      img.loading = 'eager';
+      img.decoding = 'async';
+      img.fetchPriority = 'high';
+    });
+  }
+
   function featureListForService(service) {
     const map = {
       graphic: ['Poster & Flyer Design', 'Social Media Graphics', 'Print & Digital Assets', 'Brand Consistency'],
@@ -440,7 +472,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyPublicBranding(settings, about) {
-    const studioName = settings?.studioName || 'Galaxy Design Studio';
+    const bootSettings = window.__GDS_BOOT_SETTINGS__ || {};
+    const studioName = settings?.studioName || bootSettings.studioName || 'Galaxy Design Studio';
+    const rawLogoUrl = settings?.logo || bootSettings.logo || '';
+    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
     document.querySelectorAll('.logo-text').forEach((el) => {
       el.innerHTML = studioMarkup(studioName);
     });
@@ -449,13 +484,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('.nav-logo .logo-icon, .footer-logo .logo-icon').forEach((el) => {
-      if (settings?.logo) {
+      if (logoUrl) {
         el.classList.add('has-custom-logo');
-        el.innerHTML = `<img src="${escHtml(settings.logo)}" alt="${escHtml(studioName)} logo">`;
+        el.innerHTML = `<img src="${escHtml(logoUrl)}" alt="${escHtml(studioName)} logo">`;
       } else {
         el.classList.remove('has-custom-logo');
       }
     });
+    applyStandardLogoChrome();
 
     document.querySelectorAll('footer .footer-desc').forEach((el) => {
       el.textContent = settings?.tagline || `${studioName} by ${about?.name || 'Emmanuel Yirenkyi-Amoyaw'}.`;
@@ -486,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (links[1] && about?.youtube1) links[1].href = about.youtube1;
       if (links[2] && about?.youtube2) links[2].href = about.youtube2;
     });
+    applyStandardLogoChrome();
   }
 
   function renderHomePage(data) {
@@ -555,6 +592,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
       `).join('');
     }
+    if (projectGrid) {
+      if (!portfolio.length) projectGrid.innerHTML = '';
+      projectGrid.style.visibility = 'visible';
+    }
 
     const testimonialGrid = document.querySelector('#testimonials .testimonials-grid');
     if (testimonialGrid && testimonials.length) {
@@ -572,6 +613,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `).join('');
+    }
+    if (testimonialGrid) {
+      if (!testimonials.length) testimonialGrid.innerHTML = '';
+      testimonialGrid.style.visibility = 'visible';
     }
   }
 
@@ -639,10 +684,12 @@ document.addEventListener('DOMContentLoaded', () => {
       data[key] = window.getData(key);
     }
 
-    applyPublicBranding(data.galaxy_settings || {}, data.galaxy_about || {});
+    applyPublicBranding(data.galaxy_settings || window.__GDS_BOOT_SETTINGS__ || {}, data.galaxy_about || {});
     if (pageName === 'index.html' || pageName === '') renderHomePage(data);
     if (pageName === 'services.html') renderServicesPage(data.galaxy_services || []);
     if (pageName === 'about.html') renderAboutPage(data.galaxy_about || {});
+    document.documentElement.classList.remove('gds-loading');
+    document.documentElement.classList.add('gds-ready');
   }
 
   hydratePublicSite().catch((error) => {

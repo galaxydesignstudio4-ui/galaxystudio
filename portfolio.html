@@ -155,7 +155,7 @@
     </div>
 
     <!-- Portfolio Grid -->
-    <div class="portfolio-grid" id="portfolioGrid">
+    <div class="portfolio-grid" id="portfolioGrid" style="visibility:hidden;">
 
       <div class="project-card premium animate-in" data-category="adavatar" style="--delay:0ms">
         <div class="premium-badge">★ Premium</div>
@@ -357,6 +357,7 @@ function renderPortfolio() {
 
   if (!portfolioItems.length) {
     grid.innerHTML = `<div class="no-results">No portfolio projects yet.</div>`;
+    grid.style.visibility = 'visible';
     return;
   }
 
@@ -378,6 +379,7 @@ function renderPortfolio() {
   `).join('');
 
   applyFilter(activeFilter);
+  grid.style.visibility = 'visible';
 }
 
 function applyFilter(filter) {
@@ -455,7 +457,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   portfolioItems = getData('galaxy_portfolio') || [];
-  renderPortfolio();
   if (typeof window.loadFromCloud === 'function') {
     try {
       const cloudItems = await window.loadFromCloud('galaxy_portfolio');

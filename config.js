@@ -42,6 +42,60 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
     document.documentElement.classList.add('is-auth');
 }
 
+// Show the saved public logo as early as possible on non-admin pages.
+if (!window.location.pathname.includes('/admin/')) {
+    let bootSettings = {};
+    try {
+        bootSettings = JSON.parse(localStorage.getItem('galaxy_settings') || '{}') || {};
+    } catch {}
+
+    const studioName = bootSettings.studioName || 'Galaxy Design Studio';
+    const rawLogoUrl = bootSettings.logo || 'logo-512.png';
+    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    window.__GDS_BOOT_SETTINGS__ = { studioName, logo: logoUrl };
+
+    if (logoUrl) {
+        document.documentElement.classList.add('gds-has-boot-logo');
+
+        const preload = document.createElement('link');
+        preload.rel = 'preload';
+        preload.as = 'image';
+        preload.href = logoUrl;
+        preload.fetchPriority = 'high';
+        document.head.appendChild(preload);
+
+        const style = document.createElement('style');
+        style.textContent = `
+html.gds-has-boot-logo .nav-logo .logo-icon,
+html.gds-has-boot-logo .footer-logo .logo-icon {
+  background-color: transparent !important;
+  background-image: url(${JSON.stringify(String(logoUrl))}) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+html.gds-has-boot-logo .nav-logo .logo-icon {
+  width: 38px !important;
+  height: 38px !important;
+}
+html.gds-has-boot-logo .footer-logo .logo-icon {
+  width: 34px !important;
+  height: 34px !important;
+}
+html.gds-has-boot-logo .nav-logo .logo-icon svg,
+html.gds-has-boot-logo .footer-logo .logo-icon svg {
+  opacity: 0 !important;
+}
+`;
+        document.head.appendChild(style);
+    }
+}
+
 // ── Upstash Redis (REST API) ──────────────────────────────────
 window.__REDIS_URL__   = 'https://adequate-seahorse-103818.upstash.io'; 
 window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYjBjZmI2OXAxMTAzODE4'; 

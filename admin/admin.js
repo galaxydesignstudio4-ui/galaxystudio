@@ -27,7 +27,7 @@ window.DEFAULTS = {
     studioName:'Galaxy Design Studio',tagline:'Creative & Digital Advertisement Studio',
     email:'galaxydesignstudio4@gmail.com',phone:'055-688-1003',
     location:'Tema, Accra, Ghana',facebook:'https://web.facebook.com/profile.php?id=61562678010128',
-    whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'logo.png',
+    whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'logo-512.png',
   },
   galaxy_about: {
     name:'Emmanuel Yirenkyi-Amoyaw',

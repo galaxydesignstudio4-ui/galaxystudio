@@ -450,7 +450,7 @@
         </div>
       </div>
 
-      <div class="adgallery-masonry" id="adavatarGallery">
+      <div class="adgallery-masonry" id="adavatarGallery" style="visibility:hidden;">
       <div class="adgallery-item animate-in" style="--delay:0ms">
         <div class="adgallery-thumb tall" style="background:linear-gradient(135deg,hsl(35,50%,8%),hsl(40,60%,14%));"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
         <div class="adgallery-overlay"><div class="adgallery-play">▶</div></div>
@@ -628,6 +628,7 @@ function renderAdavatarGallery(list) {
   if (!Array.isArray(list) || !list.length) {
     if (countEl) countEl.textContent = '0';
     container.innerHTML = `<div class="no-results" style="text-align:center;padding:48px 0;color:var(--muted);">No AdAvatar samples yet.</div>`;
+    container.style.visibility = 'visible';
     return;
   }
   if (countEl) countEl.textContent = String(list.length);
@@ -650,6 +651,7 @@ function renderAdavatarGallery(list) {
       if (selectedIndex >= 0) openAdavatarViewer(list, selectedIndex);
     });
   });
+  container.style.visibility = 'visible';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
