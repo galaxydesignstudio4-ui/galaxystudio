@@ -326,19 +326,43 @@
 <script src="icons.js"></script>
 <script src="shared.js"></script>
 <script>
+function escAttr(value) {
+  return String(value || '').replace(/"/g, '&quot;');
+}
+
+function escText(value) {
+  return String(value || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function preloadImage(url) {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(false);
+      return;
+    }
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   if (typeof window.getData !== 'function') return;
   let about = getData('galaxy_about') || {};
   let team = getData('galaxy_team') || [];
   if (typeof window.loadFromCloud === 'function') {
-    try {
-      const cloud = await window.loadFromCloud('galaxy_about');
-      if (cloud && typeof cloud === 'object') about = cloud;
-    } catch {}
-    try {
-      const cloudTeam = await window.loadFromCloud('galaxy_team');
-      if (Array.isArray(cloudTeam)) team = cloudTeam;
-    } catch {}
+    const [aboutResult, teamResult] = await Promise.allSettled([
+      window.loadFromCloud('galaxy_about'),
+      window.loadFromCloud('galaxy_team'),
+    ]);
+    if (aboutResult.status === 'fulfilled' && aboutResult.value && typeof aboutResult.value === 'object') {
+      about = aboutResult.value;
+    }
+    if (teamResult.status === 'fulfilled' && Array.isArray(teamResult.value)) {
+      team = teamResult.value;
+    }
   }
   if (!about.avatar && typeof window.recoverAboutAvatarFromStorage === 'function') {
     try {
@@ -377,22 +401,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       .slice()
       .sort((a, b) => (a?.order || 999) - (b?.order || 999));
     if (orderedTeam.length) {
-      aboutTeamSection.style.display = '';
+      const avatarUrls = orderedTeam.map((member) => member?.avatar).filter(Boolean);
+      await Promise.allSettled(avatarUrls.map((url) => preloadImage(url)));
       aboutTeamGrid.innerHTML = orderedTeam.map((member) => {
         const safeName = String(member?.name || '');
         const initials = safeName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || '?';
         const avatar = member?.avatar
-          ? `<img src="${String(member.avatar).replace(/"/g, '&quot;')}" alt="${safeName.replace(/"/g, '&quot;')}">`
+          ? `<img src="${escAttr(member.avatar)}" alt="${escAttr(safeName)}" loading="eager" decoding="async" fetchpriority="high">`
           : initials;
         return `
           <article class="team-about-card">
             <div class="team-about-avatar">${avatar}</div>
-            <div class="team-about-name">${safeName.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-            <div class="team-about-role">${String(member?.role || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-            <div class="team-about-bio">${String(member?.bio || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <div class="team-about-name">${escText(safeName)}</div>
+            <div class="team-about-role">${escText(member?.role || '')}</div>
+            <div class="team-about-bio">${escText(member?.bio || '')}</div>
           </article>
         `;
       }).join('');
+      aboutTeamSection.style.display = '';
     } else {
       aboutTeamSection.style.display = 'none';
       aboutTeamGrid.innerHTML = '';

@@ -42,6 +42,31 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
     document.documentElement.classList.add('is-auth');
 }
 
+// Always prioritize the studio logo for browser/tab icons.
+(() => {
+    let bootSettings = {};
+    try {
+        bootSettings = JSON.parse(localStorage.getItem('galaxy_settings') || '{}') || {};
+    } catch {}
+
+    const rawLogoUrl = bootSettings.logo || 'logo-512.png';
+    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if (!head || !logoUrl) return;
+
+    [
+        ['icon', 'image/png'],
+        ['shortcut icon', 'image/png'],
+        ['apple-touch-icon', 'image/png'],
+    ].forEach(([rel, type]) => {
+        const link = document.createElement('link');
+        link.rel = rel;
+        link.type = type;
+        link.href = logoUrl;
+        head.appendChild(link);
+    });
+})();
+
 // Show the saved public logo as early as possible on non-admin pages.
 if (!window.location.pathname.includes('/admin/')) {
     let bootSettings = {};

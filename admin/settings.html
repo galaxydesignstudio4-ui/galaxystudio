@@ -21,7 +21,9 @@
 /* QR */
 .qr-card{background:var(--card-bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;text-align:center;max-width:200px;}
 .qr-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:12px;}
-#qrCanvas{border-radius:var(--radius-sm);margin:0 auto;}
+.qr-preview{width:120px;height:120px;border-radius:var(--radius-sm);margin:0 auto;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.qr-preview img{width:100%;height:100%;object-fit:contain;display:block;}
+.qr-placeholder{font-size:11px;color:#777;line-height:1.5;padding:0 12px;}
 </style>
 </head>
 <body>
@@ -132,16 +134,23 @@
             <div class="form-group">
               <label class="form-label">Website URL for QR Code</label>
               <input class="form-input" id="sQrUrl" placeholder="https://galaxydesignstudio.com" oninput="debounceQR()">
-              <p class="form-hint">Visitors can scan this to open your website.</p>
+              <p class="form-hint">Visitors can scan this to open your website, or you can upload your own QR image only.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+              <button class="btn btn-ghost" type="button" id="useGeneratedQrBtn">Use Generated QR</button>
+              <label class="btn btn-ghost" style="cursor:pointer;">
+                Upload QR Image
+                <input type="file" id="qrUploadInput" accept="image/*" style="display:none;">
+              </label>
             </div>
             <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-top:12px;">
               <div class="qr-card">
-                <canvas id="qrCanvas" width="120" height="120"></canvas>
-                <div class="qr-label">Scan to Visit</div>
+                <div class="qr-preview" id="qrPreview"></div>
+                <div class="qr-label" id="qrLabel">Scan to Visit</div>
               </div>
               <div style="flex:1;min-width:180px;">
-                <p style="font-size:13px;color:var(--muted);line-height:1.7;">This QR code is displayed on your contact page. Enter your website URL above to generate it live.</p>
-                <button class="sec-save" style="margin-top:12px;" onclick="saveQR()">Save QR URL</button>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;" id="qrHelpText">This QR code is displayed on your contact page. Use the website URL above to generate a real QR image, or upload your own finished QR design.</p>
+                <button class="sec-save" style="margin-top:12px;" onclick="saveQR()">Save QR Settings</button>
               </div>
             </div>
           </div>
@@ -193,6 +202,8 @@
 <script>
 const SETTINGS_KEY = 'galaxy_settings';
 const LOGO_BUCKET = 'logos';
+const QR_IMAGE_API = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=';
+let qrState = normalizeQrSetting('');
 
 async function syncSettingsFromCloud() {
   if (typeof window.loadFromCloud !== 'function') return;
@@ -214,13 +225,14 @@ function loadSettings() {
   document.getElementById('sFacebook').value = s.facebook   || D.facebook;
   document.getElementById('sWhatsapp').value = s.whatsapp   || D.whatsapp;
   document.getElementById('sNova').value     = s.novatech   || D.novatech;
-  document.getElementById('sQrUrl').value    = s.qrUrl      || '';
+  qrState = normalizeQrSetting(s.qrUrl || '');
+  document.getElementById('sQrUrl').value    = qrState.targetUrl || '';
   if (s.logo) {
     const p = document.getElementById('logoPreview');
     p.innerHTML = `<img src="${s.logo}" style="width:100%;height:100%;object-fit:contain;">`;
   }
   document.getElementById('logoPreview')._storagePath = s.logoStoragePath || '';
-  drawQR(s.qrUrl || '');
+  renderQrPreview(qrState);
 }
 
 function patchSettings(patch) {
@@ -238,9 +250,50 @@ window.saveContact = () => {
   patchSettings({ email:document.getElementById('sEmail').value.trim(), phone:document.getElementById('sPhone').value.trim(), location:document.getElementById('sLocation').value.trim(), facebook:document.getElementById('sFacebook').value.trim(), whatsapp:document.getElementById('sWhatsapp').value.trim() });
   showToast('Contact details saved!');
 };
-window.saveQR = () => {
-  patchSettings({ qrUrl: document.getElementById('sQrUrl').value.trim() });
-  showToast('QR URL saved!');
+async function persistQrState(nextState) {
+  const settings = getData(SETTINGS_KEY) || {};
+  const previous = normalizeQrSetting(settings.qrUrl || '');
+  if (previous.mode === 'upload' && previous.storagePath && previous.storagePath !== nextState.storagePath) {
+    try { await removeAsset(LOGO_BUCKET, previous.storagePath); } catch {}
+  }
+  qrState = normalizeQrSetting(nextState);
+  patchSettings({ qrUrl: serializeQrSetting(qrState) });
+}
+
+function getGeneratedQrImageUrl(targetUrl='') {
+  const cleanTarget = String(targetUrl || '').trim();
+  return cleanTarget ? `${QR_IMAGE_API}${encodeURIComponent(cleanTarget)}` : '';
+}
+
+function renderQrPreview(state = qrState) {
+  const normalized = normalizeQrSetting(state);
+  const preview = document.getElementById('qrPreview');
+  const label = document.getElementById('qrLabel');
+  const help = document.getElementById('qrHelpText');
+  if (!preview || !label || !help) return;
+
+  const imageUrl = normalized.mode === 'upload'
+    ? normalized.imageUrl
+    : getGeneratedQrImageUrl(normalized.targetUrl);
+
+  preview.innerHTML = imageUrl
+    ? `<img src="${imageUrl}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`
+    : `<div class="qr-placeholder">Add a website URL or upload a QR image.</div>`;
+
+  label.textContent = normalized.mode === 'upload' ? 'Uploaded QR' : 'Scan to Visit';
+  help.textContent = normalized.mode === 'upload'
+    ? 'Your uploaded QR image will be shown on the contact page. Keep the website URL filled too if you want the studio link stored with it.'
+    : 'This QR code is displayed on your contact page. Use the website URL above to generate a real QR image, or upload your own finished QR design.';
+}
+
+window.saveQR = async () => {
+  const targetUrl = document.getElementById('sQrUrl').value.trim();
+  const nextState = qrState.mode === 'upload' && qrState.imageUrl
+    ? { ...qrState, targetUrl }
+    : { mode: 'generated', targetUrl, imageUrl: getGeneratedQrImageUrl(targetUrl), storagePath: '' };
+  await persistQrState(nextState);
+  renderQrPreview(qrState);
+  showToast(qrState.mode === 'upload' ? 'Uploaded QR image saved!' : 'Generated QR saved!');
 };
 window.saveNova = () => {
   patchSettings({ novatech: document.getElementById('sNova').value.trim() });
@@ -279,6 +332,37 @@ let cropImg = null, cropSrc = '', cropDrag = false, cropMode = 'draw', cropStart
 document.addEventListener('DOMContentLoaded', async () => {
   await syncSettingsFromCloud();
   loadSettings();
+  document.getElementById('useGeneratedQrBtn').onclick = () => {
+    const targetUrl = document.getElementById('sQrUrl').value.trim();
+    qrState = {
+      mode: 'generated',
+      targetUrl,
+      imageUrl: getGeneratedQrImageUrl(targetUrl),
+      storagePath: '',
+    };
+    renderQrPreview(qrState);
+    showToast(targetUrl ? 'Generated QR preview updated.' : 'Enter a website URL to generate the QR preview.', targetUrl ? 'success' : 'error');
+  };
+  document.getElementById('qrUploadInput').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const uploaded = await uploadAsset(file, LOGO_BUCKET);
+      qrState = {
+        mode: 'upload',
+        targetUrl: document.getElementById('sQrUrl').value.trim(),
+        imageUrl: uploaded.url,
+        storagePath: uploaded.path || '',
+      };
+      await persistQrState(qrState);
+      renderQrPreview(qrState);
+      showToast('QR image uploaded and saved!');
+    } catch (error) {
+      showToast(`Could not upload QR image: ${error?.message || 'Upload failed.'}`, 'error');
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   document.getElementById('logoFile').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
@@ -415,70 +499,20 @@ function updateCropBox(container, cw, ch) {
 let qrTimer = null;
 function debounceQR() {
   clearTimeout(qrTimer);
-  qrTimer = setTimeout(() => drawQR(document.getElementById('sQrUrl').value.trim()), 600);
-}
-
-function drawQR(text) {
-  const canvas = document.getElementById('qrCanvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  // Clear
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,W,H);
-
-  if (!text) {
-    ctx.fillStyle = '#cccccc';
-    ctx.font = '10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Enter URL above', W/2, H/2-6);
-    ctx.fillText('to generate QR', W/2, H/2+8);
-    return;
-  }
-
-  // Simple visual QR placeholder using hash of text for pseudo-random pattern
-  // For production, use a real QR library
-  ctx.fillStyle = '#000000';
-  const hash = simpleHash(text);
-  const cells = 21;
-  const cell = Math.floor(W / cells);
-  const off = Math.floor((W - cells*cell)/2);
-
-  // Draw finder patterns
-  const finder = (x,y) => {
-    ctx.fillStyle='#000';
-    ctx.fillRect(off+x*cell, off+y*cell, 7*cell, 7*cell);
-    ctx.fillStyle='#fff';
-    ctx.fillRect(off+(x+1)*cell, off+(y+1)*cell, 5*cell, 5*cell);
-    ctx.fillStyle='#000';
-    ctx.fillRect(off+(x+2)*cell, off+(y+2)*cell, 3*cell, 3*cell);
-  };
-  finder(0,0); finder(cells-7,0); finder(0,cells-7);
-
-  // Data modules (pseudo-random from hash)
-  let seed = hash;
-  for (let r=0; r<cells; r++) {
-    for (let c=0; c<cells; c++) {
-      // Skip finder areas
-      if ((r<8&&c<8)||(r<8&&c>cells-9)||(r>cells-9&&c<8)) continue;
-      seed = (seed*1664525+1013904223)&0xffffffff;
-      if ((seed>>>0)%3===0) {
-        ctx.fillStyle='#000';
-        ctx.fillRect(off+c*cell+1, off+r*cell+1, cell-1, cell-1);
-      }
+  qrTimer = setTimeout(() => {
+    const targetUrl = document.getElementById('sQrUrl').value.trim();
+    if (qrState.mode === 'upload') {
+      qrState = { ...qrState, targetUrl };
+    } else {
+      qrState = {
+        mode: 'generated',
+        targetUrl,
+        imageUrl: getGeneratedQrImageUrl(targetUrl),
+        storagePath: '',
+      };
     }
-  }
-
-  // Label
-  ctx.fillStyle='#666';
-  ctx.font=`10px Inter,sans-serif`;
-  ctx.textAlign='center';
-}
-
-function simpleHash(str) {
-  let h=0;
-  for(let i=0;i<str.length;i++){h=(Math.imul(31,h)+str.charCodeAt(i))|0;}
-  return h>>>0;
+    renderQrPreview(qrState);
+  }, 350);
 }
 </script>
 </body>

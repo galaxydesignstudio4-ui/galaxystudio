@@ -95,7 +95,7 @@
   justify-content: center;
   padding: 8px;
 }
-.qr-code-box svg { width: 100%; height: 100%; }
+.qr-code-box svg, .qr-code-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 /* Info cards */
 .info-cards { display: flex; flex-direction: column; gap: 14px; }
@@ -232,92 +232,8 @@
 
         <!-- QR Code -->
         <div class="qr-display">
-          <div class="qr-code-box" id="qrBox">
-            <!-- SVG QR placeholder that looks like a real QR -->
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <rect width="100" height="100" fill="white"/>
-              <!-- Top-left finder -->
-              <rect x="5" y="5" width="28" height="28" fill="black"/>
-              <rect x="9" y="9" width="20" height="20" fill="white"/>
-              <rect x="13" y="13" width="12" height="12" fill="black"/>
-              <!-- Top-right finder -->
-              <rect x="67" y="5" width="28" height="28" fill="black"/>
-              <rect x="71" y="9" width="20" height="20" fill="white"/>
-              <rect x="75" y="13" width="12" height="12" fill="black"/>
-              <!-- Bottom-left finder -->
-              <rect x="5" y="67" width="28" height="28" fill="black"/>
-              <rect x="9" y="71" width="20" height="20" fill="white"/>
-              <rect x="13" y="75" width="12" height="12" fill="black"/>
-              <!-- Data modules -->
-              <rect x="37" y="5" width="4" height="4" fill="black"/>
-              <rect x="45" y="5" width="4" height="4" fill="black"/>
-              <rect x="53" y="5" width="4" height="4" fill="black"/>
-              <rect x="37" y="13" width="4" height="4" fill="black"/>
-              <rect x="53" y="13" width="4" height="4" fill="black"/>
-              <rect x="41" y="21" width="4" height="4" fill="black"/>
-              <rect x="49" y="21" width="4" height="4" fill="black"/>
-              <rect x="37" y="37" width="4" height="4" fill="black"/>
-              <rect x="45" y="37" width="4" height="4" fill="black"/>
-              <rect x="53" y="37" width="4" height="4" fill="black"/>
-              <rect x="61" y="37" width="4" height="4" fill="black"/>
-              <rect x="37" y="45" width="4" height="4" fill="black"/>
-              <rect x="53" y="45" width="4" height="4" fill="black"/>
-              <rect x="37" y="53" width="4" height="4" fill="black"/>
-              <rect x="45" y="53" width="4" height="4" fill="black"/>
-              <rect x="61" y="53" width="4" height="4" fill="black"/>
-              <rect x="37" y="61" width="4" height="4" fill="black"/>
-              <rect x="45" y="61" width="4" height="4" fill="black"/>
-              <rect x="53" y="61" width="4" height="4" fill="black"/>
-              <rect x="5" y="37" width="4" height="4" fill="black"/>
-              <rect x="13" y="37" width="4" height="4" fill="black"/>
-              <rect x="21" y="37" width="4" height="4" fill="black"/>
-              <rect x="29" y="37" width="4" height="4" fill="black"/>
-              <rect x="5" y="45" width="4" height="4" fill="black"/>
-              <rect x="21" y="45" width="4" height="4" fill="black"/>
-              <rect x="5" y="53" width="4" height="4" fill="black"/>
-              <rect x="13" y="53" width="4" height="4" fill="black"/>
-              <rect x="29" y="53" width="4" height="4" fill="black"/>
-              <rect x="5" y="61" width="4" height="4" fill="black"/>
-              <rect x="21" y="61" width="4" height="4" fill="black"/>
-              <rect x="29" y="61" width="4" height="4" fill="black"/>
-              <rect x="67" y="37" width="4" height="4" fill="black"/>
-              <rect x="75" y="37" width="4" height="4" fill="black"/>
-              <rect x="83" y="37" width="4" height="4" fill="black"/>
-              <rect x="91" y="37" width="4" height="4" fill="black"/>
-              <rect x="67" y="45" width="4" height="4" fill="black"/>
-              <rect x="83" y="45" width="4" height="4" fill="black"/>
-              <rect x="75" y="53" width="4" height="4" fill="black"/>
-              <rect x="91" y="53" width="4" height="4" fill="black"/>
-              <rect x="67" y="61" width="4" height="4" fill="black"/>
-              <rect x="75" y="61" width="4" height="4" fill="black"/>
-              <rect x="91" y="61" width="4" height="4" fill="black"/>
-              <rect x="67" y="69" width="4" height="4" fill="black"/>
-              <rect x="83" y="69" width="4" height="4" fill="black"/>
-              <rect x="75" y="77" width="4" height="4" fill="black"/>
-              <rect x="91" y="77" width="4" height="4" fill="black"/>
-              <rect x="67" y="85" width="4" height="4" fill="black"/>
-              <rect x="83" y="85" width="4" height="4" fill="black"/>
-              <rect x="37" y="69" width="4" height="4" fill="black"/>
-              <rect x="53" y="69" width="4" height="4" fill="black"/>
-              <rect x="45" y="77" width="4" height="4" fill="black"/>
-              <rect x="61" y="77" width="4" height="4" fill="black"/>
-              <rect x="37" y="85" width="4" height="4" fill="black"/>
-              <rect x="45" y="85" width="4" height="4" fill="black"/>
-              <rect x="61" y="85" width="4" height="4" fill="black"/>
-              <rect x="37" y="93" width="4" height="4" fill="black"/>
-              <rect x="53" y="93" width="4" height="4" fill="black"/>
-              <rect x="5" y="69" width="4" height="4" fill="black"/>
-              <rect x="21" y="69" width="4" height="4" fill="black"/>
-              <rect x="29" y="69" width="4" height="4" fill="black"/>
-              <rect x="13" y="77" width="4" height="4" fill="black"/>
-              <rect x="5" y="85" width="4" height="4" fill="black"/>
-              <rect x="29" y="85" width="4" height="4" fill="black"/>
-              <rect x="13" y="93" width="4" height="4" fill="black"/>
-              <rect x="21" y="93" width="4" height="4" fill="black"/>
-              <rect x="29" y="93" width="4" height="4" fill="black"/>
-            </svg>
-          </div>
-          <p>Scan to visit Galaxy Design Studio</p>
+          <div class="qr-code-box" id="qrBox"></div>
+          <p id="qrCaption">Scan to visit Galaxy Design Studio</p>
         </div>
       </div>
 
@@ -327,21 +243,21 @@
           <div class="info-card-icon">📧</div>
           <div>
             <div class="info-card-label">Email Us</div>
-            <div class="info-card-value"><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
+            <div class="info-card-value"><a href="mailto:galaxydesignstudio4@gmail.com" id="contactEmailLink">galaxydesignstudio4@gmail.com</a></div>
           </div>
         </div>
         <div class="info-card">
           <div class="info-card-icon">📞</div>
           <div>
             <div class="info-card-label">Call / WhatsApp</div>
-            <div class="info-card-value"><a href="tel:+233556881003">055-688-1003</a></div>
+            <div class="info-card-value"><a href="tel:+233556881003" id="contactPhoneLink">055-688-1003</a></div>
           </div>
         </div>
         <div class="info-card">
           <div class="info-card-icon">📍</div>
           <div>
             <div class="info-card-label">Location</div>
-            <div class="info-card-value">Tema, Accra, Ghana</div>
+            <div class="info-card-value" id="contactLocationText">Tema, Accra, Ghana</div>
           </div>
         </div>
         <div class="info-card wa-card">
@@ -349,7 +265,7 @@
           <div>
             <div class="info-card-label">WhatsApp</div>
             <div class="info-card-value">
-              <a class="wa-btn" href="https://wa.me/233556881003" target="_blank" rel="noopener">
+              <a class="wa-btn" href="https://wa.me/233556881003" target="_blank" rel="noopener" id="contactWhatsAppLink">
                 Chat on WhatsApp →
               </a>
             </div>
@@ -359,7 +275,7 @@
           <div class="info-card-icon">📘</div>
           <div>
             <div class="info-card-label">Facebook</div>
-            <div class="info-card-value"><a href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener">Galaxy Design Studio</a></div>
+            <div class="info-card-value"><a href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener" id="contactFacebookLink">Galaxy Design Studio</a></div>
           </div>
         </div>
         <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;margin-top:4px;">
@@ -385,12 +301,12 @@
       <div class="footer-col"><h4>Navigation</h4><div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div>
       <div class="footer-col"><h4>Services</h4><div class="footer-links"><a href="services.html">Graphic Design</a><a href="services.html">Video Editing</a><a href="services.html">Logo &amp; Branding</a><a href="services.html">3D Animation</a><a href="adavatar.html">AdAvatar</a><a href="services.html">UI/UX Design</a></div></div>
       <div class="footer-col"><h4>Contact</h4>
-        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com">galaxydesignstudio4@gmail.com</a></div>
-        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003">055-688-1003</a></div>
-        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:galaxydesignstudio4@gmail.com" id="footerEmailLink">galaxydesignstudio4@gmail.com</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+233556881003" id="footerPhoneLink">055-688-1003</a></div>
+        <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="footerLocationText">Tema, Accra, Ghana</span></div>
       </div>
     </div>
-    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#" id="footerNovaLink">Nova Tech</a></p></div>
   </div>
 </footer>
 
@@ -400,6 +316,86 @@
 <script src="icons.js"></script>
 <script src="shared.js"></script>
 <script>
+const QR_IMAGE_API = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=';
+
+function getGeneratedQrImageUrl(targetUrl='') {
+  const cleanTarget = String(targetUrl || '').trim();
+  return cleanTarget ? `${QR_IMAGE_API}${encodeURIComponent(cleanTarget)}` : '';
+}
+
+function normalisePhoneHref(phone='') {
+  const digits = String(phone || '').replace(/[^\d+]/g, '');
+  if (!digits) return '';
+  return digits.startsWith('+') ? digits : `+${digits}`;
+}
+
+function renderContactQr(rawQr) {
+  const qrBox = document.getElementById('qrBox');
+  const qrCaption = document.getElementById('qrCaption');
+  if (!qrBox || !qrCaption || typeof window.normalizeQrSetting !== 'function') return;
+  const config = window.normalizeQrSetting(rawQr);
+  const qrImage = config.mode === 'upload' ? config.imageUrl : getGeneratedQrImageUrl(config.targetUrl);
+  if (qrImage) {
+    qrBox.innerHTML = `<img src="${qrImage}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`;
+    qrCaption.textContent = 'Scan to visit Galaxy Design Studio';
+  } else {
+    qrBox.innerHTML = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="120" height="120" rx="12" fill="white"/><text x="60" y="58" font-size="10" text-anchor="middle" fill="#777">QR not set</text><text x="60" y="74" font-size="10" text-anchor="middle" fill="#777">yet</text></svg>`;
+    qrCaption.textContent = 'Set your QR code in the admin panel';
+  }
+}
+
+async function applyContactSettings() {
+  if (typeof window.getData !== 'function') return;
+  let settings = getData('galaxy_settings') || DEFAULTS.galaxy_settings || {};
+  if (typeof window.loadFromCloud === 'function') {
+    try {
+      const cloudSettings = await window.loadFromCloud('galaxy_settings');
+      if (cloudSettings && typeof cloudSettings === 'object') settings = cloudSettings;
+    } catch {}
+  }
+
+  const email = settings.email || DEFAULTS.galaxy_settings.email;
+  const phone = settings.phone || DEFAULTS.galaxy_settings.phone;
+  const location = settings.location || DEFAULTS.galaxy_settings.location;
+  const facebook = settings.facebook || DEFAULTS.galaxy_settings.facebook;
+  const whatsapp = settings.whatsapp || DEFAULTS.galaxy_settings.whatsapp;
+  const novatech = settings.novatech || '#';
+  const telHref = normalisePhoneHref(whatsapp || phone);
+  const waNumber = String(whatsapp || '').replace(/[^\d]/g, '');
+
+  [
+    ['contactEmailLink', `mailto:${email}`, email],
+    ['footerEmailLink', `mailto:${email}`, email],
+    ['contactPhoneLink', telHref ? `tel:${telHref}` : '#', phone],
+    ['footerPhoneLink', telHref ? `tel:${telHref}` : '#', phone],
+  ].forEach(([id, href, text]) => {
+    const link = document.getElementById(id);
+    if (!link) return;
+    link.href = href;
+    link.textContent = text;
+  });
+
+  ['contactLocationText', 'footerLocationText'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = location;
+  });
+
+  const facebookLink = document.getElementById('contactFacebookLink');
+  if (facebookLink) facebookLink.href = facebook;
+
+  const waLink = document.getElementById('contactWhatsAppLink');
+  if (waLink && waNumber) waLink.href = `https://wa.me/${waNumber}`;
+
+  const novaLink = document.getElementById('footerNovaLink');
+  if (novaLink) novaLink.href = novatech || '#';
+
+  renderContactQr(settings.qrUrl || '');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyContactSettings();
+});
+
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('submitBtn');

@@ -95,6 +95,41 @@ function cloneValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function normalizeQrSetting(raw) {
+  if (!raw) return { mode: 'generated', targetUrl: '', imageUrl: '', storagePath: '' };
+  if (typeof raw === 'object') {
+    return {
+      mode: raw.mode || (raw.imageUrl ? 'upload' : 'generated'),
+      targetUrl: raw.targetUrl || raw.url || '',
+      imageUrl: raw.imageUrl || raw.image || '',
+      storagePath: raw.storagePath || '',
+    };
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      return {
+        mode: parsed.mode || (parsed.imageUrl ? 'upload' : 'generated'),
+        targetUrl: parsed.targetUrl || parsed.url || '',
+        imageUrl: parsed.imageUrl || parsed.image || '',
+        storagePath: parsed.storagePath || '',
+      };
+    }
+  } catch {}
+  return {
+    mode: 'generated',
+    targetUrl: String(raw || ''),
+    imageUrl: '',
+    storagePath: '',
+  };
+}
+
+function serializeQrSetting(value) {
+  const normalized = normalizeQrSetting(value);
+  if (!normalized.targetUrl && !normalized.imageUrl && !normalized.storagePath) return '';
+  return JSON.stringify(normalized);
+}
+
 function getDefaultValue(key) {
   return cloneValue(
     (typeof window.DEFAULTS !== 'undefined' && window.DEFAULTS[key] !== undefined)
@@ -571,6 +606,78 @@ const GalaxyAuth = (() => {
     return session;
   }
 
+  function getRedirectUrl(redirectTo) {
+    if (redirectTo) return redirectTo;
+    try {
+      const current = new URL(window.location.href);
+      current.hash = '';
+      current.searchParams.delete('code');
+      current.searchParams.delete('state');
+      current.searchParams.delete('error');
+      current.searchParams.delete('error_code');
+      current.searchParams.delete('error_description');
+      return current.toString();
+    } catch {
+      return window.location.href.split('#')[0];
+    }
+  }
+
+  function signInWithGoogle({ redirectTo } = {}) {
+    if (!GDB_CONFIG.enabled) {
+      throw new Error('Supabase Auth is not enabled in config.js.');
+    }
+    const target = getRedirectUrl(redirectTo);
+    const authUrl = new URL(`${GDB_CONFIG.supabase.url}/auth/v1/authorize`);
+    authUrl.searchParams.set('provider', 'google');
+    authUrl.searchParams.set('redirect_to', target);
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('prompt', 'consent');
+    window.location.href = authUrl.toString();
+  }
+
+  async function consumeOAuthCallback() {
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+    const hashParams = new URLSearchParams(hash);
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorMessage = hashParams.get('error_description') || searchParams.get('error_description') || hashParams.get('error') || searchParams.get('error');
+
+    if (errorMessage) {
+      history.replaceState(null, '', `${window.location.pathname}${window.location.search.replace(/[?&](error|error_code|error_description)=[^&]*/g, '').replace(/[?&]$/, '')}`);
+      return { status: 'error', message: decodeURIComponent(errorMessage.replace(/\+/g, ' ')) };
+    }
+
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    if (!accessToken || !refreshToken) {
+      return { status: 'none' };
+    }
+
+    const payload = {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_at: Number(hashParams.get('expires_at') || 0),
+      expires_in: Number(hashParams.get('expires_in') || 0),
+      token_type: hashParams.get('token_type') || 'bearer',
+    };
+
+    session = normalizeAuthSession(payload);
+    if (!session) {
+      return { status: 'error', message: 'Could not read the Google sign-in session.' };
+    }
+    storeAuthSession(session);
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+
+    try {
+      const user = await getUser();
+      if (user) {
+        session = { ...session, user };
+        storeAuthSession(session);
+      }
+    } catch {}
+
+    return { status: 'success', session };
+  }
+
   async function signOut() {
     const active = session;
     clearAuthSession();
@@ -595,6 +702,8 @@ const GalaxyAuth = (() => {
     getSession,
     getUser,
     signInWithPassword,
+    signInWithGoogle,
+    consumeOAuthCallback,
     signOut,
     peekSession,
     isAuthenticatedSync: () => hasSession() && !isExpiringSoon(session),
@@ -1306,6 +1415,8 @@ window.recoverGalleryFromStorage = recoverGalleryFromStorage;
 window.recoverAboutAvatarFromStorage = recoverAboutAvatarFromStorage;
 window.recoverMediaFromStorageNow = recoverMediaFromStorageNow;
 window.BASE_DEFAULTS = BASE_DEFAULTS;
+window.normalizeQrSetting = normalizeQrSetting;
+window.serializeQrSetting = serializeQrSetting;
 window.__GALAXY_GET_DATA__ = getData;
 window.__GALAXY_SET_DATA__ = setData;
 window.__GALAXY_NEXT_ID__ = nextId;

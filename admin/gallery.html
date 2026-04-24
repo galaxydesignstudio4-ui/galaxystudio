@@ -82,6 +82,7 @@
           <option value="link">Links</option>
         </select>
         <button class="btn btn-ghost" id="galSelectAllBtn">Select All</button>
+        <button class="btn btn-ghost" id="galAutoNameBtn">Auto Name Existing</button>
         <button class="btn btn-danger" id="galDeleteSelectedBtn" disabled>Delete Selected (0)</button>
         <button class="btn btn-ghost" id="addLinkBtn">🔗 Add Link</button>
         <button class="btn btn-ghost" id="addVideoBtn">▶ Add Video</button>
@@ -135,6 +136,207 @@ function getGalleryPreview(item) {
     return `<video src="${item.url}" muted playsinline preload="metadata"></video>`;
   }
   return `<span>${escHtml(item.icon||'🖼️')}</span>`;
+}
+
+function toTitleCase(value='') {
+  return String(value)
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase());
+}
+
+function formatDetectedTitle(value='') {
+  const line = String(value || '')
+    .split(/\r?\n/)
+    .map((part) => part.replace(/\s+/g, ' ').trim())
+    .find((part) => part && !/^https?:\/\//i.test(part) && /[A-Za-z]/.test(part) && part.length >= 3);
+  if (!line) return '';
+  return line.replace(/[|/\\]+/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 72);
+}
+
+function formatFallbackTitle(value='') {
+  const cleaned = stripExt(String(value || ''))
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/[|/\\]+/g, ' ')
+    .trim();
+  if (!cleaned) return '';
+  return toTitleCase(cleaned).slice(0, 72);
+}
+
+function isGenericTitle(value='') {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return true;
+  return /^(img|image|photo|picture|pic|screenshot|video|vid|clip|file|gallery item|untitled)([\s_-]*\d+.*)?$/.test(normalized)
+    || /^(whatsapp|signal|telegram) (image|video)( \d+)?$/.test(normalized)
+    || /^dsc[\s_-]?\d+/.test(normalized)
+    || /^pxl[\s_-]?\d+/.test(normalized)
+    || /^[a-f0-9]{12,}$/i.test(normalized.replace(/\s+/g, ''));
+}
+
+function formatUrlTitle(url='') {
+  try {
+    const parsed = new URL(url, window.location.href);
+    const lastPart = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() || '');
+    return formatFallbackTitle(lastPart || parsed.hostname.replace(/^www\./i, ''));
+  } catch {
+    return formatFallbackTitle(url);
+  }
+}
+
+function extractDetectionText(results) {
+  if (!Array.isArray(results)) return '';
+  const candidates = [];
+  results.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    if (typeof entry.rawValue === 'string') candidates.push(entry.rawValue);
+    if (typeof entry.text === 'string') candidates.push(entry.text);
+    if (Array.isArray(entry.lines)) {
+      entry.lines.forEach((line) => {
+        if (typeof line?.rawValue === 'string') candidates.push(line.rawValue);
+        if (typeof line?.text === 'string') candidates.push(line.text);
+      });
+    }
+  });
+  return candidates.map((item) => formatDetectedTitle(item)).find(Boolean) || '';
+}
+
+async function detectTextWithDetector(source) {
+  if (typeof window.TextDetector !== 'function') return '';
+  try {
+    const detector = new window.TextDetector();
+    const result = await detector.detect(source);
+    return extractDetectionText(result);
+  } catch {
+    return '';
+  }
+}
+
+async function detectTextFromImageSource(source) {
+  if (typeof window.TextDetector !== 'function') return '';
+  let bitmap = null;
+  try {
+    let blob = null;
+    if (source instanceof Blob) {
+      blob = source;
+    } else if (typeof source === 'string' && source) {
+      const response = await fetch(source);
+      if (!response.ok) return '';
+      blob = await response.blob();
+    }
+    if (!blob) return '';
+    bitmap = await createImageBitmap(blob);
+    return await detectTextWithDetector(bitmap);
+  } catch {
+    return '';
+  } finally {
+    if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+  }
+}
+
+function detectTextFromVideoSource(source) {
+  if (typeof window.TextDetector !== 'function' || !source) return Promise.resolve('');
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    let objectUrl = '';
+    let settled = false;
+    const finish = (value='') => {
+      if (settled) return;
+      settled = true;
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      resolve(value);
+    };
+
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.currentTime = 0;
+
+    if (source instanceof Blob) {
+      objectUrl = URL.createObjectURL(source);
+      video.src = objectUrl;
+    } else {
+      video.crossOrigin = 'anonymous';
+      video.src = source;
+    }
+
+    video.onloadeddata = async () => {
+      const text = await detectTextWithDetector(video);
+      finish(text);
+    };
+    video.onerror = () => finish('');
+    setTimeout(() => finish(''), 4500);
+  });
+}
+
+async function suggestGalleryTitle({ file = null, url = '', thumbUrl = '', type = 'image', currentTitle = '' } = {}) {
+  const trimmedTitle = String(currentTitle || '').trim();
+  if (trimmedTitle && !isGenericTitle(trimmedTitle)) return trimmedTitle;
+
+  if (type === 'link') {
+    return formatUrlTitle(url) || 'External Link';
+  }
+
+  let detected = '';
+  if (file) {
+    detected = type === 'video'
+      ? await detectTextFromVideoSource(file)
+      : await detectTextFromImageSource(file);
+  }
+  if (!detected && thumbUrl) {
+    detected = await detectTextFromImageSource(thumbUrl);
+  }
+  if (!detected && url) {
+    detected = type === 'video'
+      ? await detectTextFromVideoSource(url)
+      : await detectTextFromImageSource(url);
+  }
+  if (detected) return detected;
+  if (file?.name) return formatFallbackTitle(file.name) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
+  if (thumbUrl) return formatUrlTitle(thumbUrl) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
+  if (url) return formatUrlTitle(url) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
+  return type === 'video' ? 'Video Clip' : 'Gallery Image';
+}
+
+async function autoNameExistingGalleryItems({ onlyGeneric = false, silent = false } = {}) {
+  const list = getData('galaxy_gallery') || [];
+  if (!list.length) {
+    if (!silent) showToast('There are no gallery items to auto-name.', 'error');
+    return 0;
+  }
+
+  const updated = [];
+  let changed = 0;
+  for (const item of list) {
+    const shouldRename = !item?.title || !onlyGeneric || isGenericTitle(item.title) || item.titleSource === 'auto';
+    if (!shouldRename) {
+      updated.push(item);
+      continue;
+    }
+    const nextTitle = await suggestGalleryTitle({
+      url: item?.url || '',
+      thumbUrl: item?.thumb || '',
+      type: item?.type || 'image',
+      currentTitle: onlyGeneric ? '' : item?.title || '',
+    });
+    if (nextTitle && nextTitle !== item.title) {
+      updated.push({ ...item, title: nextTitle, titleSource: 'auto' });
+      changed += 1;
+    } else {
+      updated.push(item);
+    }
+  }
+
+  if (changed) {
+    setData('galaxy_gallery', updated);
+    renderGallery();
+  }
+  if (!silent) {
+    showToast(changed ? `${changed} gallery item(s) auto-named.` : 'No gallery titles needed renaming.');
+  }
+  return changed;
 }
 
 async function syncGalleryFromCloud() {
@@ -347,13 +549,23 @@ function editGalModal(item) {
     }
 
       if (idx > -1) {
+        const typedTitle = ov.querySelector('#eTitle').value.trim();
+        const resolvedTitle = typedTitle || await suggestGalleryTitle({
+          file: mediaFile || thumbFile || null,
+          url: nextUrl,
+          thumbUrl: type === 'image' ? (nextUrl || nextThumb) : nextThumb,
+          type,
+          currentTitle: item.title || '',
+        });
+
         list[idx] = { ...item,
           type,
           url: nextUrl,
           thumb: type === 'image' ? (nextUrl || nextThumb) : nextThumb,
           storagePath: nextStoragePath,
           thumbStoragePath: type === 'image' ? '' : nextThumbStoragePath,
-          title: ov.querySelector('#eTitle').value.trim(),
+          title: resolvedTitle,
+          titleSource: typedTitle ? 'manual' : 'auto',
           desc:  ov.querySelector('#eDesc').value.trim(),
           icon:  type === 'video' ? '🎬' : type === 'link' ? '🔗' : '🖼️',
         };
@@ -430,6 +642,13 @@ function addVideoModal() {
     try {
       const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
       const list = getData('galaxy_gallery') || [];
+      const typedTitle = ov.querySelector('#vTitle').value.trim();
+      const resolvedTitle = typedTitle || await suggestGalleryTitle({
+        file: thumbFile,
+        url,
+        thumbUrl: uploadedThumb.url,
+        type: 'video',
+      });
       list.push({
         id:nextId(list),
         type:'video',
@@ -438,7 +657,8 @@ function addVideoModal() {
         thumbStoragePath: uploadedThumb.path || '',
         storagePath: '',
         createdAt: new Date().toISOString(),
-        title:ov.querySelector('#vTitle').value.trim(),
+        title:resolvedTitle,
+        titleSource: typedTitle ? 'manual' : 'auto',
         desc:ov.querySelector('#vDesc').value.trim(),
         icon:'🎬'
       });
@@ -509,6 +729,13 @@ function addLinkModal() {
     try {
       const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
       const list = getData('galaxy_gallery') || [];
+      const typedTitle = ov.querySelector('#lTitle').value.trim();
+      const resolvedTitle = typedTitle || await suggestGalleryTitle({
+        file: thumbFile,
+        url,
+        thumbUrl: uploadedThumb.url,
+        type: 'link',
+      });
       list.push({
         id:nextId(list),
         type:'link',
@@ -517,7 +744,8 @@ function addLinkModal() {
         thumbStoragePath: uploadedThumb.path || '',
         storagePath: '',
         createdAt: new Date().toISOString(),
-        title:ov.querySelector('#lTitle').value.trim(),
+        title:resolvedTitle,
+        titleSource: typedTitle ? 'manual' : 'auto',
         desc:ov.querySelector('#lDesc').value.trim(),
         icon:'🔗'
       });
@@ -563,6 +791,12 @@ async function processFiles(arr) {
       lbl.textContent = `Uploading ${i + 1} / ${arr.length} files...`;
       const uploaded = await uploadAsset(f, GALLERY_BUCKET);
       const isVideo = f.type.startsWith('video');
+      const autoTitle = await suggestGalleryTitle({
+        file: f,
+        url: uploaded.url,
+        thumbUrl: isVideo ? '' : uploaded.url,
+        type: isVideo ? 'video' : 'image',
+      });
       list.push({
         id:    nextId(list),
         type:  isVideo ? 'video' : 'image',
@@ -571,7 +805,8 @@ async function processFiles(arr) {
         storagePath: uploaded.path || '',
         thumbStoragePath: '',
         createdAt: new Date().toISOString(),
-        title: stripExt(f.name),
+        title: autoTitle,
+        titleSource: 'auto',
         desc:  '',
         icon:  isVideo ? '🎬' : '🖼️',
       });
@@ -624,6 +859,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   renderGallery();
+  await autoNameExistingGalleryItems({ onlyGeneric: true, silent: true });
   const filterEl = document.getElementById('galFilter');
   if (filterEl) {
     filterEl.onchange = (e) => {
@@ -655,6 +891,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast(`Could not delete selected items: ${error?.message || 'Delete failed.'}`,'error');
     }
   });
+  document.getElementById('galAutoNameBtn').onclick = async () => {
+    const btn = document.getElementById('galAutoNameBtn');
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Naming...';
+    try {
+      await autoNameExistingGalleryItems({ onlyGeneric: false, silent: false });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  };
   document.getElementById('addVideoBtn').onclick = addVideoModal;
   document.getElementById('addLinkBtn').onclick  = addLinkModal;
 
