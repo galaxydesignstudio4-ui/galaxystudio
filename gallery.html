@@ -133,6 +133,15 @@
 .gallery-thumb.short { aspect-ratio: 16/9; }
 .gallery-thumb img { width:100%; height:100%; object-fit:cover; }
 .gallery-thumb video { width:100%; height:100%; object-fit:cover; display:block; }
+.gallery-thumb img,
+.gallery-thumb video,
+.recent-thumb img,
+.recent-thumb video,
+.gallery-lightbox-media img,
+.gallery-lightbox-media video {
+  -webkit-user-drag: none;
+  user-select: none;
+}
 
 .gallery-overlay {
   position: absolute;
@@ -639,20 +648,33 @@ function getVideoEmbedUrl(url='') {
 }
 
 function getGalleryThumb(item) {
-  if (item.thumb) return `<img src="${escapeHtml(item.thumb)}" alt="${escapeHtml(item.title || 'Gallery item')}">`;
+  if (item.thumb) return `<img src="${escapeHtml(item.thumb)}" alt="${escapeHtml(item.title || 'Gallery item')}" loading="lazy" draggable="false" data-protected-media="true">`;
   if (item.type === 'video' && item.url && isDirectVideoUrl(item.url)) {
-    return `<video src="${escapeHtml(item.url)}" muted playsinline preload="metadata"></video>`;
+    return `<video src="${escapeHtml(item.url)}" muted playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-media="true"></video>`;
   }
   return `<span>${escapeHtml(item.icon || (item.type === 'video' ? '🎬' : item.type === 'link' ? '🔗' : '🖼️'))}</span>`;
 }
 
 const RECENT_WINDOW_HOURS = 24;
 
+function galleryItemTimestamp(item = {}) {
+  const timestamp = Date.parse(item?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function orderGalleryItemsNewestFirst(list = []) {
+  return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    const byDate = galleryItemTimestamp(b) - galleryItemTimestamp(a);
+    if (byDate) return byDate;
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
 function getLightboxMedia(item) {
   if (item.type === 'video') {
     const embedUrl = getVideoEmbedUrl(item.url || '');
     if (isDirectVideoUrl(item.url || '')) {
-      return `<div class="gallery-lightbox-media is-video" data-lightbox-video-wrap><video class="lightbox-video" src="${escapeHtml(item.url)}" controls autoplay playsinline></video></div>`;
+      return `<div class="gallery-lightbox-media is-video" data-lightbox-video-wrap><video class="lightbox-video" src="${escapeHtml(item.url)}" controls autoplay playsinline controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-media="true"></video></div>`;
     }
     if (embedUrl) {
       return `<div class="gallery-lightbox-media"><iframe src="${escapeHtml(embedUrl)}" title="${escapeHtml(item.title || 'Video')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:hsl(260 15% 10%);"></iframe></div>`;
@@ -668,7 +690,7 @@ function getLightboxMedia(item) {
     `;
   }
   if (item.thumb || item.url) {
-    return `<div class="gallery-lightbox-media"><img src="${escapeHtml(item.thumb || item.url)}" alt="${escapeHtml(item.title || 'Gallery item')}"></div>`;
+    return `<div class="gallery-lightbox-media"><img src="${escapeHtml(item.thumb || item.url)}" alt="${escapeHtml(item.title || 'Gallery item')}" draggable="false" data-protected-media="true"></div>`;
   }
   return `<div class="gallery-lightbox-media" style="aspect-ratio:4/3;background:hsl(260 15% 10%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:0.35;">${escapeHtml(item.icon || '🖼️')}</div>`;
 }
@@ -695,37 +717,37 @@ function openGalleryViewer(list, startIndex) {
 }
 
 function renderGallery(list) {
+  const orderedList = orderGalleryItemsNewestFirst(list);
   const container = document.getElementById('galleryMasonry');
   const recentWrap = document.getElementById('recentWrap');
   const recentList = document.getElementById('recentList');
   const countEl = document.getElementById('galleryCount');
   if (!container) return;
-  if (!Array.isArray(list) || !list.length) {
+  if (!orderedList.length) {
     if (countEl) countEl.textContent = '0';
     if (recentWrap) recentWrap.style.display = 'none';
     container.innerHTML = `<div class="no-results" style="column-span:all;text-align:center;padding:48px 0;color:var(--muted);">No gallery items yet.</div>`;
     container.style.visibility = 'visible';
     return;
   }
-  if (countEl) countEl.textContent = String(list.length);
+  if (countEl) countEl.textContent = String(orderedList.length);
 
   if (recentWrap && recentList) {
     const now = Date.now();
     const recentWindowMs = RECENT_WINDOW_HOURS * 60 * 60 * 1000;
-    const latest = [...list]
+    const latest = orderedList
       .filter((item) => {
         const createdAt = item?.createdAt ? new Date(item.createdAt).getTime() : NaN;
         return Number.isFinite(createdAt) && now - createdAt <= recentWindowMs;
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 4);
     recentWrap.style.display = latest.length ? '' : 'none';
     recentList.innerHTML = latest.map((item) => {
       const label = item.type === 'video' ? 'Video' : item.type === 'link' ? 'Link' : 'Image';
       const media = item.thumb
-        ? `<img src="${escapeHtml(item.thumb)}" alt="${escapeHtml(item.title || 'Recent upload')}">`
+        ? `<img src="${escapeHtml(item.thumb)}" alt="${escapeHtml(item.title || 'Recent upload')}" loading="lazy" draggable="false" data-protected-media="true">`
         : (item.type === 'video' && item.url && isDirectVideoUrl(item.url))
-          ? `<video src="${escapeHtml(item.url)}" muted playsinline preload="metadata"></video>`
+          ? `<video src="${escapeHtml(item.url)}" muted playsinline preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-media="true"></video>`
           : `<span>${escapeHtml(item.icon || '🖼️')}</span>`;
       return `
         <div class="recent-card" data-recent-id="${item.id}">
@@ -739,14 +761,14 @@ function renderGallery(list) {
     }).join('');
     recentList.querySelectorAll('.recent-card').forEach((card) => {
       card.addEventListener('click', () => {
-        const selectedIndex = list.findIndex((entry) => String(entry.id) === card.dataset.recentId);
-        if (selectedIndex >= 0) openGalleryViewer(list, selectedIndex);
+        const selectedIndex = orderedList.findIndex((entry) => String(entry.id) === card.dataset.recentId);
+        if (selectedIndex >= 0) openGalleryViewer(orderedList, selectedIndex);
       });
     });
   }
 
   const ratios = ['tall', 'wide', 'square', 'short'];
-  container.innerHTML = list.map((item, index) => {
+  container.innerHTML = orderedList.map((item, index) => {
     const typeLabel = item.type === 'video' ? '▶ Video' : item.type === 'link' ? '🔗 Link' : '🖼 Image';
     return `
       <div class="gallery-item animate-in visible" data-id="${item.id}" style="--delay:${index * 50}ms">
@@ -769,12 +791,24 @@ function renderGallery(list) {
 
   container.querySelectorAll('.gallery-item').forEach(card => {
     card.addEventListener('click', () => {
-      const selectedIndex = list.findIndex(entry => String(entry.id) === card.dataset.id);
-      if (selectedIndex >= 0) openGalleryViewer(list, selectedIndex);
+      const selectedIndex = orderedList.findIndex(entry => String(entry.id) === card.dataset.id);
+      if (selectedIndex >= 0) openGalleryViewer(orderedList, selectedIndex);
     });
   });
   container.style.visibility = 'visible';
 }
+
+function isProtectedGalleryTarget(target) {
+  return target instanceof Element && Boolean(target.closest('[data-protected-media], .gallery-lightbox-media'));
+}
+
+document.addEventListener('contextmenu', (event) => {
+  if (isProtectedGalleryTarget(event.target)) event.preventDefault();
+});
+
+document.addEventListener('dragstart', (event) => {
+  if (isProtectedGalleryTarget(event.target)) event.preventDefault();
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   let list = getData('galaxy_gallery') || [];
@@ -787,14 +821,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       console.warn('[Gallery] Cloud sync failed:', error.message);
     }
-  }
-  if ((!Array.isArray(list) || !list.length) && typeof window.recoverGalleryFromStorage === 'function') {
-    try {
-      const recovered = await window.recoverGalleryFromStorage();
-      if (Array.isArray(recovered) && recovered.length) {
-        list = recovered;
-      }
-    } catch {}
   }
   renderGallery(list);
 });

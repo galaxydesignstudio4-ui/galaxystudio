@@ -37,6 +37,16 @@
 window.__SUPABASE_URL__      = 'https://jpkuzhlcjxqoitalpgnr.supabase.co'; 
 window.__SUPABASE_ANON_KEY__ = 'sb_publishable_3HHRJ-C40zzQ1WJj4NC7zQ_zDhsGvQ6'; 
 
+window.__resolveAssetUrl__ = function resolveAssetUrl(rawPath) {
+    const value = String(rawPath || '').trim();
+    if (!value) return '';
+    if (/^(https?:|data:|blob:|\/\/)/i.test(value)) return value;
+    if (value.startsWith('/')) return value;
+    const normalized = value.replace(/^\.\//, '');
+    const depth = window.location.pathname.includes('/admin/') ? '../' : '';
+    return `${depth}${normalized}`;
+};
+
 // Prevent admin panel flicker by checking local storage before rendering
 if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy_admin_session') === 'authenticated') {
     document.documentElement.classList.add('is-auth');
@@ -50,7 +60,7 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
     } catch {}
 
     const rawLogoUrl = bootSettings.logo || 'logo-512.png';
-    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    const logoUrl = window.__resolveAssetUrl__(rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl);
     const head = document.head || document.getElementsByTagName('head')[0];
     if (!head || !logoUrl) return;
 
@@ -76,7 +86,7 @@ if (!window.location.pathname.includes('/admin/')) {
 
     const studioName = bootSettings.studioName || 'Galaxy Design Studio';
     const rawLogoUrl = bootSettings.logo || 'logo-512.png';
-    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    const logoUrl = window.__resolveAssetUrl__(rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl);
     window.__GDS_BOOT_SETTINGS__ = { studioName, logo: logoUrl };
 
     if (logoUrl) {

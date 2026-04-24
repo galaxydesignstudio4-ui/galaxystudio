@@ -121,6 +121,13 @@ const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 const GALLERY_BUCKET = 'gallery';
 let selectedGalleryIds = new Set();
 let galleryFilter = 'all';
+const NON_LOGO_SINGLE_WORD_TITLES = new Set([
+  'ad', 'admin', 'app', 'banner', 'brochure', 'card', 'catalog', 'dashboard',
+  'deal', 'deals', 'discount', 'event', 'flyer', 'home', 'image', 'login',
+  'menu', 'mockup', 'offer', 'offers', 'photo', 'poster', 'price', 'prices',
+  'product', 'promo', 'promotion', 'sale', 'screen', 'screenshot', 'service',
+  'services', 'shop', 'store', 'ui', 'ux', 'video'
+]);
 
 function stripExt(name='') {
   return name.replace(/\.[^/.]+$/, '');
@@ -150,7 +157,13 @@ function formatDetectedTitle(value='') {
     .map((part) => part.replace(/\s+/g, ' ').trim())
     .find((part) => part && !/^https?:\/\//i.test(part) && /[A-Za-z]/.test(part) && part.length >= 3);
   if (!line) return '';
-  return line.replace(/[|/\\]+/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase().slice(0, 72);
+  const cleaned = line
+    .replace(/[|/\\]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '')
+    .trim();
+  if (!cleaned) return '';
+  return toTitleCase(cleaned).slice(0, 72);
 }
 
 function formatFallbackTitle(value='') {
@@ -181,6 +194,46 @@ function formatUrlTitle(url='') {
   } catch {
     return formatFallbackTitle(url);
   }
+}
+
+function hasLogoHint(value='') {
+  return /\b(logo|icon|brandmark|wordmark|logotype)\b/i.test(String(value || ''));
+}
+
+function finalizeDetectedTitle(detectedTitle='', { type = 'image', hintSource = '' } = {}) {
+  const pretty = formatDetectedTitle(detectedTitle);
+  if (!pretty) return '';
+  if (type !== 'image' || /\blogo\b/i.test(pretty)) return pretty;
+
+  const words = pretty.split(/\s+/).filter(Boolean);
+  if (hasLogoHint(hintSource)) return `${pretty} Logo`.slice(0, 72);
+  if (words.length !== 1) return pretty;
+
+  const normalized = words[0].toLowerCase();
+  if (normalized.length > 18 || NON_LOGO_SINGLE_WORD_TITLES.has(normalized)) return pretty;
+  return `${pretty} Logo`.slice(0, 72);
+}
+
+function galleryItemTimestamp(item = {}) {
+  const timestamp = Date.parse(item?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function sortGalleryItemsNewestFirst(list = []) {
+  return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    const byDate = galleryItemTimestamp(b) - galleryItemTimestamp(a);
+    if (byDate) return byDate;
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
+async function saveGalleryItems(list) {
+  const ordered = sortGalleryItemsNewestFirst(list);
+  if (typeof window.saveDataNow === 'function') {
+    return window.saveDataNow('galaxy_gallery', ordered);
+  }
+  setData('galaxy_gallery', ordered);
+  return ordered;
 }
 
 function extractDetectionText(results) {
@@ -293,7 +346,12 @@ async function suggestGalleryTitle({ file = null, url = '', thumbUrl = '', type 
       ? await detectTextFromVideoSource(url)
       : await detectTextFromImageSource(url);
   }
-  if (detected) return detected;
+  if (detected) {
+    return finalizeDetectedTitle(detected, {
+      type,
+      hintSource: [trimmedTitle, file?.name, thumbUrl, url].filter(Boolean).join(' ')
+    });
+  }
   if (file?.name) return formatFallbackTitle(file.name) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
   if (thumbUrl) return formatUrlTitle(thumbUrl) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
   if (url) return formatUrlTitle(url) || (type === 'video' ? 'Video Clip' : 'Gallery Image');
@@ -330,7 +388,7 @@ async function autoNameExistingGalleryItems({ onlyGeneric = false, silent = fals
   }
 
   if (changed) {
-    setData('galaxy_gallery', updated);
+    await saveGalleryItems(updated);
     renderGallery();
   }
   if (!silent) {
@@ -356,7 +414,7 @@ async function deleteGalleryAssets(item) {
 }
 
 function renderGallery() {
-  const all = getData('galaxy_gallery') || [];
+  const all = sortGalleryItemsNewestFirst(getData('galaxy_gallery') || []);
   const list = galleryFilter === 'all' ? all : all.filter((item) => (item.type || 'image') === galleryFilter);
   document.getElementById('galSub').textContent = `${list.length} item${list.length !== 1 ? 's' : ''} • images, videos & links`;
   const grid  = document.getElementById('galGrid');
@@ -569,7 +627,7 @@ function editGalModal(item) {
           desc:  ov.querySelector('#eDesc').value.trim(),
           icon:  type === 'video' ? '🎬' : type === 'link' ? '🔗' : '🖼️',
         };
-        setData('galaxy_gallery', list);
+        await saveGalleryItems(list);
       }
       closeModal(ov); renderGallery(); showToast('Item updated!');
     } catch (error) {
@@ -649,7 +707,7 @@ function addVideoModal() {
         thumbUrl: uploadedThumb.url,
         type: 'video',
       });
-      list.push({
+      list.unshift({
         id:nextId(list),
         type:'video',
         url,
@@ -662,7 +720,7 @@ function addVideoModal() {
         desc:ov.querySelector('#vDesc').value.trim(),
         icon:'🎬'
       });
-      setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+      await saveGalleryItems(list); closeModal(ov); renderGallery();
       showToast('Video added to gallery!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
@@ -736,7 +794,7 @@ function addLinkModal() {
         thumbUrl: uploadedThumb.url,
         type: 'link',
       });
-      list.push({
+      list.unshift({
         id:nextId(list),
         type:'link',
         url,
@@ -749,7 +807,7 @@ function addLinkModal() {
         desc:ov.querySelector('#lDesc').value.trim(),
         icon:'🔗'
       });
-      setData('galaxy_gallery', list); closeModal(ov); renderGallery();
+      await saveGalleryItems(list); closeModal(ov); renderGallery();
       showToast('Link card added!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
@@ -797,7 +855,7 @@ async function processFiles(arr) {
         thumbUrl: isVideo ? '' : uploaded.url,
         type: isVideo ? 'video' : 'image',
       });
-      list.push({
+      list.unshift({
         id:    nextId(list),
         type:  isVideo ? 'video' : 'image',
         url:   isVideo ? uploaded.url : uploaded.url,
@@ -811,7 +869,7 @@ async function processFiles(arr) {
         icon:  isVideo ? '🎬' : '🖼️',
       });
     }
-    setData('galaxy_gallery', list);
+    await saveGalleryItems(list);
     renderGallery();
     showToast(`${arr.length} file(s) uploaded!`);
   } catch (error) {
@@ -836,7 +894,7 @@ window.delGal = id => confirmDelete('Delete this gallery item?', async () => {
   const item = list.find(x => x.id === id);
   try {
     if (item) await deleteGalleryAssets(item);
-    setData('galaxy_gallery', list.filter(x => x.id !== id));
+    await saveGalleryItems(list.filter(x => x.id !== id));
     selectedGalleryIds.delete(id);
     renderGallery(); showToast('Item deleted.', 'error');
   } catch (error) {
@@ -846,16 +904,22 @@ window.delGal = id => confirmDelete('Delete this gallery item?', async () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const localBeforeSync = getData('galaxy_gallery') || [];
+  const initialSyncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_gallery')
+    : null;
   await syncGalleryFromCloud();
   let list = getData('galaxy_gallery') || [];
-  if ((!Array.isArray(list) || !list.length) && typeof window.recoverGalleryFromStorage === 'function') {
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
     try {
-      const recovered = await window.recoverGalleryFromStorage();
-      if (Array.isArray(recovered) && recovered.length) {
-        list = recovered;
-      }
+      await saveGalleryItems(localBeforeSync);
+      await syncGalleryFromCloud();
+      list = getData('galaxy_gallery') || localBeforeSync;
+      showToast('Recovered local gallery changes to cloud.');
     } catch (error) {
-      console.warn('[Gallery Admin] Recovery from storage failed:', error.message);
+      console.warn('[Gallery Admin] Cloud recovery failed:', error.message);
+      list = localBeforeSync;
+      showToast(`Gallery sync needs attention: ${error?.message || 'Cloud save failed.'}`, 'error');
     }
   }
   renderGallery();
@@ -883,7 +947,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       for (const item of list) {
         if (ids.has(item.id)) await deleteGalleryAssets(item);
       }
-      setData('galaxy_gallery', list.filter((item) => !ids.has(item.id)));
+      await saveGalleryItems(list.filter((item) => !ids.has(item.id)));
       selectedGalleryIds.clear();
       renderGallery();
       showToast(`${ids.size} gallery item(s) deleted.`,'error');

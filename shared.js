@@ -225,12 +225,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item.url.includes('youtube') || item.url.includes('youtu.be')) {
         return `<div class="lightbox-media-frame"><iframe src="${item.url.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen title="${escHtml(item.title || 'Video')}"></iframe></div>`;
       }
-      return `<video src="${escHtml(item.url)}" controls playsinline></video>`;
+      return `<video src="${escHtml(item.url)}" controls playsinline controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-media="true"></video>`;
     }
-    return `<img src="${escHtml(item.src || item.url || '')}" alt="${escHtml(item.title || '')}">`;
+    return `<img src="${escHtml(item.src || item.url || '')}" alt="${escHtml(item.title || '')}" draggable="false" data-protected-media="true">`;
   }
 
   function applyDynamicLightboxState(scope) {
+    scope.querySelectorAll('img, video').forEach((media) => {
+      media.setAttribute('draggable', 'false');
+      media.setAttribute('data-protected-media', 'true');
+      media.addEventListener('contextmenu', (event) => event.preventDefault());
+      media.addEventListener('dragstart', (event) => event.preventDefault());
+    });
+    scope.querySelectorAll('video').forEach((video) => {
+      video.setAttribute('controlslist', 'nodownload noplaybackrate noremoteplayback');
+      video.setAttribute('disablepictureinpicture', '');
+      video.setAttribute('disableremoteplayback', '');
+    });
+
     const videoEl = scope.querySelector('.lightbox-video');
     const videoWrap = scope.querySelector('[data-lightbox-video-wrap]');
     if (!videoEl || !videoWrap) return;
@@ -306,6 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const keyHandler = (e) => {
+      const lowerKey = String(e.key || '').toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (lowerKey === 's' || lowerKey === 'p')) {
+        e.preventDefault();
+        return;
+      }
       if (e.key === 'Escape') close();
       if (e.key === 'ArrowLeft') navigate(-1);
       if (e.key === 'ArrowRight') navigate(1);
@@ -351,6 +368,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.closest('[data-lightbox-next]')) {
         navigate(1);
       }
+    });
+
+    overlay.addEventListener('contextmenu', (e) => {
+      if (e.target.closest('.lightbox-media, img, video, iframe')) e.preventDefault();
+    });
+
+    overlay.addEventListener('dragstart', (e) => {
+      if (e.target.closest('img, video')) e.preventDefault();
     });
 
     overlay.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -475,7 +500,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const bootSettings = window.__GDS_BOOT_SETTINGS__ || {};
     const studioName = settings?.studioName || bootSettings.studioName || 'Galaxy Design Studio';
     const rawLogoUrl = settings?.logo || bootSettings.logo || '';
-    const logoUrl = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    const normalizedLogo = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
+    const logoUrl = typeof window.__resolveAssetUrl__ === 'function'
+      ? window.__resolveAssetUrl__(normalizedLogo)
+      : normalizedLogo;
     document.querySelectorAll('.logo-text').forEach((el) => {
       el.innerHTML = studioMarkup(studioName);
     });

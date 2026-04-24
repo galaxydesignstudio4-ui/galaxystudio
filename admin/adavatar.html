@@ -77,6 +77,28 @@ const ADAVATAR_BUCKET='avatars';
 let selectedAVIds = new Set();
 let avFilter = 'all';
 
+function adavatarItemTimestamp(item = {}) {
+  const timestamp = Date.parse(item?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function sortAdavatarItemsNewestFirst(list = []) {
+  return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    const byDate = adavatarItemTimestamp(b) - adavatarItemTimestamp(a);
+    if (byDate) return byDate;
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
+async function saveAdavatarItems(list) {
+  const ordered = sortAdavatarItemsNewestFirst(list);
+  if (typeof window.saveDataNow === 'function') {
+    return window.saveDataNow('galaxy_adavatar', ordered);
+  }
+  setData('galaxy_adavatar', ordered);
+  return ordered;
+}
+
 function stripExt(name='') {
   return name.replace(/\.[^/.]+$/, '');
 }
@@ -110,7 +132,7 @@ async function deleteAVAssets(item) {
 }
 
 function renderAV(){
-  const all=getData('galaxy_adavatar')||[];
+  const all=sortAdavatarItemsNewestFirst(getData('galaxy_adavatar')||[]);
   const list=avFilter==='all'?all:all.filter((item)=>(item.type||'image')===avFilter);
   document.getElementById('avSub').textContent=`${list.length} item${list.length!==1?'s':''} • images & videos shown on the AdAvatar page`;
   const grid=document.getElementById('avGrid');
@@ -186,7 +208,7 @@ function addAVVideoModal(){
     try {
       const uploadedThumb = await uploadAsset(thumbFile, ADAVATAR_BUCKET);
       const list=getData('galaxy_adavatar')||[];
-      list.push({
+      list.unshift({
         id:nextId(list),
         type:'video',
         url,
@@ -198,7 +220,7 @@ function addAVVideoModal(){
         icon:'🎬',
         createdAt:new Date().toISOString(),
       });
-      setData('galaxy_adavatar',list);closeModal(ov);renderAV();showToast('Video added!');
+      await saveAdavatarItems(list);closeModal(ov);renderAV();showToast('Video added!');
     } catch (error) {
       showToast(`Could not add video: ${error?.message || 'Upload failed.'}`,'error');
     } finally {
@@ -280,7 +302,7 @@ function editAVModal(item){
 
         list[i]={...item,url:nextUrl,storagePath:nextStoragePath,thumb:nextThumb,thumbStoragePath:nextThumbStoragePath,title:ov.querySelector('#eTitle').value.trim(),desc:ov.querySelector('#eDesc').value.trim()};
       }
-      setData('galaxy_adavatar',list);closeModal(ov);renderAV();showToast('Item updated!');
+      await saveAdavatarItems(list);closeModal(ov);renderAV();showToast('Item updated!');
     } catch (error) {
       showToast(`Could not update item: ${error?.message || 'Save failed.'}`,'error');
     } finally {
@@ -303,7 +325,7 @@ async function uploadAVFiles(files){
       bar.style.width=Math.round(((i+1)/ok.length)*100)+'%';
       const uploaded = await uploadAsset(ok[i], ADAVATAR_BUCKET);
       const isVideo = ok[i].type.startsWith('video');
-      list.push({
+      list.unshift({
         id:nextId(list),
         type:isVideo?'video':'image',
         url:isVideo?uploaded.url:'',
@@ -316,7 +338,7 @@ async function uploadAVFiles(files){
         createdAt:new Date().toISOString(),
       });
     }
-    setData('galaxy_adavatar',list);renderAV();
+    await saveAdavatarItems(list);renderAV();
     showToast(`${ok.length} file(s) uploaded!`);
   } catch (error) {
     showToast(`Upload failed: ${error?.message || 'Upload rejected.'}`,'error');
@@ -336,7 +358,7 @@ window.delAV=id=>confirmDelete('Delete this item?',async ()=>{
   const item = list.find(x=>x.id===id);
   try {
     if (item) await deleteAVAssets(item);
-    setData('galaxy_adavatar',list.filter(x=>x.id!==id));
+    await saveAdavatarItems(list.filter(x=>x.id!==id));
     selectedAVIds.delete(id);
     renderAV();showToast('Deleted.','error');
   } catch (error) {
@@ -344,7 +366,21 @@ window.delAV=id=>confirmDelete('Delete this item?',async ()=>{
   }
 });
 document.addEventListener('DOMContentLoaded',async ()=>{
+  const localBeforeSync = getData('galaxy_adavatar') || [];
+  const initialSyncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_adavatar')
+    : null;
   await syncAVFromCloud();
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && Array.isArray(localBeforeSync) && localBeforeSync.length) {
+    try {
+      await saveAdavatarItems(localBeforeSync);
+      await syncAVFromCloud();
+      showToast('Recovered local AdAvatar changes to cloud.');
+    } catch (error) {
+      console.warn('[AdAvatar Admin] Cloud recovery failed:', error.message);
+      showToast(`AdAvatar sync needs attention: ${error?.message || 'Cloud save failed.'}`,'error');
+    }
+  }
   renderAV();
   const filterEl=document.getElementById('avFilter');
   if (filterEl) {
@@ -369,7 +405,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
       for (const item of list) {
         if (ids.has(item.id)) await deleteAVAssets(item);
       }
-      setData('galaxy_adavatar', list.filter((item)=>!ids.has(item.id)));
+      await saveAdavatarItems(list.filter((item)=>!ids.has(item.id)));
       selectedAVIds.clear();
       renderAV();
       showToast(`${ids.size} AdAvatar item(s) deleted.`,'error');

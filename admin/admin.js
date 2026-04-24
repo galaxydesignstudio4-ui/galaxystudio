@@ -101,7 +101,8 @@ function getStudioSettings() {
 function getPreferredLogoUrl() {
   const settings = getStudioSettings();
   const rawLogo = settings.logo || DEFAULTS.galaxy_settings.logo || 'logo-512.png';
-  return rawLogo === 'logo.png' ? 'logo-512.png' : rawLogo;
+  const normalized = rawLogo === 'logo.png' ? 'logo-512.png' : rawLogo;
+  return typeof window.__resolveAssetUrl__ === 'function' ? window.__resolveAssetUrl__(normalized) : normalized;
 }
 
 function getAuthorizedAdminEmail() {
@@ -262,14 +263,19 @@ async function setupAuth() {
   btn?.addEventListener('click', tryLogin);
   input?.addEventListener('keydown', e=>e.key==='Enter'&&tryLogin());
   googleBtn?.addEventListener('click', () => {
-    if (!auth?.signInWithGoogle) {
-      showAuthMessage('Google login needs Supabase Auth to be enabled first.');
+    const liveAuth = window.GalaxyAuth;
+    if (!window.GDB_CONFIG?.enabled) {
+      showAuthMessage('Supabase config is missing in config.js. Add the project URL and anon key first.');
+      return;
+    }
+    if (!liveAuth?.signInWithGoogle) {
+      showAuthMessage('Google login is not available because the auth module did not load correctly.');
       return;
     }
     try {
       googleBtn.disabled = true;
       googleBtn.textContent = 'Redirecting to Google...';
-      auth.signInWithGoogle({ redirectTo: window.location.href.split('#')[0] });
+      liveAuth.signInWithGoogle({ redirectTo: window.location.href.split('#')[0] });
     } catch (error) {
       googleBtn.disabled = false;
       googleBtn.innerHTML = `

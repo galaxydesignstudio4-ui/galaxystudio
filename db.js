@@ -271,6 +271,8 @@ function fromRow(key, row) {
         icon: normalizeIcon(row.icon || ''),
         storagePath: row.storage_path || row.storagePath || '',
         thumbStoragePath: row.thumb_storage_path || row.thumbStoragePath || '',
+        createdAt: row.created_at || row.createdAt || '',
+        titleSource: row.title_source || row.titleSource || '',
       };
     case 'galaxy_testimonials':
       return {
@@ -1059,21 +1061,24 @@ const GalaxyDB = (() => {
     return `gds:${getTable(key)}:all`;
   }
 
-  async function getAll(key) {
+  async function getAll(key, options = {}) {
+    const forceCloud = Boolean(options && options.forceCloud);
     await init();
-    if (mode === 'local' || hasSyncError(key) || hasSyncPending(key)) {
+    if (mode === 'local' || (!forceCloud && (hasSyncError(key) || hasSyncPending(key)))) {
       return sortValue(key, lsGet(key) ?? getDefaultValue(key));
     }
 
     const cacheKey = getCacheKey(key);
-    try {
-      const cached = await redis.getJSON(cacheKey);
-      if (cached) {
-        const appValue = toAppValue(key, cached);
-        lsSet(key, appValue);
-        return appValue;
-      }
-    } catch {}
+    if (!forceCloud) {
+      try {
+        const cached = await redis.getJSON(cacheKey);
+        if (cached) {
+          const appValue = toAppValue(key, cached);
+          lsSet(key, appValue);
+          return appValue;
+        }
+      } catch {}
+    }
 
     try {
       let query = supabase.from(getTable(key)).select('*');
@@ -1093,7 +1098,8 @@ const GalaxyDB = (() => {
     }
   }
 
-  async function setAll(key, value) {
+  async function setAll(key, value, options = {}) {
+    const throwOnError = Boolean(options && options.throwOnError);
     await init();
     const appValue = OBJECT_KEYS.has(key) ? { ...getDefaultValue(key), ...(value || {}) } : sortValue(key, Array.isArray(value) ? value : []);
     lsSet(key, appValue);
@@ -1145,6 +1151,7 @@ const GalaxyDB = (() => {
         message: error.message || 'Cloud write failed',
       });
       console.warn(`[GalaxyDB] Write failed for ${key}:`, error.message);
+      if (throwOnError) throw error;
     }
 
     return appValue;
@@ -1286,6 +1293,15 @@ function setData(key, value) {
   });
 }
 
+function getSyncState(key) {
+  return {
+    hasPending: hasSyncPending(key),
+    hasError: hasSyncError(key),
+    pending: lsGet(syncPendingKey(key)),
+    error: lsGet(syncErrorKey(key)),
+  };
+}
+
 function nextId(list) {
   return Array.isArray(list) && list.length
     ? Math.max(...list.map((item) => Number(item.id || 0))) + 1
@@ -1298,9 +1314,19 @@ function initDefaults() {
 }
 
 async function loadFromCloud(key) {
-  const value = await GalaxyDB.getAll(key);
+  const value = await GalaxyDB.getAll(key, { forceCloud: true });
   lsSet(key, value);
   return value;
+}
+
+async function saveDataNow(key, value) {
+  const normalized = OBJECT_KEYS.has(key)
+    ? { ...getDefaultValue(key), ...(value || {}) }
+    : sortValue(key, Array.isArray(value) ? value : []);
+  lsSet(key, normalized);
+  lsSet(syncPendingKey(key), { startedAt: new Date().toISOString() });
+  lsRemove(syncErrorKey(key));
+  return GalaxyDB.setAll(key, normalized, { throwOnError: true });
 }
 
 async function uploadMedia(file, bucket = 'gallery') {
@@ -1405,9 +1431,11 @@ window.GDB_CONFIG = GDB_CONFIG;
 window.GalaxyDB = GalaxyDB;
 window.getData = getData;
 window.setData = setData;
+window.getSyncState = getSyncState;
 window.nextId = nextId;
 window.initDefaults = initDefaults;
 window.loadFromCloud = loadFromCloud;
+window.saveDataNow = saveDataNow;
 window.uploadMedia = uploadMedia;
 window.deleteStoredMedia = deleteStoredMedia;
 window.saveContactMessage = saveContactMessage;

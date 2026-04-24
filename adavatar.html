@@ -621,20 +621,34 @@ function openAdavatarViewer(list, startIndex) {
   });
 }
 
+function adavatarItemTimestamp(item = {}) {
+  const timestamp = Date.parse(item?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function orderAdavatarItemsNewestFirst(list = []) {
+  return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    const byDate = adavatarItemTimestamp(b) - adavatarItemTimestamp(a);
+    if (byDate) return byDate;
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
 function renderAdavatarGallery(list) {
+  const orderedList = orderAdavatarItemsNewestFirst(list);
   const container = document.getElementById('adavatarGallery');
   const countEl = document.getElementById('adavatarCount');
   if (!container) return;
-  if (!Array.isArray(list) || !list.length) {
+  if (!orderedList.length) {
     if (countEl) countEl.textContent = '0';
     container.innerHTML = `<div class="no-results" style="text-align:center;padding:48px 0;color:var(--muted);">No AdAvatar samples yet.</div>`;
     container.style.visibility = 'visible';
     return;
   }
-  if (countEl) countEl.textContent = String(list.length);
+  if (countEl) countEl.textContent = String(orderedList.length);
 
   const ratios = ['tall', 'wide', 'square'];
-  container.innerHTML = list.map((item, index) => `
+  container.innerHTML = orderedList.map((item, index) => `
     <div class="adgallery-item animate-in visible" data-id="${item.id}" style="--delay:${index * 60}ms">
       <div class="adgallery-thumb ${ratios[index % ratios.length]}">${getAdavatarThumb(item)}</div>
       <div class="adgallery-overlay">${item.type === 'video' ? '<div class="adgallery-play">▶</div>' : '<div style="font-size:28px;">🔍</div>'}</div>
@@ -647,8 +661,8 @@ function renderAdavatarGallery(list) {
 
   container.querySelectorAll('.adgallery-item').forEach(card => {
     card.addEventListener('click', () => {
-      const selectedIndex = list.findIndex(entry => String(entry.id) === card.dataset.id);
-      if (selectedIndex >= 0) openAdavatarViewer(list, selectedIndex);
+      const selectedIndex = orderedList.findIndex(entry => String(entry.id) === card.dataset.id);
+      if (selectedIndex >= 0) openAdavatarViewer(orderedList, selectedIndex);
     });
   });
   container.style.visibility = 'visible';
