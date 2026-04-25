@@ -423,7 +423,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function normalizeServiceIconName(name = '') {
-    const value = String(name || '').trim();
+    const rawValue = String(name || '').trim();
+    const value = rawValue
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&amp;/gi, '&');
     if (!value) return '';
     const lower = value.toLowerCase();
     const emojiMap = {
