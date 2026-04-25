@@ -271,11 +271,16 @@ async function setupAuth() {
     if (input.value===stored) {
       if (err) err.style.display = 'none';
       const authResult = await trySupabasePasswordSession(input.value);
-      setAdminAuthenticated(gate, panel);
-      if (!authResult.ok && authResult.reason === 'failed') {
-        showToast('Admin opened, but Supabase sign-in failed. Cloud uploads may not persist until you use the Supabase account password or Continue with Google.','error');
-        console.warn('[Admin Auth] Supabase password sign-in failed:', authResult.message);
+      if (window.GDB_CONFIG?.enabled && !authResult.ok) {
+        const helpText = authResult.reason === 'failed'
+          ? `Use Continue with Google for galaxydesignstudio4@gmail.com, or enter the real Supabase password for that email. ${authResult.message || ''}`.trim()
+          : 'Use Continue with Google for galaxydesignstudio4@gmail.com, or sign in with the real Supabase password for that email so updates sync across browsers.';
+        showAuthMessage(helpText);
+        console.warn('[Admin Auth] Blocking local-only admin session because Supabase auth did not succeed:', authResult?.message || authResult?.reason || 'unavailable');
+        input.focus();
+        return;
       }
+      setAdminAuthenticated(gate, panel);
     } else {
       if (err) {
         err.style.display='block';

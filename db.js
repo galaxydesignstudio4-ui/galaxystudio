@@ -249,6 +249,21 @@ function hasSyncPending(key) {
   return !!lsGetRaw(syncPendingKey(key));
 }
 
+function isAdminRoute() {
+  try {
+    return String(window.location.pathname || '').includes('/admin/');
+  } catch {
+    return false;
+  }
+}
+
+async function ensureCloudAdminWriteAccess() {
+  if (!GDB_CONFIG.enabled || !isAdminRoute()) return;
+  const session = await GalaxyAuth.getSession();
+  if (session?.access_token) return;
+  throw new Error('Cloud admin sign-in is required. Use Continue with Google for galaxydesignstudio4@gmail.com or sign in with the matching Supabase password.');
+}
+
 function ensureLocalDefaults() {
   mergeDefaults();
   Object.keys(window.DEFAULTS).forEach((key) => {
@@ -1210,6 +1225,10 @@ const GalaxyDB = (() => {
     const cacheKey = getCacheKey(key);
     const rawDbValue = toDbValue(key, appValue);
 
+    if (key !== 'galaxy_messages') {
+      await ensureCloudAdminWriteAccess();
+    }
+
     try {
       await redis.del(cacheKey);
     } catch {}
@@ -1311,6 +1330,7 @@ const GalaxyDB = (() => {
     }
 
     try {
+      await ensureCloudAdminWriteAccess();
       const bucketName = resolveBucket(bucket);
       await supabase.storage.from(bucketName).upload(path, file, { upsert: true });
       const { data } = supabase.storage.from(bucketName).getPublicUrl(path);
@@ -1327,6 +1347,7 @@ const GalaxyDB = (() => {
     await init();
     if (mode !== 'supabase' || !path) return;
     try {
+      await ensureCloudAdminWriteAccess();
       await supabase.storage.from(resolveBucket(bucket)).remove([path]);
     } catch (error) {
       console.warn('[GalaxyDB] Delete file failed:', error.message);
@@ -1454,20 +1475,7 @@ function collectionIds(rows) {
 async function uploadMedia(file, bucket = 'gallery') {
   const extension = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : 'bin';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-  try {
-    return await GalaxyDB.uploadFile(bucket, path, file);
-  } catch (error) {
-    const message = String(error?.message || '');
-    const isRlsBlocked = /row-level security|unauthorized|403/i.test(message);
-    const isImage = String(file?.type || '').startsWith('image/');
-    if (isRlsBlocked && isImage) {
-      // Keep image uploads usable even when Supabase RLS blocks storage writes.
-      // This stores a local data URL; paired with sync error flags, refresh keeps local changes.
-      const url = await fileToDataUrl(file);
-      return { url, path: '', localOnly: true };
-    }
-    throw error;
-  }
+  return GalaxyDB.uploadFile(bucket, path, file);
 }
 
 async function deleteStoredMedia(bucket, path) {
