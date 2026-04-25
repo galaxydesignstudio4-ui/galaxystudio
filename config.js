@@ -139,6 +139,12 @@ window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYj
 window.__APP_VERSION__ = '1.0.0';
 window.__SITE_NAME__   = 'Galaxy Design Studio';
 
+// Optional smart-title hook for Gallery / AdAvatar auto naming.
+// Leave this as `null` in the browser unless you later connect it to a secure backend.
+// Example shape:
+// window.__GDS_SMART_TITLE__ = async ({ file, url, thumbUrl, type, currentTitle, detectedTitle, context }) => 'Luxury Product Poster';
+window.__GDS_SMART_TITLE__ = window.__GDS_SMART_TITLE__ || null;
+
 /*
  * ─────────────────────────────────────────────────────────────
  * HOW THE DATA FLOW WORKS:

@@ -665,6 +665,9 @@ function galleryItemTimestamp(item = {}) {
 
 function orderGalleryItemsNewestFirst(list = []) {
   return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    if (typeof window.comparePrioritizedMedia === 'function') {
+      return window.comparePrioritizedMedia(a, b, galleryItemTimestamp);
+    }
     const byDate = galleryItemTimestamp(b) - galleryItemTimestamp(a);
     if (byDate) return byDate;
     return Number(b?.id || 0) - Number(a?.id || 0);
@@ -770,10 +773,14 @@ function renderGallery(list) {
 
   const ratios = ['tall', 'wide', 'square', 'short'];
   container.innerHTML = orderedList.map((item, index) => {
+    const pinned = typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item);
+    const premium = typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item);
     const typeLabel = item.type === 'video' ? '▶ Video' : item.type === 'link' ? '🔗 Link' : '🖼 Image';
     return `
       <div class="gallery-item animate-in visible" data-id="${item.id}" style="--delay:${index * 50}ms">
         <div class="media-badge">${typeLabel}</div>
+        ${pinned ? '<div style="position:absolute;top:16px;right:16px;z-index:2;background:rgba(250,204,21,0.16);border:1px solid rgba(250,204,21,0.42);border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;color:#fde68a;backdrop-filter:blur(10px);">📌 Pinned</div>' : ''}
+        ${premium ? `<div style="position:absolute;top:${pinned ? '48px' : '16px'};right:16px;z-index:2;background:linear-gradient(135deg,rgba(245,158,11,0.96),rgba(250,204,21,0.92));border:1px solid rgba(255,244,180,0.5);box-shadow:0 10px 24px rgba(245,158,11,0.22);border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;color:#1f1300;">★ Premium</div>` : ''}
         ${item.type === 'link' ? '<div class="link-badge">↗</div>' : ''}
         <div class="gallery-thumb ${ratios[index % ratios.length]}">
           ${getGalleryThumb(item)}
@@ -784,7 +791,7 @@ function renderGallery(list) {
         </div>
         <div class="gallery-item-info">
           <div class="gallery-item-title">${escapeHtml(item.title || 'Untitled')}</div>
-          <div class="gallery-item-desc">${escapeHtml(item.desc || '')}</div>
+          <div class="gallery-item-desc">${escapeHtml(item.desc || (premium ? 'Premium featured work showcased first.' : pinned ? 'Pinned to stay at the top of the gallery.' : ''))}</div>
         </div>
       </div>
     `;

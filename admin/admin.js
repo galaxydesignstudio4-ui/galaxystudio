@@ -400,6 +400,130 @@ function fileToBase64(file) {
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function splitMediaSourceMeta(value='') {
+  const tokens = String(value || '')
+    .split('|')
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  const base = tokens.find((token) => token === 'manual' || token === 'auto' || token === 'ai') || 'manual';
+  return { base, tokens: new Set(tokens) };
+}
+function getMediaSourceBase(value='') {
+  return splitMediaSourceMeta(value).base;
+}
+function buildMediaSourceMeta(base='manual', options={}) {
+  const tokens = new Set([base === 'auto' || base === 'ai' ? base : 'manual']);
+  if (options.pinned) tokens.add('pinned');
+  if (options.premium) tokens.add('premium');
+  return [...tokens].join('|');
+}
+function mediaHasMeta(item, token) {
+  return splitMediaSourceMeta(item?.titleSource || '').tokens.has(String(token || '').toLowerCase());
+}
+function isPinnedMedia(item) {
+  return mediaHasMeta(item, 'pinned');
+}
+function isPremiumMedia(item) {
+  return mediaHasMeta(item, 'premium');
+}
+function describeMediaAccent(item) {
+  if (isPremiumMedia(item)) return 'Premium';
+  if (isPinnedMedia(item)) return 'Pinned';
+  return '';
+}
+function comparePrioritizedMedia(a, b, getTimestamp) {
+  const aPinned = isPinnedMedia(a) ? 1 : 0;
+  const bPinned = isPinnedMedia(b) ? 1 : 0;
+  if (aPinned !== bPinned) return bPinned - aPinned;
+  const aPremium = isPremiumMedia(a) ? 1 : 0;
+  const bPremium = isPremiumMedia(b) ? 1 : 0;
+  if (aPremium !== bPremium) return bPremium - aPremium;
+  const byDate = (typeof getTimestamp === 'function' ? getTimestamp(b) - getTimestamp(a) : 0);
+  if (byDate) return byDate;
+  return Number(b?.id || 0) - Number(a?.id || 0);
+}
+function smartTitleCase(value='') {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase())
+    .replace(/\bUi\b/g, 'UI')
+    .replace(/\bUx\b/g, 'UX')
+    .replace(/\bAi\b/g, 'AI')
+    .replace(/\b3d\b/g, '3D')
+    .replace(/\bAdavatar\b/g, 'AdAvatar');
+}
+function cleanMediaNameCandidate(value='') {
+  return String(value || '')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/[|/\\]+/g, ' ')
+    .replace(/\b(copy|edited|final|new|draft|design|upload|file|image|img|photo|picture|screenshot|video|vid|clip)\b/gi, ' ')
+    .replace(/\b(whatsapp|telegram|signal|pixellab|canva)\b/gi, ' ')
+    .replace(/\b\d{5,}\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function isWeakMediaTitle(value='') {
+  const normalized = cleanMediaNameCandidate(value).toLowerCase();
+  if (!normalized) return true;
+  return /^(img|image|photo|picture|video|clip|gallery item|untitled|file)$/i.test(normalized)
+    || /^dsc\s*\d+/i.test(normalized)
+    || /^pxl\s*\d+/i.test(normalized)
+    || normalized.length < 3;
+}
+function fallbackMediaTitle({ fileName = '', url = '', type = 'image', context = 'gallery' } = {}) {
+  let candidate = cleanMediaNameCandidate(fileName);
+  if (!candidate && url) {
+    try {
+      const parsed = new URL(url, window.location.href);
+      candidate = cleanMediaNameCandidate(decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() || parsed.hostname.replace(/^www\./i, '')));
+    } catch {
+      candidate = cleanMediaNameCandidate(url);
+    }
+  }
+  if (candidate) return smartTitleCase(candidate).slice(0, 72);
+  if (context === 'adavatar') return type === 'video' ? 'AdAvatar Video' : 'AdAvatar Portrait';
+  if (type === 'link') return 'Featured Project';
+  return type === 'video' ? 'Promo Video' : 'Gallery Feature';
+}
+async function smartMediaTitle({ file = null, url = '', thumbUrl = '', type = 'image', currentTitle = '', detectedTitle = '', context = 'gallery' } = {}) {
+  const existing = String(currentTitle || '').trim();
+  if (existing && !isWeakMediaTitle(existing)) return existing;
+
+  if (typeof window.__GDS_SMART_TITLE__ === 'function') {
+    try {
+      const aiTitle = await window.__GDS_SMART_TITLE__({ file, url, thumbUrl, type, currentTitle: existing, detectedTitle, context });
+      const cleanedAiTitle = smartTitleCase(cleanMediaNameCandidate(aiTitle));
+      if (cleanedAiTitle && !isWeakMediaTitle(cleanedAiTitle)) return cleanedAiTitle.slice(0, 72);
+    } catch (error) {
+      console.warn('[Admin] Smart title hook failed:', error?.message || error);
+    }
+  }
+
+  const candidates = [
+    detectedTitle,
+    file?.name || '',
+    url,
+    thumbUrl,
+    existing,
+  ];
+  for (const candidate of candidates) {
+    const cleaned = smartTitleCase(cleanMediaNameCandidate(candidate));
+    if (cleaned && !isWeakMediaTitle(cleaned)) return cleaned.slice(0, 72);
+  }
+  return fallbackMediaTitle({ fileName: file?.name || '', url: url || thumbUrl, type, context });
+}
+
+window.getMediaSourceBase = getMediaSourceBase;
+window.buildMediaSourceMeta = buildMediaSourceMeta;
+window.isPinnedMedia = isPinnedMedia;
+window.isPremiumMedia = isPremiumMedia;
+window.describeMediaAccent = describeMediaAccent;
+window.comparePrioritizedMedia = comparePrioritizedMedia;
+window.isWeakMediaTitle = isWeakMediaTitle;
+window.smartMediaTitle = smartMediaTitle;
+window.fallbackMediaTitle = fallbackMediaTitle;
 
 /* ─── Sidebar nav shared HTML ─── */
 function sidebarHTML(activePage) {

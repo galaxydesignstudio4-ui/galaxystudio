@@ -53,6 +53,7 @@
          <option value="video">Videos</option>
        </select>
        <button class="btn btn-ghost" id="avSelectAllBtn">Select All</button>
+       <button class="btn btn-ghost" id="avAutoNameBtn" style="border-color:rgba(245,158,11,0.4);color:#fcd34d;">Auto Name Existing</button>
        <button class="btn btn-danger" id="avDeleteSelectedBtn" disabled>Delete Selected (0)</button>
        <button class="btn btn-ghost" id="addAVVideoBtn" style="border-color:rgba(245,158,11,0.4);color:#fcd34d;">▶ Add Video URL</button>
        <label class="btn btn-gold" style="cursor:pointer;">📁 Upload Files<input type="file" id="avUploadInput" multiple accept="image/*,video/*" style="display:none;"></label>
@@ -97,6 +98,99 @@ function pruneAVSelection(list = []) {
   selectedAVIds = new Set([...selectedAVIds].filter((key) => validKeys.has(key)));
 }
 
+function buildAVTitleSource(base, pinned = false, premium = false) {
+  if (typeof window.buildMediaSourceMeta === 'function') {
+    return window.buildMediaSourceMeta(base, { pinned, premium });
+  }
+  return base;
+}
+
+async function suggestAdavatarTitle({ file = null, url = '', thumbUrl = '', type = 'image', currentTitle = '' } = {}) {
+  if (typeof window.smartMediaTitle === 'function') {
+    return window.smartMediaTitle({
+      file,
+      url,
+      thumbUrl,
+      type,
+      currentTitle,
+      context: 'adavatar',
+    });
+  }
+  return currentTitle || (type === 'video' ? 'AdAvatar Video' : 'AdAvatar Portrait');
+}
+
+async function autoNameExistingAVItems({ onlyGeneric = false, silent = false } = {}) {
+  const list = getData('galaxy_adavatar') || [];
+  if (!list.length) {
+    if (!silent) showToast('There are no AdAvatar items to name.', 'error');
+    return 0;
+  }
+  let changed = 0;
+  const updated = [];
+  for (const item of list) {
+    const sourceBase = typeof window.getMediaSourceBase === 'function'
+      ? window.getMediaSourceBase(item?.titleSource || '')
+      : item?.titleSource;
+    const weak = typeof window.isWeakMediaTitle === 'function' ? window.isWeakMediaTitle(item?.title || '') : !item?.title;
+    const shouldRename = !item?.title || !onlyGeneric || weak || sourceBase === 'auto' || sourceBase === 'ai';
+    if (!shouldRename) {
+      updated.push(item);
+      continue;
+    }
+    const nextTitle = await suggestAdavatarTitle({
+      url: item?.url || '',
+      thumbUrl: item?.thumb || '',
+      type: item?.type || 'image',
+      currentTitle: onlyGeneric ? '' : item?.title || '',
+    });
+    if (nextTitle && nextTitle !== item.title) {
+      updated.push({
+        ...item,
+        title: nextTitle,
+        titleSource: buildAVTitleSource('auto', typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item), typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item)),
+      });
+      changed += 1;
+    } else {
+      updated.push(item);
+    }
+  }
+  if (changed) {
+    const result = await saveAdavatarItems(updated);
+    renderAV();
+    if (!silent && result?.synced === false) {
+      showToast(avSyncWarning(result.error, `${changed} AdAvatar item(s) updated locally.`));
+      return changed;
+    }
+  }
+  if (!silent) {
+    showToast(changed ? `${changed} AdAvatar item(s) auto-named.` : 'No AdAvatar titles needed renaming.');
+  }
+  return changed;
+}
+
+async function toggleAVPriority(id, field) {
+  const matchId = avSelectionKey(id);
+  const list = getData('galaxy_adavatar') || [];
+  const idx = list.findIndex((item) => avSelectionKey(item.id) === matchId);
+  if (idx < 0) return;
+  const item = list[idx];
+  const nextValue = field === 'pinned'
+    ? !(typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item))
+    : !(typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item));
+  list[idx] = {
+    ...item,
+    titleSource: buildAVTitleSource(
+      typeof window.getMediaSourceBase === 'function' ? window.getMediaSourceBase(item?.titleSource || '') : 'manual',
+      field === 'pinned' ? nextValue : (typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item)),
+      field === 'premium' ? nextValue : (typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item))
+    ),
+  };
+  const result = await saveAdavatarItems(list);
+  renderAV();
+  const label = field === 'pinned' ? (nextValue ? 'Pinned to top.' : 'Unpinned.') : (nextValue ? 'Marked as premium.' : 'Premium highlight removed.');
+  showToast(result?.synced === false ? avSyncWarning(result.error, label) : label);
+}
+
 function adavatarItemTimestamp(item = {}) {
   const timestamp = Date.parse(item?.createdAt || '');
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -104,6 +198,9 @@ function adavatarItemTimestamp(item = {}) {
 
 function sortAdavatarItemsNewestFirst(list = []) {
   return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    if (typeof window.comparePrioritizedMedia === 'function') {
+      return window.comparePrioritizedMedia(a, b, adavatarItemTimestamp);
+    }
     const byDate = adavatarItemTimestamp(b) - adavatarItemTimestamp(a);
     if (byDate) return byDate;
     return Number(b?.id || 0) - Number(a?.id || 0);
@@ -199,6 +296,51 @@ function renderAV(){
       </div>
       ${item.title?`<div style="padding:8px 10px;border-top:1px solid rgba(245,158,11,0.15);font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#fcd34d;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${escHtml(item.title)}</div>`:''}
     </div>`).join('');
+  grid.querySelectorAll('.av-overlay').forEach((overlay, index) => {
+    const item = list[index];
+    if (!item) return;
+    const pinned = typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item);
+    const premium = typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item);
+    const wrapper = overlay.querySelector('div[style*="display:flex"]');
+    if (wrapper) {
+      const pinBtn = document.createElement('button');
+      pinBtn.className = 'btn btn-ghost btn-sm';
+      pinBtn.style.background = pinned ? 'rgba(250,204,21,0.18)' : 'hsl(260 20% 10%)';
+      pinBtn.textContent = '📌';
+      pinBtn.onclick = (event) => {
+        event.stopPropagation();
+        toggleAVPriority(item.id, 'pinned');
+      };
+      wrapper.prepend(pinBtn);
+
+      const premiumBtn = document.createElement('button');
+      premiumBtn.className = 'btn btn-ghost btn-sm';
+      premiumBtn.style.background = premium ? 'rgba(245,158,11,0.24)' : 'hsl(260 20% 10%)';
+      premiumBtn.textContent = '★';
+      premiumBtn.onclick = (event) => {
+        event.stopPropagation();
+        toggleAVPriority(item.id, 'premium');
+      };
+      wrapper.prepend(premiumBtn);
+    }
+    const card = overlay.closest('div[style*="position:relative"]');
+    const typeBadge = card?.querySelector('span[style*="top:7px;left:7px"]');
+    if (card && typeBadge) {
+      if (pinned) {
+        typeBadge.insertAdjacentHTML('afterend', `<span style="position:absolute;top:7px;right:7px;background:rgba(250,204,21,0.16);border:1px solid rgba(250,204,21,0.45);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:#fde68a;">📌 Pinned</span>`);
+      }
+      if (premium) {
+        typeBadge.insertAdjacentHTML('afterend', `<span style="position:absolute;top:${pinned ? '34px' : '7px'};right:7px;background:linear-gradient(135deg,rgba(245,158,11,0.96),rgba(250,204,21,0.92));border:1px solid rgba(255,244,180,0.5);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:#1f1300;">★ Premium</span>`);
+      }
+      const accent = typeof window.describeMediaAccent === 'function' ? window.describeMediaAccent(item) : '';
+      if (accent && !item.desc) {
+        const footer = card.querySelector('div[style*="padding:8px 10px;border-top:1px solid rgba(245,158,11,0.15)"]');
+        if (footer) {
+          footer.insertAdjacentHTML('beforeend', `<div style="font-size:10px;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;">${escHtml(accent)}</div>`);
+        }
+      }
+    }
+  });
 }
 
 function addAVVideoModal(){
@@ -218,6 +360,10 @@ function addAVVideoModal(){
       </div>
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="avTitle" placeholder="Video title (optional)"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="avDesc"></textarea></div>
+      <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.22);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="avPinned"> Pin to top</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.28);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(250,204,21,0.05));font-size:13px;font-weight:600;color:#f8d56b;"><input type="checkbox" id="avPremium"> Premium gold highlight</label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -246,6 +392,13 @@ function addAVVideoModal(){
     try {
       const uploadedThumb = await uploadAsset(thumbFile, ADAVATAR_BUCKET);
       const list=getData('galaxy_adavatar')||[];
+      const typedTitle = ov.querySelector('#avTitle').value.trim();
+      const resolvedTitle = typedTitle || await suggestAdavatarTitle({
+        file: thumbFile,
+        url,
+        thumbUrl: uploadedThumb.url,
+        type: 'video',
+      });
       list.unshift({
         id:nextId(list),
         type:'video',
@@ -253,7 +406,8 @@ function addAVVideoModal(){
         thumb:uploadedThumb.url,
         thumbStoragePath: uploadedThumb.path || '',
         storagePath:'',
-        title:ov.querySelector('#avTitle').value.trim(),
+        title:resolvedTitle,
+        titleSource: buildAVTitleSource(typedTitle ? 'manual' : 'auto', ov.querySelector('#avPinned')?.checked, ov.querySelector('#avPremium')?.checked),
         desc:ov.querySelector('#avDesc').value.trim(),
         icon:'🎬',
         createdAt:new Date().toISOString(),
@@ -282,6 +436,10 @@ function editAVModal(item){
       <div class="form-group" id="urlFieldWrap" style="${item.type==='video'?'':'display:none;'}"><label class="form-label">Video URL</label><input class="form-input" id="eUrl" value="${escHtml(item.url||'')}" placeholder="https://..."></div>
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="eTitle" value="${escHtml(item.title||'')}" placeholder="Optional title"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="eDesc">${escHtml(item.desc||'')}</textarea></div>
+      <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.22);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="ePinned" ${typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item) ? 'checked' : ''}> Pin to top</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.28);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(250,204,21,0.05));font-size:13px;font-weight:600;color:#f8d56b;"><input type="checkbox" id="ePremium" ${typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item) ? 'checked' : ''}> Premium gold highlight</label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -338,7 +496,15 @@ function editAVModal(item){
           nextThumbStoragePath = uploadedThumb.path || '';
         }
 
-        list[i]={...item,url:nextUrl,storagePath:nextStoragePath,thumb:nextThumb,thumbStoragePath:nextThumbStoragePath,title:ov.querySelector('#eTitle').value.trim(),desc:ov.querySelector('#eDesc').value.trim()};
+        const typedTitle = ov.querySelector('#eTitle').value.trim();
+        const resolvedTitle = typedTitle || await suggestAdavatarTitle({
+          file: mediaFile || thumbFile || null,
+          url: nextUrl,
+          thumbUrl: nextThumb,
+          type: item.type || 'image',
+          currentTitle: item.title || '',
+        });
+        list[i]={...item,url:nextUrl,storagePath:nextStoragePath,thumb:nextThumb,thumbStoragePath:nextThumbStoragePath,title:resolvedTitle,titleSource:buildAVTitleSource(typedTitle ? 'manual' : 'auto', ov.querySelector('#ePinned')?.checked, ov.querySelector('#ePremium')?.checked),desc:ov.querySelector('#eDesc').value.trim()};
       }
       const result = await saveAdavatarItems(list);closeModal(ov);renderAV();showToast(result?.synced === false ? avSyncWarning(result.error, 'Item updated locally.') : 'Item updated!');
     } catch (error) {
@@ -363,6 +529,12 @@ async function uploadAVFiles(files){
       bar.style.width=Math.round(((i+1)/ok.length)*100)+'%';
       const uploaded = await uploadAsset(ok[i], ADAVATAR_BUCKET);
       const isVideo = ok[i].type.startsWith('video');
+      const autoTitle = await suggestAdavatarTitle({
+        file: ok[i],
+        url: isVideo ? uploaded.url : '',
+        thumbUrl: isVideo ? '' : uploaded.url,
+        type: isVideo ? 'video' : 'image',
+      });
       list.unshift({
         id:nextId(list),
         type:isVideo?'video':'image',
@@ -370,7 +542,8 @@ async function uploadAVFiles(files){
         thumb:isVideo?'':uploaded.url,
         storagePath:uploaded.path || '',
         thumbStoragePath:'',
-        title:stripExt(ok[i].name),
+        title:autoTitle,
+        titleSource:buildAVTitleSource('auto'),
         desc:'',
         icon:isVideo?'🎬':'👤',
         createdAt:new Date().toISOString(),
@@ -433,6 +606,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
     }
   }
   renderAV();
+  await autoNameExistingAVItems({ onlyGeneric: true, silent: true });
   const filterEl=document.getElementById('avFilter');
   if (filterEl) {
     filterEl.onchange=(e)=>{
@@ -467,6 +641,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
       showToast(`Could not delete selected items: ${error?.message || 'Delete failed.'}`,'error');
     }
   });
+  document.getElementById('avAutoNameBtn').onclick=async ()=>{ await autoNameExistingAVItems({ onlyGeneric: false, silent: false }); };
   document.getElementById('addAVVideoBtn').onclick=addAVVideoModal;
   const inp=document.getElementById('avUploadInput');
   inp.onchange=e=>{uploadAVFiles(e.target.files);e.target.value='';};

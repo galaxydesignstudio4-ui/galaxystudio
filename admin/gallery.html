@@ -167,6 +167,9 @@ function formatDetectedTitle(value='') {
 }
 
 function formatFallbackTitle(value='') {
+  if (typeof window.fallbackMediaTitle === 'function') {
+    return window.fallbackMediaTitle({ fileName: value, type: 'image', context: 'gallery' });
+  }
   const cleaned = stripExt(String(value || ''))
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
@@ -177,6 +180,9 @@ function formatFallbackTitle(value='') {
 }
 
 function isGenericTitle(value='') {
+  if (typeof window.isWeakMediaTitle === 'function') {
+    return window.isWeakMediaTitle(value);
+  }
   const normalized = String(value || '').trim().toLowerCase();
   if (!normalized) return true;
   return /^(img|image|photo|picture|pic|screenshot|video|vid|clip|file|gallery item|untitled)([\s_-]*\d+.*)?$/.test(normalized)
@@ -241,8 +247,50 @@ function pruneGallerySelection(list = []) {
   selectedGalleryIds = new Set([...selectedGalleryIds].filter((key) => validKeys.has(key)));
 }
 
+function gallerySourceMeta(item, overrides = {}) {
+  const base = typeof window.getMediaSourceBase === 'function'
+    ? window.getMediaSourceBase(item?.titleSource || '')
+    : (item?.titleSource || 'manual');
+  if (typeof window.buildMediaSourceMeta === 'function') {
+    return window.buildMediaSourceMeta(base, {
+      pinned: overrides.pinned ?? (typeof window.isPinnedMedia === 'function' ? window.isPinnedMedia(item) : false),
+      premium: overrides.premium ?? (typeof window.isPremiumMedia === 'function' ? window.isPremiumMedia(item) : false),
+    });
+  }
+  return base;
+}
+
+function buildGalleryTitleSource(base, pinned = false, premium = false) {
+  if (typeof window.buildMediaSourceMeta === 'function') {
+    return window.buildMediaSourceMeta(base, { pinned, premium });
+  }
+  return base;
+}
+
+async function toggleGalleryPriority(id, field) {
+  const matchId = gallerySelectionKey(id);
+  const list = getData('galaxy_gallery') || [];
+  const idx = list.findIndex((item) => gallerySelectionKey(item.id) === matchId);
+  if (idx < 0) return;
+  const item = list[idx];
+  const nextValue = field === 'pinned'
+    ? !(typeof window.isPinnedMedia === 'function' ? window.isPinnedMedia(item) : false)
+    : !(typeof window.isPremiumMedia === 'function' ? window.isPremiumMedia(item) : false);
+  list[idx] = {
+    ...item,
+    titleSource: gallerySourceMeta(item, { [field]: nextValue }),
+  };
+  const result = await saveGalleryItems(list);
+  renderGallery();
+  const label = field === 'pinned' ? (nextValue ? 'Pinned to top.' : 'Unpinned.') : (nextValue ? 'Marked as premium.' : 'Premium highlight removed.');
+  showToast(result?.synced === false ? gallerySyncWarning(result.error, label) : label);
+}
+
 function sortGalleryItemsNewestFirst(list = []) {
   return [...(Array.isArray(list) ? list : [])].sort((a, b) => {
+    if (typeof window.comparePrioritizedMedia === 'function') {
+      return window.comparePrioritizedMedia(a, b, galleryItemTimestamp);
+    }
     const byDate = galleryItemTimestamp(b) - galleryItemTimestamp(a);
     if (byDate) return byDate;
     return Number(b?.id || 0) - Number(a?.id || 0);
@@ -385,6 +433,18 @@ async function suggestGalleryTitle({ file = null, url = '', thumbUrl = '', type 
       ? await detectTextFromVideoSource(url)
       : await detectTextFromImageSource(url);
   }
+  if (typeof window.smartMediaTitle === 'function') {
+    const smartTitle = await window.smartMediaTitle({
+      file,
+      url,
+      thumbUrl,
+      type,
+      currentTitle: trimmedTitle,
+      detectedTitle: detected,
+      context: 'gallery',
+    });
+    if (smartTitle) return smartTitle;
+  }
   if (detected) {
     return finalizeDetectedTitle(detected, {
       type,
@@ -407,7 +467,10 @@ async function autoNameExistingGalleryItems({ onlyGeneric = false, silent = fals
   const updated = [];
   let changed = 0;
   for (const item of list) {
-    const shouldRename = !item?.title || !onlyGeneric || isGenericTitle(item.title) || item.titleSource === 'auto';
+    const sourceBase = typeof window.getMediaSourceBase === 'function'
+      ? window.getMediaSourceBase(item?.titleSource || '')
+      : item?.titleSource;
+    const shouldRename = !item?.title || !onlyGeneric || isGenericTitle(item.title) || sourceBase === 'auto' || sourceBase === 'ai';
     if (!shouldRename) {
       updated.push(item);
       continue;
@@ -419,7 +482,7 @@ async function autoNameExistingGalleryItems({ onlyGeneric = false, silent = fals
       currentTitle: onlyGeneric ? '' : item?.title || '',
     });
     if (nextTitle && nextTitle !== item.title) {
-      updated.push({ ...item, title: nextTitle, titleSource: 'auto' });
+      updated.push({ ...item, title: nextTitle, titleSource: buildGalleryTitleSource('auto', typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item), typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item)) });
       changed += 1;
     } else {
       updated.push(item);
@@ -475,6 +538,9 @@ function renderGallery() {
   empty.style.display = 'none';
 
   grid.innerHTML = list.map(item => {
+    const pinned = typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item);
+    const premium = typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item);
+    const accent = typeof window.describeMediaAccent === 'function' ? window.describeMediaAccent(item) : '';
     const typeLabel = item.type === 'video' ? '▶ Video' : item.type === 'link' ? '🔗 Link' : '🖼 Image';
     return `
     <div class="g-card">
@@ -482,16 +548,20 @@ function renderGallery() {
         ${getGalleryPreview(item)}
       </div>
       <span class="g-type">${typeLabel}</span>
+      ${pinned ? `<span style="position:absolute;top:8px;right:8px;background:rgba(250,204,21,0.16);border:1px solid rgba(250,204,21,0.42);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:#fde68a;">📌 Pinned</span>` : ''}
+      ${premium ? `<span style="position:absolute;top:${pinned ? '34px' : '8px'};right:8px;background:linear-gradient(135deg,rgba(245,158,11,0.96),rgba(250,204,21,0.92));border:1px solid rgba(255,244,180,0.5);box-shadow:0 10px 22px rgba(245,158,11,0.24);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;color:#1f1300;">★ Premium</span>` : ''}
       <input class="g-select" type="checkbox" ${isGallerySelected(item.id) ? 'checked' : ''} onchange='toggleGalSelection(${JSON.stringify(gallerySelectionKey(item.id))}, this.checked)' onclick="event.stopPropagation()">
       ${item.type === 'link' ? '<span class="g-link-icon" style="right:30px;">↗</span>' : ''}
       <div class="g-overlay">
         ${item.type === 'video' ? '<div class="g-play">▶</div>' : ''}
         <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick='toggleGalleryPriority(${JSON.stringify(item.id)}, "pinned")' style="background:${pinned ? 'rgba(250,204,21,0.18)' : 'hsl(260 20% 10%)'};">📌</button>
+          <button class="btn btn-ghost btn-sm" onclick='toggleGalleryPriority(${JSON.stringify(item.id)}, "premium")' style="background:${premium ? 'rgba(245,158,11,0.24)' : 'hsl(260 20% 10%)'};">★</button>
           <button class="btn btn-ghost btn-sm" onclick='editGal(${JSON.stringify(item.id)})' style="background:hsl(260 20% 10%);">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick='delGal(${JSON.stringify(item.id)})'>🗑️</button>
         </div>
       </div>
-      ${item.title ? `<div class="g-footer"><div class="g-footer-title">${escHtml(item.title)}</div>${item.desc ? `<div class="g-footer-desc">${escHtml(item.desc)}</div>` : ''}</div>` : ''}
+      ${(item.title || item.desc || accent) ? `<div class="g-footer"><div class="g-footer-title">${escHtml(item.title || 'Untitled')}</div>${(item.desc || accent) ? `<div class="g-footer-desc">${escHtml(item.desc || accent)}</div>` : ''}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -524,6 +594,10 @@ function editGalModal(item) {
       </div>
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="eTitle" value="${escHtml(item.title||'')}" placeholder="Optional title"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="eDesc" placeholder="Optional description...">${escHtml(item.desc||'')}</textarea></div>
+      <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="ePinned" ${typeof window.isPinnedMedia === 'function' && window.isPinnedMedia(item) ? 'checked' : ''}> Pin to top</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.28);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(250,204,21,0.05));font-size:13px;font-weight:600;color:#f8d56b;"><input type="checkbox" id="ePremium" ${typeof window.isPremiumMedia === 'function' && window.isPremiumMedia(item) ? 'checked' : ''}> Premium gold highlight</label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -667,7 +741,11 @@ function editGalModal(item) {
           storagePath: nextStoragePath,
           thumbStoragePath: type === 'image' ? '' : nextThumbStoragePath,
           title: resolvedTitle,
-          titleSource: typedTitle ? 'manual' : 'auto',
+          titleSource: buildGalleryTitleSource(
+            typedTitle ? 'manual' : 'auto',
+            ov.querySelector('#ePinned')?.checked,
+            ov.querySelector('#ePremium')?.checked
+          ),
           desc:  ov.querySelector('#eDesc').value.trim(),
           icon:  type === 'video' ? '🎬' : type === 'link' ? '🔗' : '🖼️',
         };
@@ -711,6 +789,10 @@ function addVideoModal() {
       </div>
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="vTitle" placeholder="Video title (optional)"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="vDesc" placeholder="Optional description..."></textarea></div>
+      <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="vPinned"> Pin to top</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.28);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(250,204,21,0.05));font-size:13px;font-weight:600;color:#f8d56b;"><input type="checkbox" id="vPremium"> Premium gold highlight</label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -764,7 +846,7 @@ function addVideoModal() {
         storagePath: '',
         createdAt: new Date().toISOString(),
         title:resolvedTitle,
-        titleSource: typedTitle ? 'manual' : 'auto',
+        titleSource: buildGalleryTitleSource(typedTitle ? 'manual' : 'auto', ov.querySelector('#vPinned')?.checked, ov.querySelector('#vPremium')?.checked),
         desc:ov.querySelector('#vDesc').value.trim(),
         icon:'🎬'
       });
@@ -801,6 +883,10 @@ function addLinkModal() {
       </div>
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="lTitle" placeholder="Link title (optional)"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="lDesc" placeholder="Optional description..."></textarea></div>
+      <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="lPinned"> Pin to top</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid rgba(245,158,11,0.28);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(250,204,21,0.05));font-size:13px;font-weight:600;color:#f8d56b;"><input type="checkbox" id="lPremium"> Premium gold highlight</label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -851,7 +937,7 @@ function addLinkModal() {
         storagePath: '',
         createdAt: new Date().toISOString(),
         title:resolvedTitle,
-        titleSource: typedTitle ? 'manual' : 'auto',
+        titleSource: buildGalleryTitleSource(typedTitle ? 'manual' : 'auto', ov.querySelector('#lPinned')?.checked, ov.querySelector('#lPremium')?.checked),
         desc:ov.querySelector('#lDesc').value.trim(),
         icon:'🔗'
       });
@@ -912,7 +998,7 @@ async function processFiles(arr) {
         thumbStoragePath: '',
         createdAt: new Date().toISOString(),
         title: autoTitle,
-        titleSource: 'auto',
+        titleSource: buildGalleryTitleSource('auto'),
         desc:  '',
         icon:  isVideo ? '🎬' : '🖼️',
       });

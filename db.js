@@ -96,6 +96,50 @@ function cloneValue(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function splitMediaSourceMeta(value='') {
+  const tokens = String(value || '')
+    .split('|')
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  const base = tokens.find((token) => token === 'manual' || token === 'auto' || token === 'ai') || 'manual';
+  return { base, tokens: new Set(tokens) };
+}
+
+function getMediaSourceBase(value='') {
+  return splitMediaSourceMeta(value).base;
+}
+
+function buildMediaSourceMeta(base='manual', options={}) {
+  const tokens = new Set([base === 'auto' || base === 'ai' ? base : 'manual']);
+  if (options.pinned) tokens.add('pinned');
+  if (options.premium) tokens.add('premium');
+  return [...tokens].join('|');
+}
+
+function mediaHasMeta(item, token) {
+  return splitMediaSourceMeta(item?.titleSource || '').tokens.has(String(token || '').toLowerCase());
+}
+
+function isPinnedMedia(item) {
+  return mediaHasMeta(item, 'pinned');
+}
+
+function isPremiumMedia(item) {
+  return mediaHasMeta(item, 'premium');
+}
+
+function comparePrioritizedMedia(a, b, getTimestamp) {
+  const aPinned = isPinnedMedia(a) ? 1 : 0;
+  const bPinned = isPinnedMedia(b) ? 1 : 0;
+  if (aPinned !== bPinned) return bPinned - aPinned;
+  const aPremium = isPremiumMedia(a) ? 1 : 0;
+  const bPremium = isPremiumMedia(b) ? 1 : 0;
+  if (aPremium !== bPremium) return bPremium - aPremium;
+  const byDate = typeof getTimestamp === 'function' ? getTimestamp(b) - getTimestamp(a) : 0;
+  if (byDate) return byDate;
+  return Number(b?.id || 0) - Number(a?.id || 0);
+}
+
 function normalizeQrSetting(raw) {
   if (!raw) return { mode: 'generated', targetUrl: '', imageUrl: '', storagePath: '' };
   if (typeof raw === 'object') {
@@ -1504,6 +1548,11 @@ window.recoverMediaFromStorageNow = recoverMediaFromStorageNow;
 window.BASE_DEFAULTS = BASE_DEFAULTS;
 window.normalizeQrSetting = normalizeQrSetting;
 window.serializeQrSetting = serializeQrSetting;
+window.getMediaSourceBase = window.getMediaSourceBase || getMediaSourceBase;
+window.buildMediaSourceMeta = window.buildMediaSourceMeta || buildMediaSourceMeta;
+window.isPinnedMedia = window.isPinnedMedia || isPinnedMedia;
+window.isPremiumMedia = window.isPremiumMedia || isPremiumMedia;
+window.comparePrioritizedMedia = window.comparePrioritizedMedia || comparePrioritizedMedia;
 window.__GALAXY_GET_DATA__ = getData;
 window.__GALAXY_SET_DATA__ = setData;
 window.__GALAXY_NEXT_ID__ = nextId;
