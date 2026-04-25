@@ -1169,12 +1169,17 @@ const GalaxyDB = (() => {
           if (OBJECT_KEYS.has(key)) {
             await supabase.from(table).upsert(dbValue);
           } else {
-            await supabase._fetch(`/rest/v1/${table}?id=gte.0`, {
-              method: 'DELETE',
-              headers: { Prefer: 'return=minimal' },
-            });
+            const { data: existingRows } = await supabase.from(table).select('id');
+            const previousIds = new Set(collectionIds(existingRows));
+            const nextIds = new Set(collectionIds(dbValue));
+
             if (dbValue.length) {
-              await supabase.from(table).insert(dbValue);
+              await supabase.from(table).upsert(dbValue);
+            }
+
+            const removedIds = [...previousIds].filter((id) => !nextIds.has(id));
+            for (const id of removedIds) {
+              await supabase.from(table).delete().eq('id', id);
             }
           }
           break;
@@ -1373,6 +1378,13 @@ async function saveDataNow(key, value) {
   lsSet(syncPendingKey(key), { startedAt: new Date().toISOString() });
   lsRemove(syncErrorKey(key));
   return GalaxyDB.setAll(key, normalized, { throwOnError: true });
+}
+
+function collectionIds(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => Number(row?.id))
+    .filter((id) => Number.isFinite(id));
 }
 
 async function uploadMedia(file, bucket = 'gallery') {

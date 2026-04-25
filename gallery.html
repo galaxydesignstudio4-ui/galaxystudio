@@ -813,7 +813,11 @@ document.addEventListener('dragstart', (event) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   let list = getData('galaxy_gallery') || [];
-  if (typeof window.loadFromCloud === 'function') {
+  const syncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_gallery')
+    : null;
+  const shouldPreferLocal = Boolean(syncState?.hasPending || syncState?.hasError);
+  if (!shouldPreferLocal && typeof window.loadFromCloud === 'function') {
     try {
       const cloudList = await window.loadFromCloud('galaxy_gallery');
       if (Array.isArray(cloudList)) {

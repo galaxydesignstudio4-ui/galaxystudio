@@ -671,7 +671,11 @@ function renderAdavatarGallery(list) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   let list = getData('galaxy_adavatar') || [];
-  if (typeof window.loadFromCloud === 'function') {
+  const syncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_adavatar')
+    : null;
+  const shouldPreferLocal = Boolean(syncState?.hasPending || syncState?.hasError);
+  if (!shouldPreferLocal && typeof window.loadFromCloud === 'function') {
     try {
       list = await window.loadFromCloud('galaxy_adavatar');
     } catch (error) {
