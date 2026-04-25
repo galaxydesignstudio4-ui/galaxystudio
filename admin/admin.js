@@ -127,6 +127,54 @@ function setAdminAuthenticated(gate, panel) {
   panel.classList.add('visible');
 }
 
+function clearAdminAuthenticated() {
+  localStorage.removeItem('galaxy_admin_session');
+  document.documentElement.classList.remove('is-auth');
+}
+
+function getAdminHomeUrl() {
+  try {
+    return new URL('../index.html', window.location.href).toString();
+  } catch {
+    return '../index.html';
+  }
+}
+
+function setPasswordStepState({ enabled = false, email = '' } = {}) {
+  const authCard = document.querySelector('.auth-card');
+  const sub = authCard?.querySelector('.auth-sub');
+  const input = document.getElementById('authPassword');
+  const btn = document.getElementById('authBtn');
+  const googleBtn = document.getElementById('authGoogleBtn');
+  if (sub) {
+    sub.textContent = enabled
+      ? `Google verified for ${email || 'the admin account'}. Enter the admin password to continue.`
+      : 'Continue with Google using the admin email, then enter your admin password.';
+  }
+  if (input) {
+    input.disabled = !enabled;
+    input.placeholder = enabled ? 'Admin password' : 'Continue with Google first';
+  }
+  if (btn) {
+    btn.disabled = !enabled;
+    btn.textContent = enabled ? 'Enter Admin Panel →' : 'Verify Google First';
+  }
+  if (googleBtn) {
+    googleBtn.disabled = enabled;
+    googleBtn.innerHTML = enabled
+      ? 'Google Verified'
+      : `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-.9 2.2-1.8 2.9l3 2.3c1.8-1.7 2.8-4.2 2.8-7.1 0-.7-.1-1.3-.2-2H12z"/>
+          <path fill="#34A853" d="M12 22c2.7 0 4.9-.9 6.6-2.5l-3-2.3c-.8.6-1.9 1-3.6 1-2.7 0-5-1.8-5.8-4.3l-3.1 2.4C4.8 19.8 8.1 22 12 22z"/>
+          <path fill="#4A90E2" d="M6.2 13.9c-.2-.6-.4-1.2-.4-1.9s.1-1.3.4-1.9l-3.1-2.4C2.4 9 2 10.5 2 12s.4 3 1.1 4.3l3.1-2.4z"/>
+          <path fill="#FBBC05" d="M12 5.8c1.5 0 2.8.5 3.8 1.5l2.8-2.8C16.9 2.9 14.7 2 12 2 8.1 2 4.8 4.2 3.1 7.7l3.1 2.4C7 7.6 9.3 5.8 12 5.8z"/>
+        </svg>
+        Continue with Google
+      `;
+  }
+}
+
 async function trySupabasePasswordSession(password) {
   const auth = window.GalaxyAuth;
   const email = getAuthorizedAdminEmail();
@@ -207,7 +255,7 @@ async function authorizeGoogleSession(result) {
   if (!userEmail) return { ok: false, message: 'Google sign-in did not return an email address.' };
   if (allowedEmail && userEmail !== allowedEmail) {
     try { await auth.signOut(); } catch {}
-    localStorage.removeItem('galaxy_admin_session');
+    clearAdminAuthenticated();
     return {
       ok: false,
       message: `Only ${allowedEmail} can access this admin panel with Google.`,
@@ -224,6 +272,7 @@ async function setupAuth() {
   if (!gate||!panel) return;
   applyAdminBranding();
   ensureGoogleAuthOption();
+  setPasswordStepState({ enabled: false });
 
   const auth = window.GalaxyAuth;
   if (auth?.consumeOAuthCallback) {
@@ -232,11 +281,16 @@ async function setupAuth() {
       if (callback?.status === 'success') {
         const googleAuth = await authorizeGoogleSession(callback);
         if (googleAuth.ok) {
-          setAdminAuthenticated(gate, panel);
-          showAuthMessage(`Signed in with Google as ${googleAuth.email}`, 'success');
+          setPasswordStepState({ enabled: true, email: googleAuth.email });
+          showAuthMessage(`Google verified as ${googleAuth.email}. Enter the admin password to continue.`, 'success');
+          document.getElementById('authPassword')?.focus();
           return;
         }
-        if (googleAuth.message) showAuthMessage(googleAuth.message);
+        if (googleAuth.message) {
+          showAuthMessage(googleAuth.message);
+          window.location.href = getAdminHomeUrl();
+          return;
+        }
       } else if (callback?.status === 'error' && callback.message) {
         showAuthMessage(callback.message);
       }
@@ -245,20 +299,28 @@ async function setupAuth() {
     }
   }
 
-  if (localStorage.getItem('galaxy_admin_session')==='authenticated') {
-    setAdminAuthenticated(gate, panel);
-    return;
-  }
-
   if (auth?.peekSession?.() && auth?.getUser) {
     try {
       const googleAuth = await authorizeGoogleSession({ session: auth.peekSession() });
       if (googleAuth.ok) {
-        setAdminAuthenticated(gate, panel);
+        setPasswordStepState({ enabled: true, email: googleAuth.email });
+        if (localStorage.getItem('galaxy_admin_session')==='authenticated') {
+          setAdminAuthenticated(gate, panel);
+          return;
+        }
+        document.getElementById('authPassword')?.focus();
         return;
       }
-      if (googleAuth.message) showAuthMessage(googleAuth.message);
+      if (googleAuth.message) {
+        showAuthMessage(googleAuth.message);
+        window.location.href = getAdminHomeUrl();
+        return;
+      }
     } catch {}
+  }
+
+  if (localStorage.getItem('galaxy_admin_session')==='authenticated') {
+    clearAdminAuthenticated();
   }
 
   const input = document.getElementById('authPassword');
@@ -267,19 +329,19 @@ async function setupAuth() {
   const googleBtn = document.getElementById('authGoogleBtn');
 
   const tryLogin = async () => {
+    const googleAuth = await authorizeGoogleSession({ session: window.GalaxyAuth?.peekSession?.() });
+    if (!googleAuth.ok) {
+      const message = googleAuth.message || 'Continue with Google using galaxydesignstudio4@gmail.com before entering the admin password.';
+      showAuthMessage(message);
+      if (googleAuth.message) {
+        window.location.href = getAdminHomeUrl();
+      }
+      return;
+    }
+    setPasswordStepState({ enabled: true, email: googleAuth.email });
     const stored = getData('galaxy_admin_password') || DEFAULTS.galaxy_admin_password;
     if (input.value===stored) {
       if (err) err.style.display = 'none';
-      const authResult = await trySupabasePasswordSession(input.value);
-      if (window.GDB_CONFIG?.enabled && !authResult.ok) {
-        const helpText = authResult.reason === 'failed'
-          ? `Use Continue with Google for galaxydesignstudio4@gmail.com, or enter the real Supabase password for that email. ${authResult.message || ''}`.trim()
-          : 'Use Continue with Google for galaxydesignstudio4@gmail.com, or sign in with the real Supabase password for that email so updates sync across browsers.';
-        showAuthMessage(helpText);
-        console.warn('[Admin Auth] Blocking local-only admin session because Supabase auth did not succeed:', authResult?.message || authResult?.reason || 'unavailable');
-        input.focus();
-        return;
-      }
       setAdminAuthenticated(gate, panel);
     } else {
       if (err) {
@@ -290,8 +352,8 @@ async function setupAuth() {
       setTimeout(()=>{ if (err) err.style.display='none'; },3000);
     }
   };
-  btn?.addEventListener('click', () => { tryLogin(); });
-  input?.addEventListener('keydown', e=>{ if (e.key==='Enter') tryLogin(); });
+  btn?.addEventListener('click', () => { if (!btn.disabled) tryLogin(); });
+  input?.addEventListener('keydown', e=>{ if (e.key==='Enter' && !input.disabled) tryLogin(); });
   googleBtn?.addEventListener('click', () => {
     const liveAuth = window.GalaxyAuth;
     if (!window.GDB_CONFIG?.enabled) {
@@ -303,9 +365,10 @@ async function setupAuth() {
       return;
     }
     try {
+      setPasswordStepState({ enabled: false });
       googleBtn.disabled = true;
       googleBtn.textContent = 'Redirecting to Google...';
-      liveAuth.signInWithGoogle({ redirectTo: window.location.href.split('#')[0] });
+      liveAuth.signInWithGoogle({ redirectTo: new URL('index.html', window.location.href).toString() });
     } catch (error) {
       googleBtn.disabled = false;
       googleBtn.innerHTML = `

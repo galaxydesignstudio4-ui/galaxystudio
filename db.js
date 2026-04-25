@@ -722,6 +722,9 @@ const GalaxyAuth = (() => {
   function getRedirectUrl(redirectTo) {
     if (redirectTo) return redirectTo;
     try {
+      if (String(window.location.pathname || '').includes('/admin/')) {
+        return new URL('index.html', window.location.href).toString();
+      }
       const current = new URL(window.location.href);
       current.hash = '';
       current.searchParams.delete('code');
