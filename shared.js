@@ -422,9 +422,36 @@ document.addEventListener('DOMContentLoaded', () => {
     return (parts[0]?.[0] || 'G') + (parts[1]?.[0] || '');
   }
 
+  function normalizeServiceIconName(name = '') {
+    const value = String(name || '').trim();
+    if (!value) return '';
+    const lower = value.toLowerCase();
+    const emojiMap = {
+      '🎨': 'graphic',
+      '📣': 'ad',
+      '🏷️': 'logo',
+      '🎬': 'video',
+      '📦': 'animation3d',
+      '👤': 'avatar',
+      '🖥️': 'uiux',
+      '✏️': 'cad',
+      '✨': 'promotion',
+      '⚙️': 'promotion',
+    };
+    if (emojiMap[value]) return emojiMap[value];
+    if (typeof ICONS !== 'undefined' && ICONS[value]) return value;
+    if (lower.startsWith('<svg') && lower.includes('circle cx="12" cy="8" r="4"')) return 'avatar';
+    if (lower.startsWith('<svg') && lower.includes('rect x="2" y="3"')) return 'uiux';
+    if (lower.startsWith('<svg') && lower.includes('m2 3h6a4')) return 'cad';
+    if (lower.startsWith('<svg') && lower.includes('polygon points="12 2 15.09 8.26')) return 'promotion';
+    return value;
+  }
+
   function renderIcon(name) {
-    if (typeof ICONS !== 'undefined' && ICONS[name]) return ICONS[name];
-    return `<span>${escHtml(name || '✦')}</span>`;
+    const normalized = normalizeServiceIconName(name);
+    if (typeof ICONS !== 'undefined' && ICONS[normalized]) return ICONS[normalized];
+    if (String(normalized).trim().toLowerCase().startsWith('<svg')) return normalized;
+    return `<span>${escHtml(normalized || '✦')}</span>`;
   }
 
   function applyStandardLogoChrome() {
@@ -460,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function featureListForService(service) {
+    const iconName = normalizeServiceIconName(service.icon);
     const map = {
       graphic: ['Poster & Flyer Design', 'Social Media Graphics', 'Print & Digital Assets', 'Brand Consistency'],
       ad: ['Digital Ads', 'Campaign Visuals', 'Promo Materials', 'Audience-Focused Concepts'],
@@ -471,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cad: ['2D Drafting', '3D Modeling', 'Technical Drawings', 'Production-Ready Files'],
       promotion: ['Social Media Content', 'Digital Marketing Assets', 'Creative Campaign Support', 'Brand Promotion'],
     };
-    return map[service.icon] || ['Custom Concepts', 'Professional Delivery', 'Affordable Pricing', 'Brand-Focused Execution'];
+    return map[iconName] || ['Custom Concepts', 'Professional Delivery', 'Affordable Pricing', 'Brand-Focused Execution'];
   }
 
   function categoryLabel(category) {
