@@ -217,6 +217,22 @@ function lsRemove(key) {
   } catch {}
 }
 
+function mergeObjectWithLocalFallback(localValue, cloudValue) {
+  const localObject = localValue && typeof localValue === 'object' ? localValue : {};
+  const cloudObject = cloudValue && typeof cloudValue === 'object' ? cloudValue : {};
+  const merged = { ...localObject, ...cloudObject };
+  Object.keys(localObject).forEach((key) => {
+    const localField = localObject[key];
+    const cloudField = cloudObject[key];
+    const cloudMissing = cloudField === undefined || cloudField === null || cloudField === '';
+    const localHasValue = !(localField === undefined || localField === null || localField === '');
+    if (cloudMissing && localHasValue) {
+      merged[key] = localField;
+    }
+  });
+  return merged;
+}
+
 function syncErrorKey(key) {
   return `${SYNC_ERROR_PREFIX}${key}`;
 }
@@ -1409,9 +1425,13 @@ function initDefaults() {
 }
 
 async function loadFromCloud(key) {
-  const value = await GalaxyDB.getAll(key, { forceCloud: true });
-  lsSet(key, value);
-  return value;
+  const localValue = lsGet(key);
+  const cloudValue = await GalaxyDB.getAll(key, { forceCloud: true });
+  const nextValue = OBJECT_KEYS.has(key)
+    ? mergeObjectWithLocalFallback(localValue, cloudValue)
+    : cloudValue;
+  lsSet(key, nextValue);
+  return nextValue;
 }
 
 async function saveDataNow(key, value) {
