@@ -394,6 +394,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const pageName = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
 
+  function normalizeExternalUrl(value = '') {
+    const raw = String(value || '').trim();
+    if (!raw || raw === '#') return '#';
+    if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
+    if (/^\/\//.test(raw)) return `https:${raw}`;
+    return `https://${raw.replace(/^\/+/, '')}`;
+  }
+
   function escHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -541,7 +549,15 @@ document.addEventListener('DOMContentLoaded', () => {
       el.href = `https://wa.me/${settings?.whatsapp || '233556881003'}`;
     });
     document.querySelectorAll('.footer-bottom a').forEach((el) => {
-      el.href = settings?.novatech || '#';
+      const href = normalizeExternalUrl(settings?.novatech || '#');
+      el.href = href;
+      if (href !== '#') {
+        el.target = '_blank';
+        el.rel = 'noopener noreferrer';
+      } else {
+        el.removeAttribute('target');
+        el.removeAttribute('rel');
+      }
     });
 
     document.querySelectorAll('.footer-socials').forEach((group) => {

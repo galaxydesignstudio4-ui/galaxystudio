@@ -500,6 +500,14 @@ function renderContactQr(rawQr, logo='') {
   }
 }
 
+function normalizeExternalUrl(value='') {
+  const raw = String(value || '').trim();
+  if (!raw || raw === '#') return '#';
+  if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+  return `https://${raw.replace(/^\/+/, '')}`;
+}
+
 async function applyContactSettings() {
   if (typeof window.getData !== 'function') return;
   let settings = getData('galaxy_settings') || DEFAULTS.galaxy_settings || {};
@@ -519,7 +527,7 @@ async function applyContactSettings() {
   const location = settings.location || DEFAULTS.galaxy_settings.location;
   const facebook = settings.facebook || DEFAULTS.galaxy_settings.facebook;
   const whatsapp = settings.whatsapp || DEFAULTS.galaxy_settings.whatsapp;
-  const novatech = settings.novatech || '#';
+  const novatech = normalizeExternalUrl(settings.novatech || '#');
   const telHref = normalisePhoneHref(whatsapp || phone);
   const waNumber = String(whatsapp || '').replace(/[^\d]/g, '');
 
@@ -547,7 +555,13 @@ async function applyContactSettings() {
   if (waLink && waNumber) waLink.href = `https://wa.me/${waNumber}`;
 
   const novaLink = document.getElementById('footerNovaLink');
-  if (novaLink) novaLink.href = novatech || '#';
+  if (novaLink) {
+    novaLink.href = novatech || '#';
+    if (novatech && novatech !== '#') {
+      novaLink.target = '_blank';
+      novaLink.rel = 'noopener noreferrer';
+    }
+  }
 
   renderContactQr(settings.qrUrl || '', settings.logo || '');
 }

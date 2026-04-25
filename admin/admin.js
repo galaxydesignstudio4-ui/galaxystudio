@@ -580,6 +580,8 @@ async function smartMediaTitle({ file = null, url = '', thumbUrl = '', type = 'i
     thumbUrl,
     existing,
   ];
+  const detectedTextTitle = inferTitleFromDetectedText(detectedTitle, candidates.join(' '), { type, context });
+  if (detectedTextTitle && !isWeakMediaTitle(detectedTextTitle)) return detectedTextTitle.slice(0, 72);
   const keywordTitle = inferMediaTitleFromKeywords(candidates.join(' '), { type, context });
   if (keywordTitle && !isWeakMediaTitle(keywordTitle)) return keywordTitle.slice(0, 72);
   for (const candidate of candidates) {
@@ -587,6 +589,30 @@ async function smartMediaTitle({ file = null, url = '', thumbUrl = '', type = 'i
     if (cleaned && !isWeakMediaTitle(cleaned)) return cleaned.slice(0, 72);
   }
   return fallbackMediaTitle({ fileName: file?.name || '', url: url || thumbUrl, type, context });
+}
+
+function appendTitleDescriptor(base = '', descriptor = '') {
+  const cleanBase = smartTitleCase(cleanMediaNameCandidate(base)).replace(new RegExp(`\\b${descriptor}\\b$`, 'i'), '').trim();
+  if (!cleanBase) return '';
+  if (!descriptor) return cleanBase.slice(0, 72);
+  return `${cleanBase} ${descriptor}`.trim().slice(0, 72);
+}
+
+function inferTitleFromDetectedText(detectedText = '', hintSource = '', { type = 'image', context = 'gallery' } = {}) {
+  const raw = String(detectedText || '').trim();
+  if (!raw) return '';
+  const parts = raw
+    .split(/\r?\n/)
+    .map((part) => smartTitleCase(cleanMediaNameCandidate(part)))
+    .filter((part) => part && !isWeakMediaTitle(part));
+  const best = parts.find((part) => /\s/.test(part)) || parts[0] || '';
+  if (!best) return '';
+
+  const combinedHint = `${raw} ${hintSource}`;
+  if (/\blogo\b/i.test(combinedHint)) return appendTitleDescriptor(best, 'Logo');
+  if (type === 'image') return appendTitleDescriptor(best, context === 'adavatar' ? 'Portrait' : 'Design');
+  if (type === 'video') return appendTitleDescriptor(best, context === 'adavatar' ? 'Promo' : 'Video');
+  return best.slice(0, 72);
 }
 
 function inferMediaTitleFromKeywords(source = '', { type = 'image', context = 'gallery' } = {}) {

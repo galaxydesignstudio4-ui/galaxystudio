@@ -274,6 +274,14 @@ async function saveSettingsState(value, { replace = false } = {}) {
   return { settings: next, synced: true, error: null };
 }
 
+function normalizeExternalUrl(value='') {
+  const raw = String(value || '').trim();
+  if (!raw || raw === '#') return '#';
+  if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+  return `https://${raw.replace(/^\/+/, '')}`;
+}
+
 /* ── Save sections ── */
 window.saveStudio = async () => {
   const result = await saveSettingsState({ studioName: document.getElementById('sName').value.trim(), tagline: document.getElementById('sTagline').value.trim() });
@@ -408,7 +416,9 @@ window.saveQR = async () => {
     : (qrState.mode === 'upload' ? 'Uploaded QR image saved!' : 'Generated QR saved!'));
 };
 window.saveNova = async () => {
-  const result = await saveSettingsState({ novatech: document.getElementById('sNova').value.trim() });
+  const normalizedNova = normalizeExternalUrl(document.getElementById('sNova').value.trim());
+  document.getElementById('sNova').value = normalizedNova === '#' ? '' : normalizedNova;
+  const result = await saveSettingsState({ novatech: normalizedNova });
   showToast(result?.synced === false ? settingsSyncWarning(result.error, 'Nova Tech link saved locally.') : 'Nova Tech link saved!');
 };
 
