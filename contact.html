@@ -503,7 +503,11 @@ function renderContactQr(rawQr, logo='') {
 async function applyContactSettings() {
   if (typeof window.getData !== 'function') return;
   let settings = getData('galaxy_settings') || DEFAULTS.galaxy_settings || {};
-  if (typeof window.loadFromCloud === 'function') {
+  const syncState = typeof window.getSyncState === 'function'
+    ? window.getSyncState('galaxy_settings')
+    : null;
+  const shouldPreferLocal = Boolean(syncState?.hasPending || syncState?.hasError);
+  if (!shouldPreferLocal && typeof window.loadFromCloud === 'function') {
     try {
       const cloudSettings = await window.loadFromCloud('galaxy_settings');
       if (cloudSettings && typeof cloudSettings === 'object') settings = cloudSettings;

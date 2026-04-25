@@ -482,7 +482,11 @@ function fallbackMediaTitle({ fileName = '', url = '', type = 'image', context =
       candidate = cleanMediaNameCandidate(url);
     }
   }
-  if (candidate) return smartTitleCase(candidate).slice(0, 72);
+  if (candidate) {
+    const contextual = inferMediaTitleFromKeywords(`${candidate} ${url}`, { type, context });
+    if (contextual && !isWeakMediaTitle(contextual)) return contextual.slice(0, 72);
+    return smartTitleCase(candidate).slice(0, 72);
+  }
   if (context === 'adavatar') return type === 'video' ? 'AdAvatar Video' : 'AdAvatar Portrait';
   if (type === 'link') return 'Featured Project';
   return type === 'video' ? 'Promo Video' : 'Gallery Feature';
@@ -508,11 +512,63 @@ async function smartMediaTitle({ file = null, url = '', thumbUrl = '', type = 'i
     thumbUrl,
     existing,
   ];
+  const keywordTitle = inferMediaTitleFromKeywords(candidates.join(' '), { type, context });
+  if (keywordTitle && !isWeakMediaTitle(keywordTitle)) return keywordTitle.slice(0, 72);
   for (const candidate of candidates) {
     const cleaned = smartTitleCase(cleanMediaNameCandidate(candidate));
     if (cleaned && !isWeakMediaTitle(cleaned)) return cleaned.slice(0, 72);
   }
   return fallbackMediaTitle({ fileName: file?.name || '', url: url || thumbUrl, type, context });
+}
+
+function inferMediaTitleFromKeywords(source = '', { type = 'image', context = 'gallery' } = {}) {
+  const haystack = cleanMediaNameCandidate(source).toLowerCase();
+  if (!haystack) return '';
+
+  const matches = [
+    ['skincare', 'Skincare Campaign'],
+    ['cosmetic', 'Beauty Campaign'],
+    ['beauty', 'Beauty Campaign'],
+    ['restaurant', 'Restaurant Promo'],
+    ['food', 'Food Campaign'],
+    ['fashion', 'Fashion Campaign'],
+    ['real estate', 'Real Estate Campaign'],
+    ['property', 'Property Campaign'],
+    ['launch', 'Product Launch'],
+    ['product', 'Product Campaign'],
+    ['brand kit', 'Brand Kit'],
+    ['branding', 'Brand Identity'],
+    ['logo', 'Logo Design'],
+    ['flyer', 'Flyer Design'],
+    ['poster', 'Poster Design'],
+    ['banner', 'Banner Campaign'],
+    ['social', 'Social Media Campaign'],
+    ['instagram', 'Social Media Campaign'],
+    ['youtube', type === 'video' ? 'YouTube Promo' : 'YouTube Cover'],
+    ['reel', 'Promo Reel'],
+    ['commercial', 'Commercial Edit'],
+    ['interior', 'Interior Visual'],
+    ['cad', 'CAD Design'],
+    ['ui', 'UI Design'],
+    ['ux', 'UX Design'],
+    ['website', 'Website Showcase'],
+    ['avatar', context === 'adavatar' ? (type === 'video' ? 'AdAvatar Promo' : 'AdAvatar Portrait') : 'Avatar Campaign'],
+    ['adavatar', context === 'adavatar' ? (type === 'video' ? 'AdAvatar Promo' : 'AdAvatar Portrait') : 'AdAvatar Feature'],
+  ].filter(([needle]) => haystack.includes(needle));
+
+  const uniqueLabels = [];
+  matches.forEach(([, label]) => {
+    if (!uniqueLabels.includes(label)) uniqueLabels.push(label);
+  });
+  if (!uniqueLabels.length) return '';
+  if (uniqueLabels.length === 1) return uniqueLabels[0];
+
+  const primary = uniqueLabels[0];
+  const secondary = uniqueLabels[1]
+    .replace(/\s+(Campaign|Design|Promo|Portrait|Showcase|Feature|Edit|Visual)$/i, '')
+    .trim();
+  const combined = `${primary} ${secondary}`.trim();
+  return smartTitleCase(combined).slice(0, 72);
 }
 
 window.getMediaSourceBase = getMediaSourceBase;
