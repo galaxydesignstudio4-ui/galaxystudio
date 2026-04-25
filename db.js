@@ -378,6 +378,8 @@ function toRow(key, value) {
         icon: normalizeIcon(value.icon),
         storage_path: value.storagePath || value.storage_path || '',
         thumb_storage_path: value.thumbStoragePath || value.thumb_storage_path || '',
+        created_at: value.createdAt || value.created_at || new Date().toISOString(),
+        title_source: value.titleSource || value.title_source || '',
       };
     case 'galaxy_testimonials':
       return {
@@ -1473,6 +1475,7 @@ async function recoverMediaFromStorageNow() {
 
 window.GDB_CONFIG = GDB_CONFIG;
 window.GalaxyDB = GalaxyDB;
+window.GalaxyAuth = GalaxyAuth;
 window.getData = getData;
 window.setData = setData;
 window.getSyncState = getSyncState;

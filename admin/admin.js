@@ -127,6 +127,26 @@ function setAdminAuthenticated(gate, panel) {
   panel.classList.add('visible');
 }
 
+async function trySupabasePasswordSession(password) {
+  const auth = window.GalaxyAuth;
+  const email = getAuthorizedAdminEmail();
+  if (!window.GDB_CONFIG?.enabled || !auth?.signInWithPassword || !email || !password) {
+    return { ok: false, reason: 'unavailable' };
+  }
+
+  try {
+    await auth.signInWithPassword(email, password);
+    return { ok: true, email };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: 'failed',
+      email,
+      message: error?.message || 'Supabase sign-in failed.',
+    };
+  }
+}
+
 function showAuthMessage(message, type = 'error') {
   const err = document.getElementById('authError');
   if (!err) return;
@@ -246,11 +266,16 @@ async function setupAuth() {
   const err   = document.getElementById('authError');
   const googleBtn = document.getElementById('authGoogleBtn');
 
-  const tryLogin = () => {
+  const tryLogin = async () => {
     const stored = getData('galaxy_admin_password') || DEFAULTS.galaxy_admin_password;
     if (input.value===stored) {
       if (err) err.style.display = 'none';
+      const authResult = await trySupabasePasswordSession(input.value);
       setAdminAuthenticated(gate, panel);
+      if (!authResult.ok && authResult.reason === 'failed') {
+        showToast('Admin opened, but Supabase sign-in failed. Cloud uploads may not persist until you use the Supabase account password or Continue with Google.','error');
+        console.warn('[Admin Auth] Supabase password sign-in failed:', authResult.message);
+      }
     } else {
       if (err) {
         err.style.display='block';
@@ -260,8 +285,8 @@ async function setupAuth() {
       setTimeout(()=>{ if (err) err.style.display='none'; },3000);
     }
   };
-  btn?.addEventListener('click', tryLogin);
-  input?.addEventListener('keydown', e=>e.key==='Enter'&&tryLogin());
+  btn?.addEventListener('click', () => { tryLogin(); });
+  input?.addEventListener('keydown', e=>{ if (e.key==='Enter') tryLogin(); });
   googleBtn?.addEventListener('click', () => {
     const liveAuth = window.GalaxyAuth;
     if (!window.GDB_CONFIG?.enabled) {
