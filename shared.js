@@ -538,6 +538,76 @@ document.addEventListener('DOMContentLoaded', () => {
     return map[category] || 'graphic';
   }
 
+  function normalizePartnerColor(value = '', fallback = '#7a5cff') {
+    const raw = String(value || '').trim();
+    return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(raw) ? raw : fallback;
+  }
+
+  function normalizePartners(settings = {}) {
+    const source = Array.isArray(settings?.partners) ? settings.partners : [];
+    const partners = source
+      .map((entry, index) => {
+        const name = String(entry?.name || '').trim();
+        const href = normalizeExternalUrl(entry?.url || '');
+        if (!name || href === '#') return null;
+        return {
+          id: Number(entry?.id) || index + 1,
+          name,
+          url: href,
+          kind: String(entry?.kind || 'partner').toLowerCase() === 'collaborator' ? 'collaborator' : 'partner',
+          premium: Boolean(entry?.premium),
+          color: normalizePartnerColor(entry?.color),
+        };
+      })
+      .filter(Boolean);
+
+    if (!partners.length) {
+      const legacyHref = normalizeExternalUrl(settings?.novatech || '#');
+      if (legacyHref !== '#') {
+        partners.push({
+          id: 1,
+          name: 'Nova Tech',
+          url: legacyHref,
+          kind: 'partner',
+          premium: false,
+          color: '#7a5cff',
+        });
+      }
+    }
+
+    return partners;
+  }
+
+  function renderFooterPartners(settings = {}) {
+    const partners = normalizePartners(settings);
+    const footerBottom = document.querySelector('footer .footer-bottom');
+    if (!footerBottom) return;
+
+    let partnerLine = footerBottom.querySelector('[data-footer-partners]') || [...footerBottom.querySelectorAll('p')].find((item) => /collaboration|partner/i.test(item.textContent || ''));
+    if (!partnerLine) {
+      partnerLine = document.createElement('p');
+      footerBottom.appendChild(partnerLine);
+    }
+    partnerLine.setAttribute('data-footer-partners', 'true');
+
+    if (!partners.length) {
+      partnerLine.innerHTML = '';
+      partnerLine.style.display = 'none';
+      return;
+    }
+
+    partnerLine.style.display = '';
+    partnerLine.innerHTML = partners.map((entry) => `
+      <a href="${escHtml(entry.url)}" target="_blank" rel="noopener noreferrer" class="footer-partner-link" style="--partner-accent:${escHtml(entry.color)};">
+        ${escHtml(entry.name)}
+      </a>
+    `).join('<span class="footer-partner-sep">•</span>');
+
+    if (!footerBottom.querySelector('.footer-partners-label')) {
+      partnerLine.insertAdjacentHTML('afterbegin', '<span class="footer-partners-label">Partners &amp; collaborators: </span>');
+    }
+  }
+
   function applyPublicBranding(settings, about) {
     const bootSettings = window.__GDS_BOOT_SETTINGS__ || {};
     const studioName = settings?.studioName || bootSettings.studioName || 'Galaxy Design Studio';
@@ -582,24 +652,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('footer a[href*="wa.me/"]').forEach((el) => {
       el.href = `https://wa.me/${settings?.whatsapp || '233556881003'}`;
     });
-    document.querySelectorAll('.footer-bottom a').forEach((el) => {
-      const href = normalizeExternalUrl(settings?.novatech || '#');
-      el.href = href;
-      if (href !== '#') {
-        el.target = '_blank';
-        el.rel = 'noopener noreferrer';
-      } else {
-        el.removeAttribute('target');
-        el.removeAttribute('rel');
-      }
-    });
-
     document.querySelectorAll('.footer-socials').forEach((group) => {
       const links = group.querySelectorAll('a');
       if (links[0] && about?.facebook) links[0].href = about.facebook;
       if (links[1] && about?.youtube1) links[1].href = about.youtube1;
       if (links[2] && about?.youtube2) links[2].href = about.youtube2;
     });
+    renderFooterPartners(settings);
     applyStandardLogoChrome();
   }
 
@@ -607,6 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const services = data.galaxy_services || [];
     const portfolio = data.galaxy_portfolio || [];
     const testimonials = data.galaxy_testimonials || [];
+    const partners = normalizePartners(data.galaxy_settings || {}).filter((entry) => entry.premium);
 
     const adavatar = services.find((item) => item.signature) || services.find((item) => item.icon === 'avatar');
     const adavatarCard = document.querySelector('#services .adavatar-card');
@@ -695,6 +755,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testimonialGrid) {
       if (!testimonials.length) testimonialGrid.innerHTML = '';
       testimonialGrid.style.visibility = 'visible';
+    }
+
+    const partnersGrid = document.querySelector('#partners-home .partners-home-grid');
+    const partnersSection = document.getElementById('partners-home');
+    if (partnersGrid && partnersSection) {
+      if (partners.length) {
+        partnersSection.style.display = '';
+        partnersGrid.innerHTML = partners.map((entry, index) => `
+          <a class="partner-home-card animate-in visible" href="${escHtml(entry.url)}" target="_blank" rel="noopener noreferrer" style="--partner-accent:${escHtml(entry.color)};--delay:${index * 70}ms;">
+            <div class="partner-home-badge">${escHtml(entry.kind === 'collaborator' ? 'Premium Collaborator' : 'Premium Partner')}</div>
+            <h3>${escHtml(entry.name)}</h3>
+            <p>Featured collaboration on the Galaxy Design Studio homepage.</p>
+            <span class="partner-home-link">Visit website</span>
+          </a>
+        `).join('');
+      } else {
+        partnersSection.style.display = 'none';
+        partnersGrid.innerHTML = '';
+      }
     }
   }
 

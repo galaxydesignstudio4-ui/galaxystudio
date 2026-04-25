@@ -21,7 +21,8 @@ alter table if exists public.adavatar
 
 alter table if exists public.settings
   add column if not exists qr_url text,
-  add column if not exists logo_storage_path text;
+  add column if not exists logo_storage_path text,
+  add column if not exists partners_json jsonb default '[]'::jsonb;
 
 alter table if exists public.about
   add column if not exists avatar_storage_path text;
@@ -40,7 +41,8 @@ set
 
 update public.settings
 set
-  qr_url = coalesce(qr_url, '');
+  qr_url = coalesce(qr_url, ''),
+  partners_json = coalesce(partners_json, '[]'::jsonb);
 
 update public.about
 set

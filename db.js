@@ -54,6 +54,7 @@ const BASE_DEFAULTS = {
     facebook: 'https://web.facebook.com/profile.php?id=61562678010128',
     whatsapp: '233556881003',
     novatech: '#',
+    partners: [],
     qrUrl: '',
     logo: 'logo-512.png',
     logoStoragePath: '',
@@ -118,6 +119,46 @@ function buildMediaSourceMeta(base='manual', options={}) {
 
 function mediaHasMeta(item, token) {
   return splitMediaSourceMeta(item?.titleSource || '').tokens.has(String(token || '').toLowerCase());
+}
+
+function normalizePartnerColor(value = '', fallback = '#7a5cff') {
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(raw)) return raw;
+  return fallback;
+}
+
+function normalizePartnerEntry(entry = {}, index = 0) {
+  const name = String(entry?.name || '').trim();
+  const url = String(entry?.url || '').trim();
+  const kind = String(entry?.kind || entry?.type || 'partner').trim().toLowerCase() === 'collaborator'
+    ? 'collaborator'
+    : 'partner';
+  return {
+    id: Number(entry?.id) || Date.now() + index,
+    name,
+    url,
+    kind,
+    premium: Boolean(entry?.premium),
+    color: normalizePartnerColor(entry?.color),
+  };
+}
+
+function normalizePartnerList(value) {
+  const parsed = Array.isArray(value)
+    ? value
+    : (() => {
+        if (!value) return [];
+        try {
+          const list = JSON.parse(value);
+          return Array.isArray(list) ? list : [];
+        } catch {
+          return [];
+        }
+      })();
+  return parsed
+    .map((entry, index) => normalizePartnerEntry(entry, index))
+    .filter((entry) => entry.name && entry.url);
 }
 
 function isPinnedMedia(item) {
@@ -397,6 +438,7 @@ function fromRow(key, row) {
         facebook: row.facebook || '',
         whatsapp: row.whatsapp || '',
         novatech: row.novatech || '',
+        partners: normalizePartnerList(row.partners_json || row.partnersJson || row.partners || []),
         qrUrl: row.qr_url || row.qrUrl || '',
         logo: row.logo_url || row.logo || '',
         logoStoragePath: row.logo_storage_path || row.logoStoragePath || '',
@@ -504,6 +546,7 @@ function toRow(key, value) {
         facebook: value.facebook || '',
         whatsapp: value.whatsapp || '',
         novatech: value.novatech || '',
+        partners_json: JSON.stringify(normalizePartnerList(value.partners || [])),
         qr_url: value.qrUrl || '',
         logo_url: value.logo || '',
         logo_storage_path: value.logoStoragePath || '',
