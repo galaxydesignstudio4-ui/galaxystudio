@@ -415,6 +415,8 @@ function fromRow(key, row) {
         id: row.id,
         name: row.name || '',
         email: row.email || '',
+        phone: row.phone || '',
+        preferredContact: row.preferred_contact || row.preferredContact || '',
         service: row.service || '',
         message: row.message || '',
         read: Boolean(row.read),
@@ -522,6 +524,8 @@ function toRow(key, value) {
         id: value.id,
         name: value.name || '',
         email: value.email || '',
+        phone: value.phone || '',
+        preferred_contact: value.preferredContact || '',
         service: value.service || '',
         message: value.message || '',
         read: Boolean(value.read),
@@ -1340,6 +1344,8 @@ const GalaxyDB = (() => {
       id: message.id || Date.now(),
       name: message.name || '',
       email: message.email || '',
+      phone: message.phone || '',
+      preferredContact: message.preferredContact || '',
       service: message.service || '',
       message: message.message || '',
       read: false,
@@ -1351,14 +1357,27 @@ const GalaxyDB = (() => {
     if (mode !== 'supabase') return nextMessage;
 
     try {
-      await supabase.from('messages').insert({
+      let row = {
         name: nextMessage.name,
         email: nextMessage.email,
+        phone: nextMessage.phone,
+        preferred_contact: nextMessage.preferredContact,
         service: nextMessage.service,
         message: nextMessage.message,
         read: false,
         created_at: nextMessage.date,
-      });
+      };
+      while (true) {
+        try {
+          await supabase.from('messages').insert(row);
+          break;
+        } catch (error) {
+          const missingColumn = getMissingColumnFromError(error);
+          if (!missingColumn) throw error;
+          unsupportedColumnsForTable('messages').add(missingColumn);
+          row = sanitizeDbValueForTable('messages', row);
+        }
+      }
       try {
         await redis.del(getCacheKey('galaxy_messages'));
       } catch {}

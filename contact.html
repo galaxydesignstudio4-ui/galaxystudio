@@ -28,6 +28,12 @@
 @media (max-width: 560px) { .contact-form-card { padding: 24px; } }
 
 .form-group { margin-bottom: 20px; }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
 .form-label {
   display: block;
   font-family: 'Space Grotesk', sans-serif;
@@ -280,9 +286,23 @@
             <label class="form-label" for="name">Your Name</label>
             <input class="form-input" type="text" id="name" placeholder="Emmanuel Kwame" required>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address</label>
+              <input class="form-input" type="email" id="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone / WhatsApp Number</label>
+              <input class="form-input" type="tel" id="phone" placeholder="+233 55 688 1003" required>
+            </div>
+          </div>
           <div class="form-group">
-            <label class="form-label" for="email">Email Address</label>
-            <input class="form-input" type="email" id="email" placeholder="you@example.com" required>
+            <label class="form-label" for="preferredContact">Preferred Reply Channel</label>
+            <select class="form-input" id="preferredContact" style="cursor:pointer;">
+              <option value="whatsapp">WhatsApp</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone Call</option>
+            </select>
           </div>
           <div class="form-group">
             <label class="form-label" for="service">Service Interested In</label>
@@ -577,6 +597,8 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     id: Date.now(),
     name: document.getElementById('name').value.trim(),
     email: document.getElementById('email').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    preferredContact: document.getElementById('preferredContact').value.trim(),
     service: document.getElementById('service').value.trim(),
     message: document.getElementById('message').value.trim(),
     date: new Date().toISOString(),

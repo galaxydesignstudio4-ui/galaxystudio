@@ -27,6 +27,10 @@ alter table if exists public.settings
 alter table if exists public.about
   add column if not exists avatar_storage_path text;
 
+alter table if exists public.messages
+  add column if not exists phone text,
+  add column if not exists preferred_contact text default 'whatsapp';
+
 -- Backfill newer fields from older data when possible.
 update public.gallery
 set
@@ -47,6 +51,11 @@ set
 update public.about
 set
   avatar_storage_path = coalesce(avatar_storage_path, '');
+
+update public.messages
+set
+  phone = coalesce(phone, ''),
+  preferred_contact = coalesce(nullif(preferred_contact, ''), 'whatsapp');
 
 -- Ensure the single-row object tables still have a row the app can update.
 insert into public.settings (id)
