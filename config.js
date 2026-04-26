@@ -139,6 +139,227 @@ window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYj
 window.__APP_VERSION__ = '1.0.0';
 window.__SITE_NAME__   = 'Galaxy Design Studio';
 
+window.__PWA_THEME_COLOR__ = '#12091d';
+
+(() => {
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if (!head) return;
+
+    const ensureMeta = (name, content, attr = 'name') => {
+        let node = head.querySelector(`meta[${attr}="${name}"]`);
+        if (!node) {
+            node = document.createElement('meta');
+            node.setAttribute(attr, name);
+            head.appendChild(node);
+        }
+        node.setAttribute('content', content);
+    };
+
+    const ensureLink = (rel, href) => {
+        let node = head.querySelector(`link[rel="${rel}"]`);
+        if (!node) {
+            node = document.createElement('link');
+            node.rel = rel;
+            head.appendChild(node);
+        }
+        node.href = href;
+    };
+
+    const manifestHref = window.__resolveAssetUrl__('manifest.webmanifest');
+    ensureLink('manifest', manifestHref);
+    ensureMeta('theme-color', window.__PWA_THEME_COLOR__);
+    ensureMeta('mobile-web-app-capable', 'yes');
+    ensureMeta('apple-mobile-web-app-capable', 'yes');
+    ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
+    ensureMeta('apple-mobile-web-app-title', window.__SITE_NAME__);
+})();
+
+(() => {
+    const isStandalone = () => window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true;
+    const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+    const isSafari = () => {
+        const ua = window.navigator.userAgent || '';
+        return /safari/i.test(ua) && !/chrome|crios|android|edg/i.test(ua);
+    };
+
+    let deferredPrompt = null;
+    let installButton = null;
+    let installHint = null;
+
+    const hideInstallUi = () => {
+        installButton?.classList.remove('visible');
+        installHint?.remove();
+        installHint = null;
+    };
+
+    const showInstallUi = (label = 'Install App') => {
+        if (isStandalone()) return;
+        if (!installButton) return;
+        installButton.textContent = label;
+        installButton.classList.add('visible');
+    };
+
+    const showIosHint = () => {
+        if (installHint) {
+            installHint.classList.add('visible');
+            return;
+        }
+        installHint = document.createElement('div');
+        installHint.className = 'gds-install-hint visible';
+        installHint.innerHTML = `
+          <div class="gds-install-hint-card">
+            <button type="button" class="gds-install-hint-close" aria-label="Close install help">x</button>
+            <strong>Add Galaxy to your home screen</strong>
+            <p>On iPhone or iPad, tap Share in Safari, then choose Add to Home Screen.</p>
+          </div>
+        `;
+        document.body.appendChild(installHint);
+        installHint.querySelector('.gds-install-hint-close')?.addEventListener('click', () => {
+            installHint?.remove();
+            installHint = null;
+        });
+    };
+
+    const registerServiceWorker = async () => {
+        if (!('serviceWorker' in navigator) || window.location.protocol === 'file:') return;
+        try {
+            const swUrl = window.__resolveAssetUrl__('sw.js');
+            await navigator.serviceWorker.register(swUrl);
+        } catch (error) {
+            console.warn('[PWA] Service worker registration failed:', error?.message || error);
+        }
+    };
+
+    const mountInstallUi = () => {
+        if (document.getElementById('gdsInstallAppBtn')) return;
+
+        const style = document.createElement('style');
+        style.textContent = `
+.gds-install-app-btn{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:9999;
+  border:none;
+  border-radius:999px;
+  padding:12px 18px;
+  background:linear-gradient(135deg,hsl(250,80%,65%),hsl(200,100%,60%));
+  color:#fff;
+  font:600 14px/1.1 "Space Grotesk","Inter",sans-serif;
+  box-shadow:0 18px 40px rgba(0,0,0,0.3);
+  cursor:pointer;
+  opacity:0;
+  transform:translateY(18px);
+  pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease,filter .2s ease;
+}
+.gds-install-app-btn.visible{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+.gds-install-app-btn:hover{filter:brightness(1.08);}
+.gds-install-hint{
+  position:fixed;
+  inset:0;
+  background:rgba(5,6,12,0.68);
+  z-index:10000;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding:20px;
+}
+.gds-install-hint-card{
+  width:min(420px,100%);
+  background:hsl(260,15%,10%);
+  color:hsl(0,0%,95%);
+  border:1px solid hsl(250 80% 65% / 0.22);
+  border-radius:24px;
+  padding:22px 22px 18px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.4);
+  position:relative;
+}
+.gds-install-hint-card strong{
+  display:block;
+  margin-bottom:8px;
+  font:700 18px/1.2 "Space Grotesk","Inter",sans-serif;
+}
+.gds-install-hint-card p{
+  margin:0;
+  color:hsl(260,5%,72%);
+  font:400 14px/1.55 "Inter",sans-serif;
+}
+.gds-install-hint-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  border:1px solid hsl(260 10% 22%);
+  background:transparent;
+  color:hsl(0,0%,90%);
+  cursor:pointer;
+}
+@media (max-width:700px){
+  .gds-install-app-btn{
+    right:14px;
+    left:14px;
+    bottom:14px;
+    text-align:center;
+    justify-content:center;
+  }
+}
+`;
+        document.head.appendChild(style);
+
+        installButton = document.createElement('button');
+        installButton.id = 'gdsInstallAppBtn';
+        installButton.className = 'gds-install-app-btn';
+        installButton.type = 'button';
+        installButton.textContent = 'Install App';
+        installButton.setAttribute('aria-label', 'Install app');
+        document.body.appendChild(installButton);
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                try {
+                    await deferredPrompt.userChoice;
+                } catch {}
+                deferredPrompt = null;
+                hideInstallUi();
+                return;
+            }
+
+            if (isIos() && isSafari() && !isStandalone()) {
+                showIosHint();
+            }
+        });
+
+        if (isIos() && isSafari() && !isStandalone()) {
+            showInstallUi('Add to Home Screen');
+        }
+    };
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+        showInstallUi('Install App');
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        hideInstallUi();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        mountInstallUi();
+        registerServiceWorker();
+        if (isStandalone()) hideInstallUi();
+    });
+})();
+
 // Optional smart-title hook for Gallery / AdAvatar auto naming.
 // Leave this as `null` in the browser unless you later connect it to a secure backend.
 // Example shape:
