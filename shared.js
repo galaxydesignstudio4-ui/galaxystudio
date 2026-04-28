@@ -1268,6 +1268,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBranchSections(about, window.getData ? (window.getData('galaxy_settings') || {}) : {});
   }
 
+  function renderPublicSiteData(data = {}) {
+    applyPublicBranding(data.galaxy_settings || window.__GDS_BOOT_SETTINGS__ || {}, data.galaxy_about || {});
+    initNavNotifications(data.galaxy_notifications || []);
+    if (pageName === 'index.html' || pageName === '') renderHomePage(data);
+    if (pageName === 'services.html') renderServicesPage(data.galaxy_services || []);
+    if (pageName === 'about.html') renderAboutPage(data.galaxy_about || {});
+    document.documentElement.classList.remove('gds-loading');
+    document.documentElement.classList.add('gds-ready');
+  }
+
   async function hydratePublicSite() {
     if (window.location.pathname.includes('/admin/')) return;
     if (typeof window.getData !== 'function') return;
@@ -1278,24 +1288,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (pageName === 'services.html') keys.add('galaxy_services');
 
-    const data = {};
-    for (const key of keys) {
-      if (typeof window.loadFromCloud === 'function') {
-        try {
-          data[key] = await window.loadFromCloud(key);
-          continue;
-        } catch {}
-      }
-      data[key] = window.getData(key);
-    }
+    const localData = {};
+    keys.forEach((key) => {
+      localData[key] = window.getData(key);
+    });
+    renderPublicSiteData(localData);
 
-    applyPublicBranding(data.galaxy_settings || window.__GDS_BOOT_SETTINGS__ || {}, data.galaxy_about || {});
-    initNavNotifications(data.galaxy_notifications || []);
-    if (pageName === 'index.html' || pageName === '') renderHomePage(data);
-    if (pageName === 'services.html') renderServicesPage(data.galaxy_services || []);
-    if (pageName === 'about.html') renderAboutPage(data.galaxy_about || {});
-    document.documentElement.classList.remove('gds-loading');
-    document.documentElement.classList.add('gds-ready');
+    if (typeof window.loadFromCloud !== 'function') return;
+
+    const cloudEntries = await Promise.all([...keys].map(async (key) => {
+      try {
+        const value = await window.loadFromCloud(key);
+        return [key, value];
+      } catch {
+        return [key, window.getData(key)];
+      }
+    }));
+
+    const cloudData = Object.fromEntries(cloudEntries);
+    renderPublicSiteData(cloudData);
   }
 
   hydratePublicSite().catch((error) => {

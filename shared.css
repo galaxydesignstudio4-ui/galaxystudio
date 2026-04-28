@@ -33,15 +33,13 @@ body {
   overflow-x: hidden;
 }
 
-html:not(.gds-ready) body {
-  opacity: 0;
-  visibility: hidden;
+html body {
+  opacity: 1;
+  visibility: visible;
 }
 
 html.gds-ready body {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.12s ease;
 }
 
 h1, h2, h3, h4, h5 {
