@@ -169,6 +169,34 @@ const ABOUT_KEY='galaxy_about';
 const ABOUT_BUCKET='avatars';
 const BRANCH_LOGO_BUCKET='logos';
 
+function getAboutSyncState() {
+  return typeof window.getSyncState === 'function'
+    ? window.getSyncState(ABOUT_KEY)
+    : null;
+}
+
+function aboutSyncWarning(error, action='Changes saved locally.') {
+  const syncMessage = getAboutSyncState()?.error?.message || error?.message || 'Cloud sync failed.';
+  return `${action} Supabase sync needs attention: ${syncMessage}`;
+}
+
+async function saveAboutState(value, { replace = false } = {}) {
+  const next = replace
+    ? { ...DEFAULTS.galaxy_about, ...(value || {}) }
+    : { ...(getData(ABOUT_KEY) || {}), ...(value || {}) };
+  if (typeof window.saveDataNow === 'function') {
+    try {
+      await window.saveDataNow(ABOUT_KEY, next);
+      return { about: next, synced: true, error: null };
+    } catch (error) {
+      console.warn('[About Admin] Falling back to local about save:', error.message);
+      return { about: next, synced: false, error };
+    }
+  }
+  setData(ABOUT_KEY, next);
+  return { about: next, synced: true, error: null };
+}
+
 function setBranchLogoPreview(id, fallback, src, storagePath=''){
   const el=document.getElementById(id);
   if(!el)return;
@@ -226,7 +254,21 @@ function loadAbout(){
   document.getElementById('avatarPrev')._storagePath = d.avatarStoragePath || '';
 }
 document.addEventListener('DOMContentLoaded', async ()=>{
+  const localBeforeSync = getData(ABOUT_KEY) || DEFAULTS.galaxy_about || {};
+  const initialSyncState = getAboutSyncState();
   await syncAboutFromCloud();
+  if (initialSyncState && (initialSyncState.hasPending || initialSyncState.hasError) && localBeforeSync && typeof localBeforeSync === 'object') {
+    try {
+      const recovery = await saveAboutState(localBeforeSync, { replace: true });
+      if (recovery?.synced) {
+        await syncAboutFromCloud();
+      } else {
+        showToast(aboutSyncWarning(recovery.error, 'Recovered local about changes.'));
+      }
+    } catch (error) {
+      console.warn('[About Admin] Cloud recovery failed:', error.message);
+    }
+  }
   loadAbout();
   document.getElementById('avatarFile').onchange=e=>{
     const file=e.target.files[0];if(!file)return;
@@ -324,10 +366,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         avatar,
         avatarStoragePath
       };
-      setData(ABOUT_KEY,obj);
+      const result = await saveAboutState(obj, { replace: true });
       btn.textContent='✓ Saved!';btn.style.background='hsl(145 60% 35%)';
       setTimeout(()=>{btn.textContent=originalText;btn.style.background='';btn.disabled=false;},2200);
-      showToast('Owner profile saved!');
+      showToast(result?.synced === false ? aboutSyncWarning(result.error, 'Owner profile saved locally.') : 'Owner profile saved!');
     } catch (error) {
       const message = error?.message || 'Upload/write rejected by Supabase.';
       showToast(`Could not save owner profile: ${message}`, 'error');
