@@ -28,7 +28,7 @@
   <div class="auth-card">
     <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
     <h2 class="auth-title">Admin Access</h2>
-    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <p class="auth-sub">Enter your password to manage Galaxy Studio.</p>
     <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
     <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
     <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
@@ -235,6 +235,15 @@ function openPortModal(p=null) {
 
     if(isEdit){const i=list.findIndex(x=>x.id===p.id);if(i>-1)list[i]=obj;}else list.push(obj);
     setData('galaxy_portfolio',list);closeModal(ov);renderPort();
+    if (typeof window.createSystemNotification === 'function') {
+      window.createSystemNotification({
+        title: isEdit ? 'Portfolio updated' : 'New portfolio project',
+        message: isEdit ? `"${title}" was updated in the portfolio.` : `"${title}" was added to the portfolio.`,
+        type: isEdit ? 'Update' : 'New Portfolio',
+        audience: isEdit ? 'admin' : 'both',
+        source: 'portfolio',
+      });
+    }
     showToast(isEdit?'Project updated!':'Project added!');
     } catch (error) {
       if (errEl) {
@@ -261,6 +270,15 @@ window.delPort=id=>confirmDelete('Delete this project?',async ()=>{
   try {
     if (item) await deletePortfolioAssets(item);
     setData('galaxy_portfolio', list.filter(x => x.id !== id));
+    if (typeof window.createSystemNotification === 'function') {
+      window.createSystemNotification({
+        title: 'Portfolio project deleted',
+        message: `"${item?.title || 'A project'}" was removed from the portfolio.`,
+        type: 'Update',
+        audience: 'admin',
+        source: 'portfolio',
+      });
+    }
     selectedPortfolioIds.delete(id);
     renderPort();showToast('Project deleted.');
   } catch (error) {
@@ -297,6 +315,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         if (ids.has(item.id)) await deletePortfolioAssets(item);
       }
       setData('galaxy_portfolio', list.filter((item) => !ids.has(item.id)));
+      if (typeof window.createSystemNotification === 'function') {
+        window.createSystemNotification({
+          title: 'Portfolio cleaned up',
+          message: `${ids.size} portfolio project(s) were deleted.`,
+          type: 'Update',
+          audience: 'admin',
+          source: 'portfolio',
+        });
+      }
       selectedPortfolioIds.clear();
       renderPort();
       showToast(`${ids.size} project(s) deleted.`);
@@ -310,3 +337,4 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 </script>
 </body>
 </html>
+

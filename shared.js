@@ -662,6 +662,33 @@ document.addEventListener('DOMContentLoaded', () => {
     applyStandardLogoChrome();
   }
 
+  function renderPublicNotifications(items = []) {
+    const section = document.getElementById('homeUpdates');
+    const grid = document.getElementById('homeUpdatesGrid');
+    if (!section || !grid) return;
+    const visible = (Array.isArray(items) ? items : [])
+      .filter((item) => item && item.active !== false)
+      .filter((item) => {
+        const audience = String(item.audience || 'both').toLowerCase();
+        return audience === 'public' || audience === 'both';
+      })
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 6);
+    if (!visible.length) {
+      section.style.display = 'none';
+      grid.innerHTML = '';
+      return;
+    }
+    section.style.display = '';
+    grid.innerHTML = visible.map((item) => `
+      <article class="home-update-card animate-in visible">
+        <div class="home-update-type">${escHtml(item.type || 'Update')}</div>
+        <h3>${escHtml(item.title || 'Update')}</h3>
+        <p>${escHtml(item.message || '')}</p>
+      </article>
+    `).join('');
+  }
+
   function normalizeBranchContent(about = {}, settings = {}) {
     const rawParentLogo = settings?.logo || '';
     const parentLogo = rawParentLogo
@@ -807,9 +834,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const portfolio = data.galaxy_portfolio || [];
     const testimonials = data.galaxy_testimonials || [];
     const about = data.galaxy_about || {};
+    const notifications = data.galaxy_notifications || [];
     const partners = normalizePartners(data.galaxy_settings || {}).filter((entry) => entry.premium);
 
     renderBranchSections(about, data.galaxy_settings || {});
+    renderPublicNotifications(notifications);
 
     const adavatar = services.find((item) => item.signature) || services.find((item) => item.icon === 'avatar');
     const adavatarCard = document.querySelector('#services .adavatar-card');
@@ -970,7 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const keys = new Set(['galaxy_settings', 'galaxy_about']);
     if (pageName === 'index.html' || pageName === '') {
-      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials'].forEach((key) => keys.add(key));
+      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials', 'galaxy_notifications'].forEach((key) => keys.add(key));
     }
     if (pageName === 'services.html') keys.add('galaxy_services');
 

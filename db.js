@@ -454,6 +454,9 @@ function fromRow(key, row) {
         message: row.message || '',
         type: row.type || 'Info',
         active: row.active !== false,
+        audience: row.audience || 'both',
+        source: row.source || 'system',
+        createdAt: row.created_at || row.createdAt || '',
       };
     case 'galaxy_settings':
       return {
@@ -588,6 +591,9 @@ function toRow(key, value) {
         message: value.message || '',
         type: value.type || 'Info',
         active: value.active !== false,
+        audience: value.audience || 'both',
+        source: value.source || 'system',
+        created_at: value.createdAt || value.created_at || new Date().toISOString(),
       };
     case 'galaxy_settings':
       return {
@@ -654,6 +660,8 @@ function sortValue(key, value) {
     sorted.sort((a, b) => (a.order || 999) - (b.order || 999) || (a.id || 0) - (b.id || 0));
   } else if (key === 'galaxy_messages') {
     sorted.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  } else if (key === 'galaxy_notifications') {
+    sorted.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0) || (b.id || 0) - (a.id || 0));
   } else {
     sorted.sort((a, b) => (a.id || 0) - (b.id || 0));
   }
@@ -1623,7 +1631,45 @@ async function deleteStoredMedia(bucket, path) {
 }
 
 async function saveContactMessage(message) {
-  return GalaxyDB.createMessage(message);
+  const result = await GalaxyDB.createMessage(message);
+  createSystemNotification({
+    title: 'New customer message',
+    message: `${message?.name || 'A visitor'} sent a new ${message?.service ? `${message.service} ` : ''}message.`,
+    type: 'Message',
+    audience: 'admin',
+    source: 'messages',
+  });
+  return result;
+}
+
+function createSystemNotification(entry = {}) {
+  const list = getData('galaxy_notifications') || [];
+  const item = {
+    id: nextId(list),
+    title: String(entry.title || '').trim() || 'Update',
+    message: String(entry.message || '').trim() || 'A new update is available.',
+    type: String(entry.type || 'Info').trim() || 'Info',
+    active: entry.active !== false,
+    audience: ['public', 'admin', 'both'].includes(String(entry.audience || '').toLowerCase())
+      ? String(entry.audience || '').toLowerCase()
+      : 'both',
+    source: String(entry.source || 'system').trim() || 'system',
+    createdAt: entry.createdAt || new Date().toISOString(),
+  };
+  const next = [item, ...list].slice(0, 80);
+  setData('galaxy_notifications', next);
+  return item;
+}
+
+function getNotificationsForAudience(audience = 'public') {
+  const target = String(audience || 'public').toLowerCase();
+  return (getData('galaxy_notifications') || [])
+    .filter((item) => item && item.active !== false)
+    .filter((item) => {
+      const scope = String(item.audience || 'both').toLowerCase();
+      return scope === 'both' || scope === target;
+    })
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 }
 
 function mediaTypeFromName(name = '') {
@@ -1710,6 +1756,8 @@ window.saveDataNow = saveDataNow;
 window.uploadMedia = uploadMedia;
 window.deleteStoredMedia = deleteStoredMedia;
 window.saveContactMessage = saveContactMessage;
+window.createSystemNotification = createSystemNotification;
+window.getNotificationsForAudience = getNotificationsForAudience;
 window.recoverGalleryFromStorage = recoverGalleryFromStorage;
 window.recoverAboutAvatarFromStorage = recoverAboutAvatarFromStorage;
 window.recoverMediaFromStorageNow = recoverMediaFromStorageNow;

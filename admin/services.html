@@ -14,7 +14,7 @@
   <div class="auth-card">
     <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
     <h2 class="auth-title">Admin Access</h2>
-    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <p class="auth-sub">Enter your password to manage Galaxy Studio.</p>
     <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
     <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
     <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
@@ -177,13 +177,32 @@ function openSvcModal(s=null) {
     if (isEdit) { const i=list.findIndex(x=>x.id===s.id); if(i>-1) list[i]=obj; }
     else list.push(obj);
     setData('galaxy_services',list); closeModal(ov); renderSvc();
+    if (typeof window.createSystemNotification === 'function') {
+      window.createSystemNotification({
+        title: isEdit ? 'Service updated' : 'New service available',
+        message: isEdit ? `"${title}" was updated.` : `"${title}" was added to the services list.`,
+        type: isEdit ? 'Update' : 'New Service',
+        audience: isEdit ? 'admin' : 'both',
+        source: 'services',
+      });
+    }
     showToast(isEdit?'Service updated!':'Service added!');
   };
 }
 
 window.editSvc = id => openSvcModal((getData('galaxy_services')||[]).find(x=>x.id===id));
 window.delSvc  = id => confirmDelete('Delete this service?',()=>{
+  const item=(getData('galaxy_services')||[]).find(x=>x.id===id);
   setData('galaxy_services',(getData('galaxy_services')||[]).filter(x=>x.id!==id));
+  if (typeof window.createSystemNotification === 'function') {
+    window.createSystemNotification({
+      title: 'Service deleted',
+      message: `"${item?.title || 'A service'}" was removed from the services list.`,
+      type: 'Update',
+      audience: 'admin',
+      source: 'services',
+    });
+  }
   renderSvc(); showToast('Service deleted.');
 });
 
@@ -195,3 +214,4 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 </script>
 </body>
 </html>
+

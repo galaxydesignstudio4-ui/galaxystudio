@@ -14,7 +14,7 @@
   <div class="auth-card">
     <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
     <h2 class="auth-title">Admin Access</h2>
-    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <p class="auth-sub">Enter your password to manage Galaxy Studio.</p>
     <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
     <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
     <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
@@ -62,6 +62,13 @@
         <div class="card-header"><span class="card-title">Quick Navigation</span></div>
         <div class="card-body"><div class="quick-grid" id="quickGrid"></div></div>
       </div>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <span class="card-title">Latest Admin Updates</span>
+          <a class="btn btn-ghost btn-sm" href="notifications.html">Manage Notifications →</a>
+        </div>
+        <div id="recentAdminUpdates"></div>
+      </div>
       <div class="card">
         <div class="card-header">
           <span class="card-title">Recent Messages</span>
@@ -90,6 +97,7 @@ async function syncDashboardData() {
     window.loadFromCloud('galaxy_portfolio').catch(() => {}),
     window.loadFromCloud('galaxy_messages').catch(() => {}),
     window.loadFromCloud('galaxy_team').catch(() => {}),
+    window.loadFromCloud('galaxy_notifications').catch(() => {}),
   ]);
 }
 
@@ -122,6 +130,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const portfolio  = getData('galaxy_portfolio') || [];
   const messages   = getData('galaxy_messages') || [];
   const team       = getData('galaxy_team') || [];
+  const notifications = (typeof window.getNotificationsForAudience === 'function'
+    ? window.getNotificationsForAudience('admin')
+    : (getData('galaxy_notifications') || [])).slice(0,5);
   const unread     = messages.filter(m=>!m.read).length;
 
   // Stats
@@ -157,6 +168,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="quick-desc">${p.desc}</div>
     </a>`).join('');
 
+  const updatesEl = document.getElementById('recentAdminUpdates');
+  if (!notifications.length) {
+    updatesEl.innerHTML='<div class="empty-state"><div class="empty-state-icon">🔔</div><h3>No admin updates yet</h3><p>New gallery uploads, portfolio items, staff changes, and customer messages will appear here.</p></div>';
+  } else {
+    updatesEl.innerHTML = notifications.map((item)=>`
+      <div style="padding:14px 22px;border-bottom:1px solid hsl(260 15% 11%);display:flex;gap:12px;align-items:flex-start;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:4px 8px;border-radius:999px;background:hsl(250 80% 65% / 0.1);color:var(--primary);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">${escHtml(item.type || 'Update')}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <strong style="font-size:13px;">${escHtml(item.title || 'Update')}</strong>
+            <span style="font-size:11px;color:var(--muted2);margin-left:auto;">${fmtDate(item.createdAt || item.created_at || '')}</span>
+          </div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">${escHtml(item.message || '')}</p>
+        </div>
+      </div>`).join('');
+  }
+
   // Recent messages
   const recent = messages.slice(0,5);
   const rEl = document.getElementById('recentMsgs');
@@ -180,3 +208,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+

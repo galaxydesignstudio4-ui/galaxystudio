@@ -56,6 +56,11 @@ alter table if exists public.messages
   add column if not exists phone text,
   add column if not exists preferred_contact text default 'whatsapp';
 
+alter table if exists public.notifications
+  add column if not exists audience text default 'both',
+  add column if not exists source text default 'system',
+  add column if not exists created_at timestamptz default timezone('utc', now());
+
 -- Backfill newer fields from older data when possible.
 update public.gallery
 set
@@ -106,6 +111,12 @@ update public.messages
 set
   phone = coalesce(phone, ''),
   preferred_contact = coalesce(nullif(preferred_contact, ''), 'whatsapp');
+
+update public.notifications
+set
+  audience = coalesce(nullif(audience, ''), 'both'),
+  source = coalesce(nullif(source, ''), 'system'),
+  created_at = coalesce(created_at, timezone('utc', now()));
 
 -- Ensure the single-row object tables still have a row the app can update.
 insert into public.settings (id)
