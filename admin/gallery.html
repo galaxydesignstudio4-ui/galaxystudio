@@ -802,7 +802,7 @@ function addVideoModal() {
         </label>
         <div class="img-preview-box" id="vPrev" style="display:none;"></div>
       </div>
-      <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="vTitle" placeholder="Video title"></div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="vTitle" placeholder="Optional title"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="vDesc" placeholder="Optional description..."></textarea></div>
       <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
         <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="vPinned"> Pin to top</label>
@@ -846,7 +846,6 @@ function addVideoModal() {
       const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
       const list = getData('galaxy_gallery') || [];
       const typedTitle = ov.querySelector('#vTitle').value.trim();
-      if (!typedTitle) { showToast('Title is required','error'); return; }
       list.unshift({
         id:nextId(list),
         type:'video',
@@ -891,7 +890,7 @@ function addLinkModal() {
         <label class="form-label">Link URL *</label>
         <input class="form-input" id="lUrl" placeholder="https://example.com">
       </div>
-      <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="lTitle" placeholder="Link title"></div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="lTitle" placeholder="Optional title"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="min-height:70px;" id="lDesc" placeholder="Optional description..."></textarea></div>
       <div class="form-group" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
         <label style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(250,204,21,0.06);font-size:13px;font-weight:600;"><input type="checkbox" id="lPinned"> Pin to top</label>
@@ -932,7 +931,6 @@ function addLinkModal() {
       const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
       const list = getData('galaxy_gallery') || [];
       const typedTitle = ov.querySelector('#lTitle').value.trim();
-      if (!typedTitle) { showToast('Title is required','error'); return; }
       list.unshift({
         id:nextId(list),
         type:'link',

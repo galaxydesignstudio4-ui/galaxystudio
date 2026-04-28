@@ -6,6 +6,171 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  function ensureNavNotificationStyles() {
+    if (document.getElementById('navNotificationStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'navNotificationStyles';
+    style.textContent = `
+      .nav-notify {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+      .nav-notify-btn {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid hsl(250 80% 65% / 0.28);
+        background: hsl(260 20% 8% / 0.84);
+        color: hsl(0 0% 95%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      }
+      .nav-notify-btn:hover,
+      .nav-notify-btn:focus-visible,
+      .nav-notify.open .nav-notify-btn {
+        outline: none;
+        transform: translateY(-1px);
+        background: hsl(250 80% 65% / 0.12);
+        border-color: hsl(250 80% 65% / 0.48);
+        box-shadow: 0 12px 28px hsl(245 82% 58% / 0.18);
+      }
+      .nav-notify-dot {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #fcd34d);
+        box-shadow: 0 0 0 2px hsl(260 20% 4%), 0 0 12px rgba(245,158,11,0.5);
+      }
+      .nav-notify-panel {
+        position: absolute;
+        top: calc(100% + 14px);
+        right: 0;
+        width: min(360px, calc(100vw - 32px));
+        padding: 14px;
+        border-radius: 22px;
+        border: 1px solid hsl(250 80% 65% / 0.16);
+        background: linear-gradient(180deg, hsl(260 18% 9% / 0.98), hsl(260 18% 6% / 0.98));
+        box-shadow: 0 28px 70px rgba(0,0,0,0.48);
+        backdrop-filter: blur(18px) saturate(160%);
+        display: none;
+      }
+      .nav-notify.open .nav-notify-panel {
+        display: block;
+        animation: slideDown 0.18s ease;
+      }
+      .nav-notify-panel::before {
+        content: '';
+        position: absolute;
+        top: -7px;
+        right: 18px;
+        width: 14px;
+        height: 14px;
+        transform: rotate(45deg);
+        border-left: 1px solid hsl(250 80% 65% / 0.16);
+        border-top: 1px solid hsl(250 80% 65% / 0.16);
+        background: hsl(260 18% 9% / 0.98);
+      }
+      .nav-notify-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .nav-notify-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+      }
+      .nav-notify-count {
+        font-size: 11px;
+        color: hsl(250 80% 74%);
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: hsl(250 80% 65% / 0.12);
+        border: 1px solid hsl(250 80% 65% / 0.22);
+      }
+      .nav-notify-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: min(58vh, 420px);
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      .nav-notify-item {
+        padding: 12px 13px;
+        border-radius: 16px;
+        border: 1px solid hsl(260 16% 18%);
+        background: hsl(260 18% 11% / 0.72);
+      }
+      .nav-notify-item strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+        color: hsl(0 0% 97%);
+      }
+      .nav-notify-item p {
+        font-size: 12px;
+        line-height: 1.55;
+        color: hsl(260 8% 70%);
+      }
+      .nav-notify-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .nav-notify-type {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: hsl(250 80% 74%);
+      }
+      .nav-notify-time {
+        font-size: 10px;
+        color: hsl(260 6% 58%);
+      }
+      .nav-notify-empty {
+        padding: 20px 14px;
+        text-align: center;
+        border-radius: 16px;
+        border: 1px dashed hsl(260 16% 18%);
+        color: hsl(260 8% 66%);
+        font-size: 12px;
+      }
+      @media (max-width: 900px) {
+        .nav-notify-btn {
+          width: 40px;
+          height: 40px;
+        }
+        .nav-notify-panel {
+          position: fixed;
+          top: 76px;
+          right: 16px;
+          left: 16px;
+          width: auto;
+        }
+        .nav-notify-panel::before {
+          display: none;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   /* ── Navbar scroll ── */
   const navbar     = document.getElementById('navbar');
   const scrollTopBtn = document.getElementById('scroll-top');
@@ -409,6 +574,116 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function formatNotificationTime(value) {
+    const timestamp = Date.parse(value || '');
+    if (!Number.isFinite(timestamp)) return '';
+    const diffMs = Date.now() - timestamp;
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    if (diffMs < minute) return 'Just now';
+    if (diffMs < hour) return `${Math.max(1, Math.round(diffMs / minute))}m ago`;
+    if (diffMs < day) return `${Math.max(1, Math.round(diffMs / hour))}h ago`;
+    const days = Math.max(1, Math.round(diffMs / day));
+    if (days < 7) return `${days}d ago`;
+    return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function filterPublicNotifications(items = []) {
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => ['both', 'public', ''].includes(String(item?.audience || 'both').toLowerCase()))
+      .sort((a, b) => Date.parse(b?.createdAt || '') - Date.parse(a?.createdAt || ''))
+      .slice(0, 6);
+  }
+
+  function initNavNotifications(items = []) {
+    ensureNavNotificationStyles();
+    const navRight = document.querySelector('.nav-right');
+    if (!navRight) return;
+
+    let wrap = navRight.querySelector('.nav-notify');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'nav-notify';
+      wrap.innerHTML = `
+        <button class="nav-notify-btn" type="button" aria-label="Open notifications" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="nav-notify-dot" hidden></span>
+        </button>
+        <div class="nav-notify-panel" hidden>
+          <div class="nav-notify-head">
+            <div class="nav-notify-title">Latest Updates</div>
+            <div class="nav-notify-count">0 new</div>
+          </div>
+          <div class="nav-notify-list"></div>
+        </div>
+      `;
+      const getStartedBtn = navRight.querySelector('.btn');
+      navRight.insertBefore(wrap, getStartedBtn || navRight.firstChild);
+      const btn = wrap.querySelector('.nav-notify-btn');
+      const panel = wrap.querySelector('.nav-notify-panel');
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const open = !wrap.classList.contains('open');
+        document.querySelectorAll('.nav-notify.open').forEach((node) => {
+          if (node !== wrap) {
+            node.classList.remove('open');
+            node.querySelector('.nav-notify-btn')?.setAttribute('aria-expanded', 'false');
+            node.querySelector('.nav-notify-panel')?.setAttribute('hidden', '');
+          }
+        });
+        wrap.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) panel.removeAttribute('hidden');
+        else panel.setAttribute('hidden', '');
+      });
+      document.addEventListener('click', (event) => {
+        if (!wrap.contains(event.target)) {
+          wrap.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          panel.setAttribute('hidden', '');
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          wrap.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          panel.setAttribute('hidden', '');
+        }
+      });
+    }
+
+    const list = wrap.querySelector('.nav-notify-list');
+    const count = wrap.querySelector('.nav-notify-count');
+    const dot = wrap.querySelector('.nav-notify-dot');
+    const panel = wrap.querySelector('.nav-notify-panel');
+    const visibleItems = filterPublicNotifications(items);
+
+    count.textContent = `${visibleItems.length} new`;
+    dot.hidden = visibleItems.length === 0;
+    if (!visibleItems.length) {
+      list.innerHTML = `<div class="nav-notify-empty">No new updates yet.</div>`;
+    } else {
+      list.innerHTML = visibleItems.map((item) => `
+        <article class="nav-notify-item">
+          <strong>${escHtml(item?.title || 'New update')}</strong>
+          <p>${escHtml(item?.message || '')}</p>
+          <div class="nav-notify-meta">
+            <span class="nav-notify-type">${escHtml(item?.type || 'Update')}</span>
+            <span class="nav-notify-time">${escHtml(formatNotificationTime(item?.createdAt || ''))}</span>
+          </div>
+        </article>
+      `).join('');
+    }
+    if (!wrap.classList.contains('open')) {
+      panel.setAttribute('hidden', '');
+    }
   }
 
   function studioMarkup(name) {
@@ -997,9 +1272,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('/admin/')) return;
     if (typeof window.getData !== 'function') return;
 
-    const keys = new Set(['galaxy_settings', 'galaxy_about']);
+    const keys = new Set(['galaxy_settings', 'galaxy_about', 'galaxy_notifications']);
     if (pageName === 'index.html' || pageName === '') {
-      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials', 'galaxy_notifications'].forEach((key) => keys.add(key));
+      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials'].forEach((key) => keys.add(key));
     }
     if (pageName === 'services.html') keys.add('galaxy_services');
 
@@ -1015,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     applyPublicBranding(data.galaxy_settings || window.__GDS_BOOT_SETTINGS__ || {}, data.galaxy_about || {});
+    initNavNotifications(data.galaxy_notifications || []);
     if (pageName === 'index.html' || pageName === '') renderHomePage(data);
     if (pageName === 'services.html') renderServicesPage(data.galaxy_services || []);
     if (pageName === 'about.html') renderAboutPage(data.galaxy_about || {});
