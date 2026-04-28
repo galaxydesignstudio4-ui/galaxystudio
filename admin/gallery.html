@@ -432,6 +432,125 @@ function detectTextFromVideoSource(source) {
   });
 }
 
+function getYouTubeThumbnail(url = '') {
+  try {
+    const parsed = new URL(url, window.location.href);
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    let videoId = '';
+    if (host === 'youtu.be') {
+      videoId = parsed.pathname.split('/').filter(Boolean).pop() || '';
+    } else if (host.includes('youtube.com')) {
+      videoId = parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || '';
+    }
+    return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '';
+  } catch {
+    return '';
+  }
+}
+
+function getVimeoThumbnail(url = '') {
+  try {
+    const parsed = new URL(url, window.location.href);
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    if (!host.includes('vimeo.com')) return '';
+    const videoId = parsed.pathname.split('/').filter(Boolean).pop() || '';
+    return videoId ? `https://vumbnail.com/${videoId}.jpg` : '';
+  } catch {
+    return '';
+  }
+}
+
+function captureVideoFrameBlob(source, { seekRatio = 0.15 } = {}) {
+  if (!source) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    let objectUrl = '';
+    let settled = false;
+    let frameCaptured = false;
+
+    const finish = (value = null) => {
+      if (settled) return;
+      settled = true;
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      resolve(value);
+    };
+
+    const drawFrame = () => {
+      if (frameCaptured) return;
+      frameCaptured = true;
+      try {
+        const width = video.videoWidth || 0;
+        const height = video.videoHeight || 0;
+        if (!width || !height) {
+          finish(null);
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          finish(null);
+          return;
+        }
+        ctx.drawImage(video, 0, 0, width, height);
+        canvas.toBlob((blob) => finish(blob), 'image/jpeg', 0.9);
+      } catch {
+        finish(null);
+      }
+    };
+
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.crossOrigin = 'anonymous';
+
+    if (source instanceof Blob) {
+      objectUrl = URL.createObjectURL(source);
+      video.src = objectUrl;
+    } else {
+      video.src = source;
+    }
+
+    video.onloadedmetadata = () => {
+      const duration = Number(video.duration) || 0;
+      const targetTime = duration > 1
+        ? Math.min(Math.max(duration * seekRatio, 0.1), Math.max(duration - 0.1, 0.1))
+        : 0;
+      if (!targetTime) {
+        drawFrame();
+        return;
+      }
+      try {
+        video.currentTime = targetTime;
+      } catch {
+        drawFrame();
+      }
+    };
+    video.onseeked = () => drawFrame();
+    video.onloadeddata = () => drawFrame();
+    video.onerror = () => finish(null);
+    setTimeout(() => finish(null), 7000);
+  });
+}
+
+async function createVideoThumbnailAsset({ file = null, url = '' } = {}) {
+  const youtubeThumb = getYouTubeThumbnail(url);
+  if (youtubeThumb) return { url: youtubeThumb, path: '' };
+
+  const vimeoThumb = getVimeoThumbnail(url);
+  if (vimeoThumb) return { url: vimeoThumb, path: '' };
+
+  const frameBlob = await captureVideoFrameBlob(file || url);
+  if (!frameBlob) return { url: '', path: '' };
+
+  const thumbFile = new File([frameBlob], `gallery-video-thumb-${Date.now()}.jpg`, { type: 'image/jpeg' });
+  return uploadAsset(thumbFile, GALLERY_BUCKET);
+}
+
 async function suggestGalleryTitle({ file = null, url = '', thumbUrl = '', type = 'image', currentTitle = '' } = {}) {
   const trimmedTitle = String(currentTitle || '').trim();
   if (trimmedTitle && !isGenericTitle(trimmedTitle)) return trimmedTitle;
@@ -732,6 +851,15 @@ function editGalModal(item) {
         nextUrl = urlField || nextUrl;
       }
       if (!nextUrl) { showToast('Please add a video URL or upload a video file.','error'); return; }
+      if (!thumbFile && (mediaFile || urlField !== (item.url || '') || !nextThumb)) {
+        if (nextThumbStoragePath) {
+          await removeAsset(GALLERY_BUCKET, nextThumbStoragePath);
+          nextThumbStoragePath = '';
+        }
+        const generatedThumb = await createVideoThumbnailAsset({ file: mediaFile, url: nextUrl });
+        nextThumb = generatedThumb?.url || nextThumb || '';
+        nextThumbStoragePath = generatedThumb?.path || '';
+      }
     }
 
     if (type === 'link') {
@@ -786,7 +914,7 @@ function addVideoModal() {
   const ov = openModal(`<div class="modal">
     <div class="modal-header"><span class="modal-title">▶ Add Video</span><button class="modal-close">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Paste a YouTube, Vimeo, or direct video URL. Upload a thumbnail image to display in the gallery.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Paste a YouTube, Vimeo, or direct video URL. The gallery will generate the thumbnail from the video automatically.</p>
       <div class="form-group">
         <label class="form-label">Video URL *</label>
         <input class="form-input" id="vUrl" placeholder="https://youtube.com/watch?v=..." oninput="checkVideoBtn()">
@@ -820,7 +948,7 @@ function addVideoModal() {
 
   window.checkVideoBtn = () => {
     const url   = ov.querySelector('#vUrl').value.trim();
-    const ready = url && thumbFile;
+    const ready = Boolean(url);
     ov.querySelector('#addVidBtn').disabled = !ready;
   };
 
@@ -839,19 +967,21 @@ function addVideoModal() {
     const addBtn = ov.querySelector('#addVidBtn');
     const originalLabel = addBtn.textContent;
     const url = ov.querySelector('#vUrl').value.trim();
-    if (!url || !thumbFile) { showToast('URL and thumbnail are required','error'); return; }
+    if (!url) { showToast('Video URL is required','error'); return; }
     addBtn.disabled = true;
     addBtn.textContent = 'Adding...';
     try {
-      const uploadedThumb = await uploadAsset(thumbFile, GALLERY_BUCKET);
+      const uploadedThumb = thumbFile
+        ? await uploadAsset(thumbFile, GALLERY_BUCKET)
+        : await createVideoThumbnailAsset({ url });
       const list = getData('galaxy_gallery') || [];
       const typedTitle = ov.querySelector('#vTitle').value.trim();
       list.unshift({
         id:nextId(list),
         type:'video',
         url,
-        thumb:uploadedThumb.url,
-        thumbStoragePath: uploadedThumb.path || '',
+        thumb:uploadedThumb?.url || '',
+        thumbStoragePath: uploadedThumb?.path || '',
         storagePath: '',
         createdAt: new Date().toISOString(),
         title:typedTitle,
@@ -986,13 +1116,16 @@ async function processFiles(arr) {
       lbl.textContent = `Uploading ${i + 1} / ${arr.length} files...`;
       const uploaded = await uploadAsset(f, GALLERY_BUCKET);
       const isVideo = f.type.startsWith('video');
+      const generatedThumb = isVideo
+        ? await createVideoThumbnailAsset({ file: f })
+        : { url: '', path: '' };
       list.unshift({
         id:    nextId(list),
         type:  isVideo ? 'video' : 'image',
         url:   isVideo ? uploaded.url : uploaded.url,
-        thumb: isVideo ? '' : uploaded.url,
+        thumb: isVideo ? (generatedThumb.url || '') : uploaded.url,
         storagePath: uploaded.path || '',
-        thumbStoragePath: '',
+        thumbStoragePath: isVideo ? (generatedThumb.path || '') : '',
         createdAt: new Date().toISOString(),
         title: '',
         titleSource: buildGalleryTitleSource('manual'),
