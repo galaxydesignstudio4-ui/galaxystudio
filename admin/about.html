@@ -12,7 +12,12 @@
 .full-save:hover{filter:brightness(1.15);}
 .editor-section{margin-top:28px;padding-top:22px;border-top:1px solid var(--border);}
 .editor-section h3{margin-bottom:8px;font-size:16px;}
-.editor-note{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;}</style>
+.editor-note{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;}
+.branch-logo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.branch-logo-card{padding:14px;border:1px solid var(--border);border-radius:16px;background:hsl(255 20% 9% / 0.75);}
+.branch-logo-preview{width:58px;height:58px;border-radius:16px;border:1px solid hsl(250 80% 65% / 0.2);background:linear-gradient(135deg,hsl(250 80% 65% / 0.1),hsl(200 100% 60% / 0.08));display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px;font-family:"Space Grotesk",sans-serif;font-weight:700;}
+.branch-logo-preview img{width:100%;height:100%;object-fit:contain;display:block;}
+@media (max-width:640px){.branch-logo-grid{grid-template-columns:1fr;}}</style>
 </head>
 <body>
 <div id="authGate">
@@ -105,6 +110,14 @@
         </div>
         <div class="editor-section">
           <h3>Design Branch</h3>
+          <div class="branch-logo-grid" style="margin-bottom:16px;">
+            <div class="branch-logo-card">
+              <div class="branch-logo-preview" id="designLogoPrev">D</div>
+              <p style="font-size:13px;font-weight:600;margin-bottom:4px;">Design branch logo</p>
+              <p class="editor-note" style="margin-bottom:10px;">Shown on the homepage branch card.</p>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload Logo<input type="file" id="designLogoFile" accept="image/*" style="display:none;"></label>
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Badge</label><input class="form-input" id="designBadge" placeholder="Branch 01"></div>
             <div class="form-group"><label class="form-label">Short Letter</label><input class="form-input" id="designShort" maxlength="3" placeholder="D"></div>
@@ -117,6 +130,14 @@
         </div>
         <div class="editor-section">
           <h3>Tech Branch</h3>
+          <div class="branch-logo-grid" style="margin-bottom:16px;">
+            <div class="branch-logo-card">
+              <div class="branch-logo-preview" id="techLogoPrev">T</div>
+              <p style="font-size:13px;font-weight:600;margin-bottom:4px;">Tech branch logo</p>
+              <p class="editor-note" style="margin-bottom:10px;">Shown on the homepage branch card.</p>
+              <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload Logo<input type="file" id="techLogoFile" accept="image/*" style="display:none;"></label>
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Badge</label><input class="form-input" id="techBadge" placeholder="Branch 02"></div>
             <div class="form-group"><label class="form-label">Short Letter</label><input class="form-input" id="techShort" maxlength="3" placeholder="T"></div>
@@ -146,6 +167,20 @@
 <script>
 const ABOUT_KEY='galaxy_about';
 const ABOUT_BUCKET='avatars';
+const BRANCH_LOGO_BUCKET='logos';
+
+function setBranchLogoPreview(id, fallback, src, storagePath=''){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(src){
+    el.innerHTML=`<img src="${src}" alt="${fallback} logo">`;
+    el._src=src;
+  }else{
+    el.textContent=fallback;
+    el._src='';
+  }
+  el._storagePath=storagePath||'';
+}
 
 async function syncAboutFromCloud(){
   if (typeof window.loadFromCloud !== 'function') return;
@@ -185,6 +220,8 @@ function loadAbout(){
   document.getElementById('techName').value=d.techName||'';
   document.getElementById('techFocus').value=d.techFocus||'';
   document.getElementById('techDescription').value=d.techDescription||'';
+  setBranchLogoPreview('designLogoPrev', d.designShort||'D', d.designLogo||'', d.designLogoStoragePath||'');
+  setBranchLogoPreview('techLogoPrev', d.techShort||'T', d.techLogo||'', d.techLogoStoragePath||'');
   if(d.avatar){const p=document.getElementById('avatarPrev');p.innerHTML=`<img src="${d.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;p._src=d.avatar;}
   document.getElementById('avatarPrev')._storagePath = d.avatarStoragePath || '';
 }
@@ -198,6 +235,20 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     p.innerHTML=`<img src="${b64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     p._src=b64;p._file=file;e.target.value='';
   };
+  document.getElementById('designLogoFile').onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const b64=URL.createObjectURL(file);
+    const p=document.getElementById('designLogoPrev');
+    p.innerHTML=`<img src="${b64}" alt="Design branch logo">`;
+    p._src=b64;p._file=file;e.target.value='';
+  };
+  document.getElementById('techLogoFile').onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const b64=URL.createObjectURL(file);
+    const p=document.getElementById('techLogoPrev');
+    p.innerHTML=`<img src="${b64}" alt="Tech branch logo">`;
+    p._src=b64;p._file=file;e.target.value='';
+  };
   document.getElementById('ownerForm').onsubmit=async e=>{
     e.preventDefault();
     const btn=document.getElementById('saveBtn');
@@ -208,6 +259,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const current = getData(ABOUT_KEY)||{};
       let avatar = p._src || current.avatar || '';
       let avatarStoragePath = p._storagePath || current.avatarStoragePath || '';
+      const designLogoPrev=document.getElementById('designLogoPrev');
+      const techLogoPrev=document.getElementById('techLogoPrev');
+      let designLogo = designLogoPrev._src || current.designLogo || '';
+      let designLogoStoragePath = designLogoPrev._storagePath || current.designLogoStoragePath || '';
+      let techLogo = techLogoPrev._src || current.techLogo || '';
+      let techLogoStoragePath = techLogoPrev._storagePath || current.techLogoStoragePath || '';
       if (p._file) {
         const uploaded = await uploadAsset(p._file, ABOUT_BUCKET);
         if (avatarStoragePath && avatarStoragePath !== uploaded.path) {
@@ -215,6 +272,22 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         }
         avatar = uploaded.url;
         avatarStoragePath = uploaded.path || '';
+      }
+      if (designLogoPrev._file) {
+        const uploaded = await uploadAsset(designLogoPrev._file, BRANCH_LOGO_BUCKET);
+        if (designLogoStoragePath && designLogoStoragePath !== uploaded.path) {
+          await removeAsset(BRANCH_LOGO_BUCKET, designLogoStoragePath);
+        }
+        designLogo = uploaded.url;
+        designLogoStoragePath = uploaded.path || '';
+      }
+      if (techLogoPrev._file) {
+        const uploaded = await uploadAsset(techLogoPrev._file, BRANCH_LOGO_BUCKET);
+        if (techLogoStoragePath && techLogoStoragePath !== uploaded.path) {
+          await removeAsset(BRANCH_LOGO_BUCKET, techLogoStoragePath);
+        }
+        techLogo = uploaded.url;
+        techLogoStoragePath = uploaded.path || '';
       }
       const obj={
         name:document.getElementById('oName').value.trim(),
@@ -239,11 +312,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         designName:document.getElementById('designName').value.trim(),
         designFocus:document.getElementById('designFocus').value.trim(),
         designDescription:document.getElementById('designDescription').value.trim(),
+        designLogo,
+        designLogoStoragePath,
         techBadge:document.getElementById('techBadge').value.trim(),
         techShort:document.getElementById('techShort').value.trim(),
         techName:document.getElementById('techName').value.trim(),
         techFocus:document.getElementById('techFocus').value.trim(),
         techDescription:document.getElementById('techDescription').value.trim(),
+        techLogo,
+        techLogoStoragePath,
         avatar,
         avatarStoragePath
       };

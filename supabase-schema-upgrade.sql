@@ -42,11 +42,15 @@ alter table if exists public.about
   add column if not exists design_short text,
   add column if not exists design_focus text,
   add column if not exists design_description text,
+  add column if not exists design_logo_url text,
+  add column if not exists design_logo_storage_path text,
   add column if not exists tech_badge text,
   add column if not exists tech_name text,
   add column if not exists tech_short text,
   add column if not exists tech_focus text,
-  add column if not exists tech_description text;
+  add column if not exists tech_description text,
+  add column if not exists tech_logo_url text,
+  add column if not exists tech_logo_storage_path text;
 
 alter table if exists public.messages
   add column if not exists phone text,
@@ -88,11 +92,15 @@ set
   design_short = coalesce(design_short, 'D'),
   design_focus = coalesce(design_focus, 'Design and visual communication'),
   design_description = coalesce(design_description, 'Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.'),
+  design_logo_url = coalesce(design_logo_url, ''),
+  design_logo_storage_path = coalesce(design_logo_storage_path, ''),
   tech_badge = coalesce(tech_badge, 'Branch 02'),
   tech_name = coalesce(tech_name, 'Galaxy Tech Studio'),
   tech_short = coalesce(tech_short, 'T'),
   tech_focus = coalesce(tech_focus, 'Development and technical solutions'),
-  tech_description = coalesce(tech_description, 'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.');
+  tech_description = coalesce(tech_description, 'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.'),
+  tech_logo_url = coalesce(tech_logo_url, ''),
+  tech_logo_storage_path = coalesce(tech_logo_storage_path, '');
 
 update public.messages
 set

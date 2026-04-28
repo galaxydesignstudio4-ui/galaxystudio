@@ -487,16 +487,18 @@
      SERVICES SECTION
   ═══════════════════════════════ */
   #branches {
-    padding-top: 24px;
+    padding-top: 12px;
   }
 
   .home-branch-copy .section-sub {
-    max-width: 700px;
+    max-width: 620px;
   }
 
   .home-branch-tree {
     display: grid;
-    gap: 28px;
+    gap: 18px;
+    max-width: 780px;
+    margin: 0 auto;
   }
 
   .home-branch-root,
@@ -507,45 +509,60 @@
       linear-gradient(180deg, hsl(250 80% 65% / 0.08), transparent 55%),
       var(--card-bg);
     border: 1px solid hsl(250 80% 65% / 0.22);
-    border-radius: var(--radius-lg);
-    padding: 28px;
-    box-shadow: 0 20px 48px hsl(250 80% 65% / 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 14px 32px hsl(250 80% 65% / 0.07);
   }
 
   .home-branch-root {
     text-align: center;
-    max-width: 760px;
+    max-width: 460px;
     margin: 0 auto;
   }
 
   .home-branch-lanes {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
+    gap: 16px;
     align-items: start;
   }
 
   .home-branch-mark {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 14px;
-    border-radius: 22px;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 12px;
+    border-radius: 18px;
     display: grid;
     place-items: center;
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
     background: linear-gradient(135deg, hsl(250,80%,62%), hsl(200,100%,58%));
     box-shadow: 0 0 26px hsl(250 80% 65% / 0.25);
+    overflow: hidden;
+  }
+
+  .home-branch-mark.has-image {
+    background: hsl(260 16% 12%);
+    border: 1px solid hsl(250 80% 65% / 0.18);
+    box-shadow: 0 10px 22px hsl(250 80% 65% / 0.12);
+    padding: 8px;
+  }
+
+  .home-branch-mark.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
   }
 
   .home-branch-mark.child {
-    margin: 0 0 14px;
-    width: 52px;
-    height: 52px;
-    font-size: 22px;
-    border-radius: 18px;
+    margin: 0 auto 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    border-radius: 14px;
   }
 
   .home-branch-mark.tech {
@@ -556,13 +573,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 7px 12px;
-    margin-bottom: 14px;
+    padding: 5px 10px;
+    margin-bottom: 10px;
     border-radius: 999px;
     background: hsl(250 80% 65% / 0.08);
     border: 1px solid hsl(250 80% 65% / 0.2);
     color: var(--primary);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -570,31 +587,31 @@
 
   .home-branch-root h3,
   .home-branch-leaf h3 {
-    font-size: clamp(24px, 3vw, 34px);
+    font-size: clamp(18px, 2.3vw, 24px);
     letter-spacing: -0.04em;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .home-branch-root p,
   .home-branch-leaf p {
     color: var(--muted);
-    line-height: 1.75;
-    font-size: 15px;
+    line-height: 1.65;
+    font-size: 13px;
   }
 
   .home-branch-leaf strong {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: var(--fg);
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .home-branch-arrow {
-    font-size: 28px;
+    font-size: 20px;
     line-height: 1;
     color: var(--primary);
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 
   @media (max-width: 760px) {
@@ -604,7 +621,7 @@
 
     .home-branch-root,
     .home-branch-leaf {
-      padding: 24px;
+      padding: 18px;
     }
   }
 

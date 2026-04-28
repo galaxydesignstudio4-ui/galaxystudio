@@ -662,7 +662,11 @@ document.addEventListener('DOMContentLoaded', () => {
     applyStandardLogoChrome();
   }
 
-  function normalizeBranchContent(about = {}) {
+  function normalizeBranchContent(about = {}, settings = {}) {
+    const rawParentLogo = settings?.logo || '';
+    const parentLogo = rawParentLogo
+      ? (typeof window.__resolveAssetUrl__ === 'function' ? window.__resolveAssetUrl__(rawParentLogo) : rawParentLogo)
+      : '';
     return {
       homeLabel: about.homeBranchLabel || 'Studio Branches',
       homeTitle: about.homeBranchTitle || 'One parent studio. Two focused branches.',
@@ -676,6 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
         short: about.parentShort || 'G',
         focus: about.parentFocus || 'Main brand umbrella',
         description: about.parentDescription || 'The central identity connecting our creative, design, development, and future specialist branches.',
+        logo: parentLogo,
       },
       design: {
         badge: about.designBadge || 'Branch 01',
@@ -683,6 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
         short: about.designShort || 'D',
         focus: about.designFocus || 'Design and visual communication',
         description: about.designDescription || 'Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.',
+        logo: about.designLogo || '',
       },
       tech: {
         badge: about.techBadge || 'Branch 02',
@@ -690,12 +696,20 @@ document.addEventListener('DOMContentLoaded', () => {
         short: about.techShort || 'T',
         focus: about.techFocus || 'Development and technical solutions',
         description: about.techDescription || 'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.',
+        logo: about.techLogo || '',
       },
     };
   }
 
-  function renderBranchSections(about = {}) {
-    const content = normalizeBranchContent(about);
+  function branchMediaMarkup(logo = '', short = '', className = '') {
+    if (logo) {
+      return `<span class="home-branch-mark ${className} has-image"><img src="${escHtml(logo)}" alt="${escHtml(short || 'Branch logo')}"></span>`;
+    }
+    return `<span class="home-branch-mark ${className}">${escHtml(short)}</span>`;
+  }
+
+  function renderBranchSections(about = {}, settings = {}) {
+    const content = normalizeBranchContent(about, settings);
     const homeRoot = document.getElementById('homeBranchFlow');
     if (homeRoot) {
       homeRoot.innerHTML = `
@@ -707,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="home-branch-tree animate-in visible">
           <article class="home-branch-root">
             <span class="home-branch-badge">${escHtml(content.parent.badge)}</span>
-            <div class="home-branch-mark">${escHtml(content.parent.short)}</div>
+            ${branchMediaMarkup(content.parent.logo, content.parent.short, 'parent')}
             <h3>${escHtml(content.parent.name)}</h3>
             <p>${escHtml(content.parent.description)}</p>
           </article>
@@ -715,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <article class="home-branch-leaf">
               <div class="home-branch-arrow" aria-hidden="true">↓</div>
               <span class="home-branch-badge">${escHtml(content.design.badge)}</span>
-              <div class="home-branch-mark child">${escHtml(content.design.short)}</div>
+              ${branchMediaMarkup(content.design.logo, content.design.short, 'child')}
               <h3>${escHtml(content.design.name)}</h3>
               <strong>${escHtml(content.design.focus)}</strong>
               <p>${escHtml(content.design.description)}</p>
@@ -723,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <article class="home-branch-leaf">
               <div class="home-branch-arrow" aria-hidden="true">↓</div>
               <span class="home-branch-badge">${escHtml(content.tech.badge)}</span>
-              <div class="home-branch-mark child tech">${escHtml(content.tech.short)}</div>
+              ${branchMediaMarkup(content.tech.logo, content.tech.short, 'child tech')}
               <h3>${escHtml(content.tech.name)}</h3>
               <strong>${escHtml(content.tech.focus)}</strong>
               <p>${escHtml(content.tech.description)}</p>
@@ -795,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const about = data.galaxy_about || {};
     const partners = normalizePartners(data.galaxy_settings || {}).filter((entry) => entry.premium);
 
-    renderBranchSections(about);
+    renderBranchSections(about, data.galaxy_settings || {});
 
     const adavatar = services.find((item) => item.signature) || services.find((item) => item.icon === 'avatar');
     const adavatarCard = document.querySelector('#services .adavatar-card');
@@ -947,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
-    renderBranchSections(about);
+    renderBranchSections(about, window.getData ? (window.getData('galaxy_settings') || {}) : {});
   }
 
   async function hydratePublicSite() {
