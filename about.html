@@ -4,7 +4,7 @@
 <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About — Galaxy Design Studio</title>
+<title>About — Galaxy Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -85,6 +85,121 @@
   transition: var(--transition);
 }
 .owner-social:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+
+.branch-tree-section {
+  margin-bottom: 64px;
+}
+.branch-tree-card {
+  background:
+    radial-gradient(circle at top right, hsl(200 100% 60% / 0.12), transparent 38%),
+    linear-gradient(180deg, hsl(250 80% 65% / 0.08), transparent 45%),
+    var(--card-bg);
+  border: 1px solid hsl(250 80% 65% / 0.22);
+  border-radius: var(--radius-lg);
+  padding: 34px;
+  box-shadow: 0 24px 60px hsl(250 80% 65% / 0.08);
+}
+.branch-tree-intro {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 28px;
+}
+.branch-tree-stack {
+  display: grid;
+  gap: 22px;
+}
+.branch-tree-root,
+.branch-tree-child {
+  position: relative;
+  border: 1px solid hsl(250 80% 65% / 0.14);
+  border-radius: 22px;
+  background: hsl(260 15% 10% / 0.86);
+  padding: 24px;
+}
+.branch-tree-root {
+  box-shadow: 0 18px 44px hsl(250 80% 65% / 0.08);
+}
+.branch-tree-children {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.branch-tree-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.branch-tree-head h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+.branch-tree-head p {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+.branch-node {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, hsl(250,80%,62%), hsl(200,100%,58%));
+  color: #fff;
+  box-shadow: 0 0 22px hsl(250 80% 65% / 0.24);
+  flex-shrink: 0;
+}
+.branch-node.child {
+  background: linear-gradient(135deg, hsl(220,80%,60%), hsl(200,100%,58%));
+}
+.branch-node.tech {
+  background: linear-gradient(135deg, hsl(220,80%,60%), hsl(185,100%,52%));
+}
+.branch-tree-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: hsl(250 80% 65% / 0.08);
+  border: 1px solid hsl(250 80% 65% / 0.18);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.branch-tree-body {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 14px;
+  margin-top: 16px;
+}
+.branch-tree-line {
+  width: 24px;
+  height: 24px;
+  border-left: 1.5px solid hsl(250 80% 65% / 0.32);
+  border-bottom: 1.5px solid hsl(250 80% 65% / 0.32);
+  border-radius: 0 0 0 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 720px) {
+  .branch-tree-card {
+    padding: 24px;
+  }
+  .branch-tree-root,
+  .branch-tree-child {
+    padding: 20px;
+  }
+  .branch-tree-children {
+    grid-template-columns: 1fr;
+  }
+}
 
 .mission-grid {
   display: grid;
@@ -207,7 +322,7 @@
   <div class="container" style="position:relative;z-index:2;">
     <div class="page-hero-label">Our Story</div>
     <h1 class="page-hero-title">Born from a Passion for <span class="gradient-text">Creativity</span></h1>
-    <p class="page-hero-sub">Galaxy Design Studio was founded by Emmanuel Yirenkyi-Amoyaw with a simple mission: unlimited creativity, big ideas, and designs that make your brand shine.</p>
+    <p class="page-hero-sub">Galaxy Studio was founded by Emmanuel Yirenkyi-Amoyaw with a simple mission: unlimited creativity, big ideas, and designs that make your brand shine.</p>
   </div>
 </div>
 
@@ -219,7 +334,7 @@
       <div class="owner-avatar">E</div>
       <div class="owner-body">
         <h2 class="owner-name">Emmanuel Yirenkyi-Amoyaw</h2>
-        <p class="owner-role">Owner &amp; Creative Director · Galaxy Design Studio</p>
+        <p class="owner-role">Owner &amp; Creative Director · Galaxy Studio</p>
         <p class="owner-bio">Emmanuel is a creative and digital advertisement specialist providing graphic design, video editing, 3D animation, CAD &amp; UI/UX design, avatar-style ads, Pixar-style animations, logo and branding, and digital promotion content. Special creator of <strong style="color:var(--fg);">AdAvatar</strong> — 3D animated avatar advertisements for modern business promotion. Based in Tema, Accra, Ghana, Emmanuel brings big ideas to life for clients across Africa and beyond.</p>
         <div class="owner-socials">
           <a class="owner-social" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener">
@@ -234,6 +349,57 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="hsl(260,20%,8%)"/></svg>
             Bible Sparks
           </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="branch-tree-section animate-in" id="aboutBranchTree">
+      <div class="section-header" style="margin-bottom:20px;">
+        <span class="section-label">Branch Structure</span>
+        <h2 class="section-title">The Galaxy Studio Tree</h2>
+      </div>
+      <div class="branch-tree-card">
+        <p class="branch-tree-intro">
+          Galaxy Studio is the parent brand. Under it, we are building focused branches so clients can clearly see where creative design work lives and where development and technical delivery live.
+        </p>
+        <div class="branch-tree-stack" aria-label="Galaxy Studio branch tree">
+          <article class="branch-tree-root">
+            <div class="branch-tree-chip">Parent Studio</div>
+            <div class="branch-tree-head">
+              <span class="branch-node">G</span>
+              <div>
+                <h3>Galaxy Studio</h3>
+                <p>Main brand umbrella</p>
+              </div>
+            </div>
+            <div class="branch-tree-body">The central identity connecting our creative, design, development, and future specialist branches.</div>
+          </article>
+          <div class="branch-tree-children">
+            <article class="branch-tree-child">
+              <div class="branch-tree-line" aria-hidden="true"></div>
+              <div class="branch-tree-chip">Branch 01</div>
+              <div class="branch-tree-head">
+                <span class="branch-node child">D</span>
+                <div>
+                  <h3>Galaxy Design Studio</h3>
+                  <p>Design and visual communication</p>
+                </div>
+              </div>
+              <div class="branch-tree-body">Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.</div>
+            </article>
+            <article class="branch-tree-child">
+              <div class="branch-tree-line" aria-hidden="true"></div>
+              <div class="branch-tree-chip">Branch 02</div>
+              <div class="branch-tree-head">
+                <span class="branch-node child tech">T</span>
+                <div>
+                  <h3>Galaxy Tech Studio</h3>
+                  <p>Development and technical solutions</p>
+                </div>
+              </div>
+              <div class="branch-tree-body">Websites, digital product development, technical builds, and architectural work that need structured planning and execution.</div>
+            </article>
+          </div>
         </div>
       </div>
     </div>
@@ -304,8 +470,8 @@
   <div class="container">
     <div class="footer-grid">
       <div class="footer-logo-area">
-        <div class="footer-logo"><div class="logo-icon" style="width:34px;height:34px;font-size:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Design Studio</span></span></div>
-        <p class="footer-desc">Creative &amp; digital advertisement studio by Emmanuel Yirenkyi-Amoyaw. Affordable, professional design services.</p>
+        <div class="footer-logo"><div class="logo-icon" style="width:34px;height:34px;font-size:15px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;">Galaxy <span class="gradient-text">Studio</span></span></div>
+        <p class="footer-desc">Creative, design, and development studio by Emmanuel Yirenkyi-Amoyaw.</p>
         <div class="footer-socials"><a class="social-btn" href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank">📘 Facebook</a><a class="social-btn" href="https://youtube.com/@epictales-q6n" target="_blank">▶ Epic Tales</a><a class="social-btn" href="https://youtube.com/@biblesparksbs" target="_blank">▶ Bible Sparks</a></div>
       </div>
       <div class="footer-col"><h4>Navigation</h4><div class="footer-links"><a href="index.html">Home</a><a href="services.html">Services</a><a href="portfolio.html">Portfolio</a><a href="gallery.html">Gallery</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div>
@@ -316,7 +482,7 @@
         <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
       </div>
     </div>
-    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
   </div>
 </footer>
 
@@ -393,6 +559,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (socialLinks[0] && about.facebook) socialLinks[0].href = about.facebook;
   if (socialLinks[1] && about.youtube1) socialLinks[1].href = about.youtube1;
   if (socialLinks[2] && about.youtube2) socialLinks[2].href = about.youtube2;
+  if (typeof window.renderGalaxyBranchSections === 'function') {
+    window.renderGalaxyBranchSections(about);
+  }
 
   const aboutTeamSection = document.getElementById('aboutTeamSection');
   const aboutTeamGrid = document.getElementById('aboutTeamGrid');
@@ -428,3 +597,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+

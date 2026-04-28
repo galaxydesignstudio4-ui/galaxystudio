@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   GALAXY DESIGN STUDIO — Shared JS v3
+   Galaxy Studio — Shared JS v3
    Includes: Nav, Animations, Lightbox, Toast,
              Ctrl+Shift+A Admin Shortcut, SVG icons
    ═══════════════════════════════════════════════════ */
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function studioMarkup(name) {
-    const parts = String(name || 'Galaxy Design Studio').trim().split(/\s+/).filter(Boolean);
+    const parts = String(name || 'Galaxy Studio').trim().split(/\s+/).filter(Boolean);
     if (parts.length <= 1) return escHtml(parts[0] || 'Galaxy Studio');
     return `${escHtml(parts[0])} <span class="gradient-text">${escHtml(parts.slice(1).join(' '))}</span>`;
   }
@@ -610,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function applyPublicBranding(settings, about) {
     const bootSettings = window.__GDS_BOOT_SETTINGS__ || {};
-    const studioName = settings?.studioName || bootSettings.studioName || 'Galaxy Design Studio';
+    const studioName = settings?.studioName || bootSettings.studioName || 'Galaxy Studio';
     const rawLogoUrl = settings?.logo || bootSettings.logo || '';
     const normalizedLogo = rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl;
     const logoUrl = typeof window.__resolveAssetUrl__ === 'function'
@@ -662,11 +662,140 @@ document.addEventListener('DOMContentLoaded', () => {
     applyStandardLogoChrome();
   }
 
+  function normalizeBranchContent(about = {}) {
+    return {
+      homeLabel: about.homeBranchLabel || 'Studio Branches',
+      homeTitle: about.homeBranchTitle || 'One parent studio. Two focused branches.',
+      homeIntro: about.homeBranchIntro || 'Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.',
+      aboutLabel: about.aboutBranchLabel || 'Branch Structure',
+      aboutTitle: about.aboutBranchTitle || 'The Galaxy Studio Tree',
+      aboutIntro: about.aboutBranchIntro || 'Galaxy Studio is the parent brand. Under it, we are building focused branches so clients can clearly see where creative design work lives and where development and technical delivery live.',
+      parent: {
+        badge: about.parentBadge || 'Parent Studio',
+        name: about.parentName || 'Galaxy Studio',
+        short: about.parentShort || 'G',
+        focus: about.parentFocus || 'Main brand umbrella',
+        description: about.parentDescription || 'The central identity connecting our creative, design, development, and future specialist branches.',
+      },
+      design: {
+        badge: about.designBadge || 'Branch 01',
+        name: about.designName || 'Galaxy Design Studio',
+        short: about.designShort || 'D',
+        focus: about.designFocus || 'Design and visual communication',
+        description: about.designDescription || 'Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.',
+      },
+      tech: {
+        badge: about.techBadge || 'Branch 02',
+        name: about.techName || 'Galaxy Tech Studio',
+        short: about.techShort || 'T',
+        focus: about.techFocus || 'Development and technical solutions',
+        description: about.techDescription || 'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.',
+      },
+    };
+  }
+
+  function renderBranchSections(about = {}) {
+    const content = normalizeBranchContent(about);
+    const homeRoot = document.getElementById('homeBranchFlow');
+    if (homeRoot) {
+      homeRoot.innerHTML = `
+        <div class="section-header animate-in visible home-branch-copy">
+          <span class="section-label">${escHtml(content.homeLabel)}</span>
+          <h2 class="section-title">${escHtml(content.homeTitle)}</h2>
+          <p class="section-sub">${escHtml(content.homeIntro)}</p>
+        </div>
+        <div class="home-branch-tree animate-in visible">
+          <article class="home-branch-root">
+            <span class="home-branch-badge">${escHtml(content.parent.badge)}</span>
+            <div class="home-branch-mark">${escHtml(content.parent.short)}</div>
+            <h3>${escHtml(content.parent.name)}</h3>
+            <p>${escHtml(content.parent.description)}</p>
+          </article>
+          <div class="home-branch-lanes" aria-label="Galaxy Studio branches">
+            <article class="home-branch-leaf">
+              <div class="home-branch-arrow" aria-hidden="true">↓</div>
+              <span class="home-branch-badge">${escHtml(content.design.badge)}</span>
+              <div class="home-branch-mark child">${escHtml(content.design.short)}</div>
+              <h3>${escHtml(content.design.name)}</h3>
+              <strong>${escHtml(content.design.focus)}</strong>
+              <p>${escHtml(content.design.description)}</p>
+            </article>
+            <article class="home-branch-leaf">
+              <div class="home-branch-arrow" aria-hidden="true">↓</div>
+              <span class="home-branch-badge">${escHtml(content.tech.badge)}</span>
+              <div class="home-branch-mark child tech">${escHtml(content.tech.short)}</div>
+              <h3>${escHtml(content.tech.name)}</h3>
+              <strong>${escHtml(content.tech.focus)}</strong>
+              <p>${escHtml(content.tech.description)}</p>
+            </article>
+          </div>
+        </div>
+      `;
+    }
+
+    const aboutRoot = document.getElementById('aboutBranchTree');
+    if (aboutRoot) {
+      aboutRoot.innerHTML = `
+        <div class="section-header" style="margin-bottom:20px;">
+          <span class="section-label">${escHtml(content.aboutLabel)}</span>
+          <h2 class="section-title">${escHtml(content.aboutTitle)}</h2>
+        </div>
+        <div class="branch-tree-card">
+          <p class="branch-tree-intro">${escHtml(content.aboutIntro)}</p>
+          <div class="branch-tree-stack" aria-label="Galaxy Studio branch tree">
+            <article class="branch-tree-root">
+              <div class="branch-tree-chip">${escHtml(content.parent.badge)}</div>
+              <div class="branch-tree-head">
+                <span class="branch-node">${escHtml(content.parent.short)}</span>
+                <div>
+                  <h3>${escHtml(content.parent.name)}</h3>
+                  <p>${escHtml(content.parent.focus)}</p>
+                </div>
+              </div>
+              <div class="branch-tree-body">${escHtml(content.parent.description)}</div>
+            </article>
+            <div class="branch-tree-children">
+              <article class="branch-tree-child">
+                <div class="branch-tree-line" aria-hidden="true"></div>
+                <div class="branch-tree-chip">${escHtml(content.design.badge)}</div>
+                <div class="branch-tree-head">
+                  <span class="branch-node child">${escHtml(content.design.short)}</span>
+                  <div>
+                    <h3>${escHtml(content.design.name)}</h3>
+                    <p>${escHtml(content.design.focus)}</p>
+                  </div>
+                </div>
+                <div class="branch-tree-body">${escHtml(content.design.description)}</div>
+              </article>
+              <article class="branch-tree-child">
+                <div class="branch-tree-line" aria-hidden="true"></div>
+                <div class="branch-tree-chip">${escHtml(content.tech.badge)}</div>
+                <div class="branch-tree-head">
+                  <span class="branch-node child tech">${escHtml(content.tech.short)}</span>
+                  <div>
+                    <h3>${escHtml(content.tech.name)}</h3>
+                    <p>${escHtml(content.tech.focus)}</p>
+                  </div>
+                </div>
+                <div class="branch-tree-body">${escHtml(content.tech.description)}</div>
+              </article>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  window.renderGalaxyBranchSections = renderBranchSections;
+
   function renderHomePage(data) {
     const services = data.galaxy_services || [];
     const portfolio = data.galaxy_portfolio || [];
     const testimonials = data.galaxy_testimonials || [];
+    const about = data.galaxy_about || {};
     const partners = normalizePartners(data.galaxy_settings || {}).filter((entry) => entry.premium);
+
+    renderBranchSections(about);
 
     const adavatar = services.find((item) => item.signature) || services.find((item) => item.icon === 'avatar');
     const adavatarCard = document.querySelector('#services .adavatar-card');
@@ -766,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <a class="partner-home-card animate-in visible" href="${escHtml(entry.url)}" target="_blank" rel="noopener noreferrer" style="--partner-accent:${escHtml(entry.color)};--delay:${index * 70}ms;">
             <div class="partner-home-badge">${escHtml(entry.kind === 'collaborator' ? 'Premium Collaborator' : 'Premium Partner')}</div>
             <h3>${escHtml(entry.name)}</h3>
-            <p>Featured collaboration on the Galaxy Design Studio homepage.</p>
+            <p>Featured collaboration on the Galaxy Studio homepage.</p>
             <span class="partner-home-link">Visit website</span>
           </a>
         `).join('');
@@ -818,6 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
+    renderBranchSections(about);
   }
 
   async function hydratePublicSite() {
@@ -854,3 +984,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+

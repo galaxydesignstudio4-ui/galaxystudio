@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   GALAXY DESIGN STUDIO — Admin JS v2
+   Galaxy Studio — Admin JS v2
    ═══════════════════════════════════════════════════ */
 
 window.DEFAULTS = {
@@ -24,17 +24,39 @@ window.DEFAULTS = {
   galaxy_messages: [],
   galaxy_notifications: [],
   galaxy_settings: {
-    studioName:'Galaxy Design Studio',tagline:'Creative & Digital Advertisement Studio',
+    studioName:'Galaxy Studio',tagline:'Creative, Design & Development Studio',
     email:'galaxydesignstudio4@gmail.com',phone:'055-688-1003',
     location:'Tema, Accra, Ghana',facebook:'https://web.facebook.com/profile.php?id=61562678010128',
     whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'logo-512.png',
   },
   galaxy_about: {
     name:'Emmanuel Yirenkyi-Amoyaw',
-    role:'Owner & Creative Director · Galaxy Design Studio',
+    role:'Owner & Creative Director · Galaxy Studio',
     bio:'Emmanuel is a creative and digital advertisement specialist providing graphic design, video editing, 3D animation, CAD & UI/UX design, avatar-style ads, Pixar-style animations, logo and branding, and digital promotion content. Special creator of AdAvatar — 3D animated avatar advertisements for modern business promotion.',
     facebook:'https://web.facebook.com/profile.php?id=61562678010128',
-    youtube1:'https://youtube.com/@epictales-q6n',youtube2:'https://youtube.com/@biblesparksbs',avatar:'',
+    youtube1:'https://youtube.com/@epictales-q6n',youtube2:'https://youtube.com/@biblesparksbs',
+    homeBranchLabel:'Studio Branches',
+    homeBranchTitle:'One parent studio. Two focused branches.',
+    homeBranchIntro:'Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.',
+    aboutBranchLabel:'Branch Structure',
+    aboutBranchTitle:'The Galaxy Studio Tree',
+    aboutBranchIntro:'Galaxy Studio is the parent brand. Under it, we are building focused branches so clients can clearly see where creative design work lives and where development and technical delivery live.',
+    parentBadge:'Parent Studio',
+    parentName:'Galaxy Studio',
+    parentShort:'G',
+    parentFocus:'Main brand umbrella',
+    parentDescription:'The central identity connecting our creative, design, development, and future specialist branches.',
+    designBadge:'Branch 01',
+    designName:'Galaxy Design Studio',
+    designShort:'D',
+    designFocus:'Design and visual communication',
+    designDescription:'Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.',
+    techBadge:'Branch 02',
+    techName:'Galaxy Tech Studio',
+    techShort:'T',
+    techFocus:'Development and technical solutions',
+    techDescription:'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.',
+    avatar:'',
   },
 };
 const DEFAULTS = window.DEFAULTS;
@@ -116,7 +138,7 @@ function applyAdminBranding() {
 
   const safeLogo = escHtml(logoUrl);
   document.querySelectorAll('.auth-logo, .sidebar-logo-icon').forEach((el) => {
-    el.innerHTML = `<img src="${safeLogo}" alt="Galaxy Design Studio logo" loading="eager" decoding="async">`;
+    el.innerHTML = `<img src="${safeLogo}" alt="Galaxy Studio logo" loading="eager" decoding="async">`;
   });
 }
 
@@ -695,3 +717,4 @@ function sidebarHTML(activePage) {
 
 /* ─── Init ─── */
 document.addEventListener('DOMContentLoaded', async ()=>{ await setupAuth(); setupSidebar(); });
+

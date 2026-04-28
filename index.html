@@ -4,7 +4,7 @@
 <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galaxy Design Studio — Creative & Digital Advertisement</title>
+<title>Galaxy Studio — Creative & Digital Advertisement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -486,6 +486,128 @@
   /* ═══════════════════════════════
      SERVICES SECTION
   ═══════════════════════════════ */
+  #branches {
+    padding-top: 24px;
+  }
+
+  .home-branch-copy .section-sub {
+    max-width: 700px;
+  }
+
+  .home-branch-tree {
+    display: grid;
+    gap: 28px;
+  }
+
+  .home-branch-root,
+  .home-branch-leaf {
+    position: relative;
+    background:
+      radial-gradient(circle at top right, hsl(200 100% 60% / 0.12), transparent 34%),
+      linear-gradient(180deg, hsl(250 80% 65% / 0.08), transparent 55%),
+      var(--card-bg);
+    border: 1px solid hsl(250 80% 65% / 0.22);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: 0 20px 48px hsl(250 80% 65% / 0.08);
+  }
+
+  .home-branch-root {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .home-branch-lanes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    align-items: start;
+  }
+
+  .home-branch-mark {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, hsl(250,80%,62%), hsl(200,100%,58%));
+    box-shadow: 0 0 26px hsl(250 80% 65% / 0.25);
+  }
+
+  .home-branch-mark.child {
+    margin: 0 0 14px;
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+    border-radius: 18px;
+  }
+
+  .home-branch-mark.tech {
+    background: linear-gradient(135deg, hsl(220,80%,60%), hsl(185,100%,52%));
+  }
+
+  .home-branch-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    margin-bottom: 14px;
+    border-radius: 999px;
+    background: hsl(250 80% 65% / 0.08);
+    border: 1px solid hsl(250 80% 65% / 0.2);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .home-branch-root h3,
+  .home-branch-leaf h3 {
+    font-size: clamp(24px, 3vw, 34px);
+    letter-spacing: -0.04em;
+    margin-bottom: 10px;
+  }
+
+  .home-branch-root p,
+  .home-branch-leaf p {
+    color: var(--muted);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .home-branch-leaf strong {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--fg);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+  }
+
+  .home-branch-arrow {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--primary);
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 760px) {
+    .home-branch-lanes {
+      grid-template-columns: 1fr;
+    }
+
+    .home-branch-root,
+    .home-branch-leaf {
+      padding: 24px;
+    }
+  }
+
   #services {
     background: linear-gradient(180deg, transparent, hsl(260 20% 6% / 0.5), transparent);
   }
@@ -1125,7 +1247,7 @@
     </h1>
 
     <p class="hero-sub">
-      Galaxy Design Studio crafts stunning visuals — from logos and 3D animations
+      Galaxy Studio crafts stunning visuals — from logos and 3D animations
       to video editing and UI/UX design. Professional, modern, and <strong>very affordable.</strong>
     </p>
 
@@ -1162,6 +1284,44 @@
 </section>
 
 <!-- ═══ SERVICES ═══ -->
+<section id="branches">
+  <div class="container">
+    <div id="homeBranchFlow">
+      <div class="section-header animate-in home-branch-copy">
+        <span class="section-label">Studio Branches</span>
+        <h2 class="section-title">One parent studio. Two focused branches.</h2>
+        <p class="section-sub">Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.</p>
+      </div>
+      <div class="home-branch-tree animate-in">
+        <article class="home-branch-root">
+          <span class="home-branch-badge">Parent Studio</span>
+          <div class="home-branch-mark">G</div>
+          <h3>Galaxy Studio</h3>
+          <p>The central identity connecting our creative, design, development, and future specialist branches.</p>
+        </article>
+        <div class="home-branch-lanes">
+          <article class="home-branch-leaf">
+            <div class="home-branch-arrow" aria-hidden="true">↓</div>
+            <span class="home-branch-badge">Branch 01</span>
+            <div class="home-branch-mark child">D</div>
+            <h3>Galaxy Design Studio</h3>
+            <strong>Design and visual communication</strong>
+            <p>Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.</p>
+          </article>
+          <article class="home-branch-leaf">
+            <div class="home-branch-arrow" aria-hidden="true">↓</div>
+            <span class="home-branch-badge">Branch 02</span>
+            <div class="home-branch-mark child tech">T</div>
+            <h3>Galaxy Tech Studio</h3>
+            <strong>Development and technical solutions</strong>
+            <p>Websites, digital product development, technical builds, and architectural work that need structured planning and execution.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="services">
   <div class="container">
     <div class="section-header animate-in">
@@ -1292,7 +1452,7 @@
     <div class="testimonials-grid" style="visibility:hidden;">
       <div class="testimonial-card animate-in" style="--delay:0ms">
         <div class="quote-icon">"</div>
-        <p class="testimonial-text">Galaxy Design Studio transformed our brand completely. The logo they designed is clean, modern, and exactly what we envisioned. Absolutely worth every cedi!</p>
+        <p class="testimonial-text">Galaxy Studio transformed our brand completely. The logo they designed is clean, modern, and exactly what we envisioned. Absolutely worth every cedi!</p>
         <div class="stars">* * * * *</div>
         <div class="testimonial-author">
           <div class="avatar-circle">KA</div>
@@ -1344,7 +1504,7 @@
 
       <div class="testimonial-card animate-in" style="--delay:320ms">
         <div class="quote-icon">"</div>
-        <p class="testimonial-text">The 3D animation for our product launch was breathtaking. Galaxy Design Studio has a unique talent for bringing ideas to life visually. Top-tier work.</p>
+        <p class="testimonial-text">The 3D animation for our product launch was breathtaking. Galaxy Studio has a unique talent for bringing ideas to life visually. Top-tier work.</p>
         <div class="stars">* * * * *</div>
         <div class="testimonial-author">
           <div class="avatar-circle" style="background:linear-gradient(135deg,hsl(230,80%,45%),hsl(210,80%,50%));">EK</div>
@@ -1477,7 +1637,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 Galaxy Design Studio. All rights reserved.</p>
+      <p>&copy; 2026 Galaxy Studio. All rights reserved.</p>
       <p>In collaboration with <a href="#">Nova Tech</a></p>
     </div>
   </div>
@@ -1548,3 +1708,4 @@
 <script src="shared.js"></script>
 </body>
 </html>
+

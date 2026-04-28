@@ -25,7 +25,28 @@ alter table if exists public.settings
   add column if not exists partners_json jsonb default '[]'::jsonb;
 
 alter table if exists public.about
-  add column if not exists avatar_storage_path text;
+  add column if not exists avatar_storage_path text,
+  add column if not exists home_branch_label text,
+  add column if not exists home_branch_title text,
+  add column if not exists home_branch_intro text,
+  add column if not exists about_branch_label text,
+  add column if not exists about_branch_title text,
+  add column if not exists about_branch_intro text,
+  add column if not exists parent_badge text,
+  add column if not exists parent_name text,
+  add column if not exists parent_short text,
+  add column if not exists parent_focus text,
+  add column if not exists parent_description text,
+  add column if not exists design_badge text,
+  add column if not exists design_name text,
+  add column if not exists design_short text,
+  add column if not exists design_focus text,
+  add column if not exists design_description text,
+  add column if not exists tech_badge text,
+  add column if not exists tech_name text,
+  add column if not exists tech_short text,
+  add column if not exists tech_focus text,
+  add column if not exists tech_description text;
 
 alter table if exists public.messages
   add column if not exists phone text,
@@ -50,7 +71,28 @@ set
 
 update public.about
 set
-  avatar_storage_path = coalesce(avatar_storage_path, '');
+  avatar_storage_path = coalesce(avatar_storage_path, ''),
+  home_branch_label = coalesce(home_branch_label, 'Studio Branches'),
+  home_branch_title = coalesce(home_branch_title, 'One parent studio. Two focused branches.'),
+  home_branch_intro = coalesce(home_branch_intro, 'Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.'),
+  about_branch_label = coalesce(about_branch_label, 'Branch Structure'),
+  about_branch_title = coalesce(about_branch_title, 'The Galaxy Studio Tree'),
+  about_branch_intro = coalesce(about_branch_intro, 'Galaxy Studio is the parent brand. Under it, we are building focused branches so clients can clearly see where creative design work lives and where development and technical delivery live.'),
+  parent_badge = coalesce(parent_badge, 'Parent Studio'),
+  parent_name = coalesce(parent_name, 'Galaxy Studio'),
+  parent_short = coalesce(parent_short, 'G'),
+  parent_focus = coalesce(parent_focus, 'Main brand umbrella'),
+  parent_description = coalesce(parent_description, 'The central identity connecting our creative, design, development, and future specialist branches.'),
+  design_badge = coalesce(design_badge, 'Branch 01'),
+  design_name = coalesce(design_name, 'Galaxy Design Studio'),
+  design_short = coalesce(design_short, 'D'),
+  design_focus = coalesce(design_focus, 'Design and visual communication'),
+  design_description = coalesce(design_description, 'Graphic design, branding, logo systems, ads, video editing, motion work, 3D visuals, and creative campaign assets.'),
+  tech_badge = coalesce(tech_badge, 'Branch 02'),
+  tech_name = coalesce(tech_name, 'Galaxy Tech Studio'),
+  tech_short = coalesce(tech_short, 'T'),
+  tech_focus = coalesce(tech_focus, 'Development and technical solutions'),
+  tech_description = coalesce(tech_description, 'Websites, digital product development, technical builds, and architectural work that need structured planning and execution.');
 
 update public.messages
 set
