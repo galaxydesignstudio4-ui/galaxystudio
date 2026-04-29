@@ -4,7 +4,7 @@
 <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gallery — Galaxy Design Studio</title>
+<title>Gallery — Galaxy Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -389,7 +389,7 @@
   <div class="container" style="position:relative;z-index:2;">
     <div class="page-hero-label">Gallery</div>
     <h1 class="page-hero-title">Our <span class="gradient-text">Design Gallery</span></h1>
-    <p class="page-hero-sub">A showcase of creative work by Galaxy Design Studio — images, videos, and more.</p>
+    <p class="page-hero-sub">A showcase of creative work by Galaxy Studio — images, videos, and more.</p>
   </div>
 </div>
 
@@ -612,7 +612,7 @@
         <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Tema, Accra, Ghana</span></div>
       </div>
     </div>
-    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Studio. All rights reserved.</p><p>In collaboration with <a href="#">Nova Tech</a></p></div>
   </div>
 </footer>
 
@@ -757,7 +757,7 @@ function renderGallery(list) {
         <div class="recent-card" data-recent-id="${item.id}">
           <div class="recent-thumb">${media}</div>
           <div class="recent-meta">
-            <div class="recent-name">${escapeHtml(item.title || 'Untitled')}</div>
+            ${item.title ? `<div class="recent-name">${escapeHtml(item.title)}</div>` : ''}
             <div class="recent-kind">${label}</div>
           </div>
         </div>
@@ -787,12 +787,12 @@ function renderGallery(list) {
         </div>
         <div class="gallery-overlay">
           ${item.type === 'video' ? '<div class="play-btn">▶</div>' : `<span style="font-size:24px;">${item.type === 'link' ? '↗' : '🔍'}</span>`}
-          <span class="gallery-overlay-title">${escapeHtml(item.title || 'Untitled')}</span>
+          ${item.title ? `<span class="gallery-overlay-title">${escapeHtml(item.title)}</span>` : ''}
         </div>
-        <div class="gallery-item-info">
-          <div class="gallery-item-title">${escapeHtml(item.title || 'Untitled')}</div>
-          <div class="gallery-item-desc">${escapeHtml(item.desc || (premium ? 'Premium featured work showcased first.' : pinned ? 'Pinned to stay at the top of the gallery.' : ''))}</div>
-        </div>
+        ${(item.title || item.desc || premium || pinned) ? `<div class="gallery-item-info">
+          ${item.title ? `<div class="gallery-item-title">${escapeHtml(item.title)}</div>` : ''}
+          ${(item.desc || premium || pinned) ? `<div class="gallery-item-desc">${escapeHtml(item.desc || (premium ? 'Premium featured work showcased first.' : pinned ? 'Pinned to stay at the top of the gallery.' : ''))}</div>` : ''}
+        </div>` : ''}
       </div>
     `;
   }).join('');
@@ -839,3 +839,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+

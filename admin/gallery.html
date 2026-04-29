@@ -701,7 +701,7 @@ function renderGallery() {
           <button class="btn btn-danger btn-sm" onclick='delGal(${JSON.stringify(item.id)})'>🗑️</button>
         </div>
       </div>
-      ${(item.title || item.desc || accent) ? `<div class="g-footer"><div class="g-footer-title">${escHtml(item.title || 'Untitled')}</div>${(item.desc || accent) ? `<div class="g-footer-desc">${escHtml(item.desc || accent)}</div>` : ''}</div>` : ''}
+      ${(item.title || item.desc || accent) ? `<div class="g-footer">${item.title ? `<div class="g-footer-title">${escHtml(item.title)}</div>` : ''}${(item.desc || accent) ? `<div class="g-footer-desc">${escHtml(item.desc || accent)}</div>` : ''}</div>` : ''}
     </div>`;
   }).join('');
 }

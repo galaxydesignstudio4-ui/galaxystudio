@@ -116,10 +116,29 @@ const AUTH_EMAIL_KEY = 'galaxy_admin_user_email';
 const SYNC_ERROR_PREFIX = 'galaxy_sync_error_';
 const SYNC_PENDING_PREFIX = 'galaxy_sync_pending_';
 const UNSUPPORTED_COLUMN_CACHE = {};
+const NOTIFICATION_TTL_MS = 1000 * 60 * 60 * 12;
 
 function cloneValue(value) {
   if (value === null || value === undefined) return value;
   return JSON.parse(JSON.stringify(value));
+}
+
+function notificationExpiryFor(createdAt = '') {
+  const created = Date.parse(createdAt || '');
+  const base = Number.isFinite(created) ? created : Date.now();
+  return new Date(base + NOTIFICATION_TTL_MS).toISOString();
+}
+
+function isNotificationExpired(item = {}, now = Date.now()) {
+  const expires = Date.parse(item?.expiresAt || item?.expires_at || '');
+  if (Number.isFinite(expires)) return expires <= now;
+  const created = Date.parse(item?.createdAt || item?.created_at || '');
+  return Number.isFinite(created) && now - created >= NOTIFICATION_TTL_MS;
+}
+
+function pruneExpiredNotifications(list = []) {
+  const now = Date.now();
+  return (Array.isArray(list) ? list : []).filter((item) => !isNotificationExpired(item, now));
 }
 
 function splitMediaSourceMeta(value='') {
@@ -457,6 +476,7 @@ function fromRow(key, row) {
         audience: row.audience || 'both',
         source: row.source || 'system',
         createdAt: row.created_at || row.createdAt || '',
+        expiresAt: row.expires_at || row.expiresAt || notificationExpiryFor(row.created_at || row.createdAt),
       };
     case 'galaxy_settings':
       return {
@@ -594,6 +614,7 @@ function toRow(key, value) {
         audience: value.audience || 'both',
         source: value.source || 'system',
         created_at: value.createdAt || value.created_at || new Date().toISOString(),
+        expires_at: value.expiresAt || value.expires_at || notificationExpiryFor(value.createdAt || value.created_at),
       };
     case 'galaxy_settings':
       return {
@@ -655,7 +676,7 @@ function toRow(key, value) {
 
 function sortValue(key, value) {
   if (!Array.isArray(value)) return value;
-  const sorted = [...value];
+  const sorted = key === 'galaxy_notifications' ? pruneExpiredNotifications(value) : [...value];
   if (key === 'galaxy_services' || key === 'galaxy_team') {
     sorted.sort((a, b) => (a.order || 999) - (b.order || 999) || (a.id || 0) - (b.id || 0));
   } else if (key === 'galaxy_messages') {
@@ -1643,7 +1664,8 @@ async function saveContactMessage(message) {
 }
 
 function createSystemNotification(entry = {}) {
-  const list = getData('galaxy_notifications') || [];
+  const list = pruneExpiredNotifications(getData('galaxy_notifications') || []);
+  const createdAt = entry.createdAt || new Date().toISOString();
   const item = {
     id: nextId(list),
     title: String(entry.title || '').trim() || 'Update',
@@ -1654,7 +1676,8 @@ function createSystemNotification(entry = {}) {
       ? String(entry.audience || '').toLowerCase()
       : 'both',
     source: String(entry.source || 'system').trim() || 'system',
-    createdAt: entry.createdAt || new Date().toISOString(),
+    createdAt,
+    expiresAt: entry.expiresAt || notificationExpiryFor(createdAt),
   };
   const next = [item, ...list].slice(0, 80);
   setData('galaxy_notifications', next);
@@ -1663,7 +1686,7 @@ function createSystemNotification(entry = {}) {
 
 function getNotificationsForAudience(audience = 'public') {
   const target = String(audience || 'public').toLowerCase();
-  return (getData('galaxy_notifications') || [])
+  return pruneExpiredNotifications(getData('galaxy_notifications') || [])
     .filter((item) => item && item.active !== false)
     .filter((item) => {
       const scope = String(item.audience || 'both').toLowerCase();
@@ -1758,6 +1781,8 @@ window.deleteStoredMedia = deleteStoredMedia;
 window.saveContactMessage = saveContactMessage;
 window.createSystemNotification = createSystemNotification;
 window.getNotificationsForAudience = getNotificationsForAudience;
+window.pruneExpiredNotifications = pruneExpiredNotifications;
+window.NOTIFICATION_TTL_MS = NOTIFICATION_TTL_MS;
 window.recoverGalleryFromStorage = recoverGalleryFromStorage;
 window.recoverAboutAvatarFromStorage = recoverAboutAvatarFromStorage;
 window.recoverMediaFromStorageNow = recoverMediaFromStorageNow;

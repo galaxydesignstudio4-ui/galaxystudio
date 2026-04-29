@@ -4,7 +4,7 @@
 <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact — Galaxy Design Studio</title>
+<title>Contact — Galaxy Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -333,7 +333,7 @@
         <!-- QR Code -->
         <div class="qr-display">
           <div class="qr-code-box" id="qrBox"></div>
-          <p id="qrCaption">Scan to visit Galaxy Design Studio</p>
+          <p id="qrCaption">Scan to visit Galaxy Studio</p>
         </div>
       </div>
 
@@ -375,7 +375,7 @@
           <div class="info-card-icon">📘</div>
           <div>
             <div class="info-card-label">Facebook</div>
-            <div class="info-card-value"><a href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener" id="contactFacebookLink">Galaxy Design Studio</a></div>
+            <div class="info-card-value"><a href="https://web.facebook.com/profile.php?id=61562678010128" target="_blank" rel="noopener" id="contactFacebookLink">Galaxy Studio</a></div>
           </div>
         </div>
         <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;margin-top:4px;">
@@ -406,7 +406,7 @@
         <div class="footer-contact-item"><svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span id="footerLocationText">Tema, Accra, Ghana</span></div>
       </div>
     </div>
-    <div class="footer-bottom"><p>© 2026 Galaxy Design Studio. All rights reserved.</p><p>In collaboration with <a href="#" id="footerNovaLink">Nova Tech</a></p></div>
+    <div class="footer-bottom"><p>© 2026 Galaxy Studio. All rights reserved.</p><p>In collaboration with <a href="#" id="footerNovaLink">Nova Tech</a></p></div>
   </div>
 </footer>
 
@@ -458,7 +458,7 @@ function getGeneratedQrArt(targetUrl='') {
   const visualId = nextQrVisualId();
   return `
     <div class="qr-generated-wrap">
-      <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Design Studio QR code">
+      <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Studio QR code">
         <defs>
           <linearGradient id="${visualId}-frame" x1="4%" y1="8%" x2="96%" y2="92%">
             <stop offset="0%" stop-color="#7a5cff"/>
@@ -494,12 +494,12 @@ function getQrMarkup(imageUrl, logoUrl, emptyText='QR not set yet', options = {}
   const media = useGeneratedTheme
     ? getGeneratedQrArt(options.targetUrl)
     : imageUrl
-      ? `<img src="${imageUrl}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`
+      ? `<img src="${imageUrl}" alt="Galaxy Studio QR code" loading="eager" decoding="async">`
       : getQrPlaceholderMarkup(emptyText);
   return `
     <div class="qr-shell${useGeneratedTheme ? ' is-generated' : ''}">
       <div class="qr-art${useGeneratedTheme ? ' is-generated' : ''}">${media}</div>
-      <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Design Studio logo" loading="eager" decoding="async"></div>
+      <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Studio logo" loading="eager" decoding="async"></div>
     </div>
   `;
 }
@@ -513,7 +513,7 @@ function renderContactQr(rawQr, logo='') {
   const logoUrl = getQrLogoUrl(logo);
   if (qrImage) {
     qrBox.innerHTML = getQrMarkup(qrImage, logoUrl, 'QR not set', { mode: config.mode, targetUrl: config.targetUrl });
-    qrCaption.textContent = 'Scan to visit Galaxy Design Studio';
+    qrCaption.textContent = 'Scan to visit Galaxy Studio';
   } else {
     qrBox.innerHTML = getQrMarkup('', logoUrl, 'QR not set', { mode: config.mode, targetUrl: config.targetUrl });
     qrCaption.textContent = 'Set your QR code in the admin panel';
@@ -526,6 +526,29 @@ function normalizeExternalUrl(value='') {
   if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
   if (/^\/\//.test(raw)) return `https:${raw}`;
   return `https://${raw.replace(/^\/+/, '')}`;
+}
+
+function gmailComposeUrl(to='', subject='', body='') {
+  const params = new URLSearchParams({
+    view: 'cm',
+    fs: '1',
+    to: to || '',
+    su: subject || '',
+    body: body || ''
+  });
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
+function buildContactEmailBody(payload = {}) {
+  return [
+    `Name: ${payload.name || ''}`,
+    `Email: ${payload.email || ''}`,
+    `Phone: ${payload.phone || ''}`,
+    `Preferred contact: ${payload.preferredContact || ''}`,
+    `Service: ${payload.service || ''}`,
+    '',
+    payload.message || ''
+  ].join('\n');
 }
 
 async function applyContactSettings() {
@@ -552,14 +575,18 @@ async function applyContactSettings() {
   const waNumber = String(whatsapp || '').replace(/[^\d]/g, '');
 
   [
-    ['contactEmailLink', `mailto:${email}`, email],
-    ['footerEmailLink', `mailto:${email}`, email],
+    ['contactEmailLink', gmailComposeUrl(email, 'Project enquiry for Galaxy Studio', ''), email],
+    ['footerEmailLink', gmailComposeUrl(email, 'Project enquiry for Galaxy Studio', ''), email],
     ['contactPhoneLink', telHref ? `tel:${telHref}` : '#', phone],
     ['footerPhoneLink', telHref ? `tel:${telHref}` : '#', phone],
   ].forEach(([id, href, text]) => {
     const link = document.getElementById(id);
     if (!link) return;
     link.href = href;
+    if (String(href).startsWith('https://mail.google.com/')) {
+      link.target = '_blank';
+      link.rel = 'noopener';
+    }
     link.textContent = text;
   });
 
@@ -614,6 +641,13 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
     msgs.unshift(payload);
     localStorage.setItem('galaxy_messages', JSON.stringify(msgs));
   }
+  const settings = getData('galaxy_settings') || DEFAULTS.galaxy_settings || {};
+  const studioEmail = settings.email || DEFAULTS.galaxy_settings.email;
+  window.open(
+    gmailComposeUrl(studioEmail, `Galaxy Studio enquiry - ${payload.service || 'Project'}`, buildContactEmailBody(payload)),
+    '_blank',
+    'noopener'
+  );
   btn.disabled = false;
   btn.innerHTML = `✓ Message Sent!`;
   btn.style.background = 'hsl(145 60% 35%)';
@@ -627,3 +661,4 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
 </script>
 </body>
 </html>
+

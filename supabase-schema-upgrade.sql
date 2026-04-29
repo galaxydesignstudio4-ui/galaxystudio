@@ -59,7 +59,8 @@ alter table if exists public.messages
 alter table if exists public.notifications
   add column if not exists audience text default 'both',
   add column if not exists source text default 'system',
-  add column if not exists created_at timestamptz default timezone('utc', now());
+  add column if not exists created_at timestamptz default timezone('utc', now()),
+  add column if not exists expires_at timestamptz;
 
 -- Backfill newer fields from older data when possible.
 update public.gallery
@@ -116,7 +117,8 @@ update public.notifications
 set
   audience = coalesce(nullif(audience, ''), 'both'),
   source = coalesce(nullif(source, ''), 'system'),
-  created_at = coalesce(created_at, timezone('utc', now()));
+  created_at = coalesce(created_at, timezone('utc', now())),
+  expires_at = coalesce(expires_at, created_at + interval '12 hours');
 
 -- Ensure the single-row object tables still have a row the app can update.
 insert into public.settings (id)

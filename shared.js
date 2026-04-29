@@ -100,6 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
         background: hsl(250 80% 65% / 0.12);
         border: 1px solid hsl(250 80% 65% / 0.22);
       }
+      .nav-notify-clear {
+        border: 0;
+        background: transparent;
+        color: hsl(260 8% 68%);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+      .nav-notify-clear:hover,
+      .nav-notify-clear:focus-visible {
+        color: hsl(0 0% 96%);
+      }
       .nav-notify-list {
         display: flex;
         flex-direction: column;
@@ -567,6 +581,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return `https://${raw.replace(/^\/+/, '')}`;
   }
 
+  function gmailComposeUrl(to = '', subject = '', body = '') {
+    const params = new URLSearchParams({
+      view: 'cm',
+      fs: '1',
+      to: to || '',
+      su: subject || '',
+      body: body || ''
+    });
+    return `https://mail.google.com/mail/?${params.toString()}`;
+  }
+
   function escHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -592,7 +617,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function filterPublicNotifications(items = []) {
+    const hiddenAt = Number(localStorage.getItem('galaxy_notifications_cleared_at') || 0);
+    const ttl = Number(window.NOTIFICATION_TTL_MS || 1000 * 60 * 60 * 12);
     return (Array.isArray(items) ? items : [])
+      .filter((item) => {
+        const created = Date.parse(item?.createdAt || item?.created_at || '');
+        if (!Number.isFinite(created)) return true;
+        const expires = Date.parse(item?.expiresAt || item?.expires_at || '');
+        if (Number.isFinite(expires)) return expires > Date.now();
+        return Date.now() - created < ttl;
+      })
+      .filter((item) => {
+        const created = Date.parse(item?.createdAt || item?.created_at || '');
+        return !hiddenAt || (Number.isFinite(created) && created > hiddenAt);
+      })
       .filter((item) => ['both', 'public', ''].includes(String(item?.audience || 'both').toLowerCase()))
       .sort((a, b) => Date.parse(b?.createdAt || '') - Date.parse(a?.createdAt || ''))
       .slice(0, 6);
@@ -621,6 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="nav-notify-count">0 new</div>
           </div>
           <div class="nav-notify-list"></div>
+          <button class="nav-notify-clear" type="button" hidden>Clear all</button>
         </div>
       `;
       const getStartedBtn = navRight.querySelector('.btn');
@@ -663,10 +702,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const count = wrap.querySelector('.nav-notify-count');
     const dot = wrap.querySelector('.nav-notify-dot');
     const panel = wrap.querySelector('.nav-notify-panel');
+    const clearBtn = wrap.querySelector('.nav-notify-clear');
     const visibleItems = filterPublicNotifications(items);
 
     count.textContent = `${visibleItems.length} new`;
     dot.hidden = visibleItems.length === 0;
+    if (clearBtn) {
+      clearBtn.hidden = visibleItems.length === 0;
+      clearBtn.onclick = () => {
+        localStorage.setItem('galaxy_notifications_cleared_at', String(Date.now()));
+        initNavNotifications(items);
+      };
+    }
     if (!visibleItems.length) {
       list.innerHTML = `<div class="nav-notify-empty">No new updates yet.</div>`;
     } else {
@@ -913,7 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('footer a[href^="mailto:"]').forEach((el) => {
       const email = settings?.email || 'galaxydesignstudio4@gmail.com';
-      el.href = `mailto:${email}`;
+      el.href = gmailComposeUrl(email, 'Project enquiry for Galaxy Studio', '');
+      el.target = '_blank';
+      el.rel = 'noopener';
       el.textContent = email;
     });
     document.querySelectorAll('footer a[href^="tel:"]').forEach((el) => {
@@ -941,14 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = document.getElementById('homeUpdates');
     const grid = document.getElementById('homeUpdatesGrid');
     if (!section || !grid) return;
-    const visible = (Array.isArray(items) ? items : [])
-      .filter((item) => item && item.active !== false)
-      .filter((item) => {
-        const audience = String(item.audience || 'both').toLowerCase();
-        return audience === 'public' || audience === 'both';
-      })
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-      .slice(0, 6);
+    const visible = filterPublicNotifications((Array.isArray(items) ? items : []).filter((item) => item && item.active !== false));
     if (!visible.length) {
       section.style.display = 'none';
       grid.innerHTML = '';
