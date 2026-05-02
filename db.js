@@ -27,8 +27,9 @@ const BASE_DEFAULTS = {
     { id: 5, icon: 'animation3d', title: '3D Animation', desc: 'Breathtaking 3D visuals and animations that bring ideas to life.', order: 5 },
     { id: 6, icon: 'avatar', title: 'AdAvatar', desc: '3D animated Pixar-style avatar that talks and promotes your product.', order: 6, signature: true },
     { id: 7, icon: 'uiux', title: 'UI/UX Design', desc: 'User-centered interface design that creates intuitive digital experiences.', order: 7 },
-    { id: 8, icon: 'cad', title: 'CAD Design & 3D Modeling', desc: 'Precision-engineered technical drawings and 3D CAD models.', order: 8 },
-    { id: 9, icon: 'promotion', title: 'Digital Promotion Content', desc: 'All-round creative and digital services to promote your business.', order: 9 },
+    { id: 8, icon: 'web', title: 'Web Design & Development', desc: 'Custom websites for schools, brands, and small businesses built with clean modern front-end experiences.', order: 8 },
+    { id: 9, icon: 'cad', title: 'CAD Design & 3D Modeling', desc: 'Precision-engineered technical drawings and 3D CAD models.', order: 9 },
+    { id: 10, icon: 'promotion', title: 'Digital Promotion Content', desc: 'All-round creative and digital services to promote your business.', order: 10 },
   ],
   galaxy_portfolio: [
     
@@ -415,6 +416,7 @@ function fromRow(key, row) {
         desc: row.description || row.desc || '',
         category: row.category || '',
         client: row.client || '',
+        websiteUrl: row.website_url || row.websiteUrl || '',
         featured: Boolean(row.featured),
         premium: Boolean(row.premium),
         thumb: row.thumb_url || row.thumb || '',
@@ -553,6 +555,7 @@ function toRow(key, value) {
         description: value.desc || value.description || '',
         category: value.category || '',
         client: value.client || '',
+        website_url: value.websiteUrl || value.website_url || '',
         featured: Boolean(value.featured),
         premium: Boolean(value.premium),
         thumb_url: value.thumb || value.thumb_url || '',

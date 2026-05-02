@@ -691,6 +691,16 @@
     margin-bottom: 48px;
   }
 
+  .signature-services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+
+  .signature-service-card {
+    height: 100%;
+  }
+
   .adavatar-inner {
     background: var(--card-bg);
     border-radius: calc(var(--radius-md) - 2px);
@@ -749,6 +759,12 @@
   }
 
   .adavatar-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .signature-services-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 
   /* ── Service Cards Grid ── */
   .services-grid {
@@ -1432,10 +1448,7 @@
           </p>
           <div class="adavatar-btns">
             <a class="btn btn-gold" href="contact.html">Get Your AdAvatar &rarr;</a>
-            <a class="btn btn-gold-outline" href="adavatar.html">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              View Samples &amp; Gallery
-            </a>
+            <a class="btn btn-gold" style="background: linear-gradient(135deg, #ffd700, #f59e0b); color: #fff; font-weight: 700; border-color: #ffd700;" href="contact.html">Premium Signature Service</a>
           </div>
         </div>
       </div>

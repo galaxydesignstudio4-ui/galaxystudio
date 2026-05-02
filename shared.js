@@ -824,6 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
       animation3d: ['3D Product Renders', 'Animated Ads', 'Visual Effects', 'Presentation Visuals'],
       avatar: ['Talking Avatar Ads', 'Product Promotion', 'Social Media Ready', 'Premium Storytelling'],
       uiux: ['Web Interfaces', 'App Design', 'User Flows', 'Conversion-Focused Layouts'],
+      web: ['School Websites', 'Business Websites', 'Responsive Front-End', 'Launch-Ready Delivery'],
       cad: ['2D Drafting', '3D Modeling', 'Technical Drawings', 'Production-Ready Files'],
       promotion: ['Social Media Content', 'Digital Marketing Assets', 'Creative Campaign Support', 'Brand Promotion'],
     };
@@ -836,6 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
       videos: 'Videos',
       '3d': '3D Animation',
       uiux: 'UI/UX Design',
+      website: 'Web Development',
       graphic: 'Graphic Design',
       cad: 'CAD Design',
       branding: 'Branding',
@@ -851,6 +853,7 @@ document.addEventListener('DOMContentLoaded', () => {
       videos: 'video',
       '3d': 'animation3d',
       uiux: 'uiux',
+      website: 'web',
       graphic: 'graphic',
       cad: 'cad',
       branding: 'promotion',
@@ -1004,6 +1007,17 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>${escHtml(item.message || '')}</p>
       </article>
     `).join('');
+    if (false) {
+      const service = services.slice().sort((a, b) => (a.order || 999) - (b.order || 999)).filter((item) => item.signature)[index];
+      if (!service) return;
+      const iconName = normalizeServiceIconName(service.icon);
+      const btnWrap = row.querySelector('.btn')?.parentElement;
+      if (!btnWrap) return;
+      btnWrap.innerHTML = `
+        <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">${iconName === 'avatar' ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
+        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a>' : ''}
+      `;
+    }
   }
 
   function normalizeBranchContent(about = {}, settings = {}) {
@@ -1175,6 +1189,31 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     }
+    const signatureServices = services.filter((item) => item.signature);
+    if (adavatarCard && signatureServices.length) {
+      const cards = signatureServices.map((service) => {
+        const iconName = normalizeServiceIconName(service.icon);
+        const isAdavatarService = iconName === 'avatar';
+        const fallbackDesc = isAdavatarService
+          ? 'Our signature service - a 3D animated Pixar-style avatar that talks and promotes your product or business.'
+          : 'Premium service crafted for clients who want top-tier creative delivery.';
+        return `
+          <article class="adavatar-inner signature-service-card">
+            <div class="adavatar-icon-wrap">${renderIcon(service.icon || 'avatar')}</div>
+            <div class="adavatar-body">
+              <div class="adavatar-badge">${isAdavatarService ? 'New · Premium Service' : 'Signature · Premium Service'}</div>
+              <h2 class="adavatar-title gold-gradient-text">${escHtml(service.title || 'Signature Service')}</h2>
+              <p class="adavatar-desc">${escHtml(service.desc || fallbackDesc)}</p>
+              <div class="adavatar-btns">
+                <a class="btn btn-gold" href="contact.html">${isAdavatarService ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
+                ${isAdavatarService ? '<a class="btn btn-gold-outline" href="adavatar.html">View Samples & Gallery</a>' : ''}
+              </div>
+            </div>
+          </article>
+        `;
+      });
+      adavatarCard.innerHTML = `<div class="signature-services-grid">${cards.join('')}</div>`;
+    }
 
     const servicesGrid = document.querySelector('#services .services-grid');
     if (servicesGrid && services.length) {
@@ -1186,7 +1225,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ['hsl(230 80% 65% / 0.12)', 'hsl(230,80%,80%)'],
         ['hsl(270 70% 65% / 0.12)', 'hsl(270,70%,80%)'],
       ];
-      const display = services.filter((item) => item.id !== adavatar?.id).slice(0, 6);
+      const signatureIds = new Set(signatureServices.map((item) => item.id));
+      const display = services.filter((item) => !signatureIds.has(item.id) && item.id !== adavatar?.id).slice(0, 6);
       servicesGrid.innerHTML = display.map((service, index) => {
         const [bg, color] = palette[index % palette.length];
         return `
@@ -1285,6 +1325,20 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `).join('');
+    listEl.querySelectorAll('.service-row.adavatar-row').forEach((row, index) => {
+      const service = services
+        .slice()
+        .sort((a, b) => (a.order || 999) - (b.order || 999))
+        .filter((item) => item.signature)[index];
+      if (!service) return;
+      const iconName = normalizeServiceIconName(service.icon);
+      const btnWrap = row.querySelector('.btn')?.parentElement;
+      if (!btnWrap) return;
+      btnWrap.innerHTML = `
+        <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">${iconName === 'avatar' ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
+        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a>' : ''}
+      `;
+    });
   }
 
   function renderAboutPage(about) {

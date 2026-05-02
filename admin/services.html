@@ -120,7 +120,7 @@ function openSvcModal(s=null) {
   const isEdit = !!s;
   const currentIcon = s?.icon || '';
   let selVal = '⚙️';
-  if(['graphic','ad','logo','video','animation3d','avatar','uiux','cad','promotion'].includes(currentIcon)) { selVal = currentIcon; }
+  if(['graphic','ad','logo','video','animation3d','avatar','uiux','web','cad','promotion'].includes(currentIcon)) { selVal = currentIcon; }
   else if(currentIcon === '🎨') selVal = 'graphic';
   else if(currentIcon === '📣') selVal = 'ad';
   else if(currentIcon === '🏷️') selVal = 'logo';
@@ -131,6 +131,7 @@ function openSvcModal(s=null) {
   else if(currentIcon.includes('circle cx="12" cy="8" r="4"')) selVal = 'avatar';
   else if(currentIcon.includes('M2 3h6a4')) selVal = 'cad';
   else if(currentIcon.includes('rect x="2" y="3"')) selVal = 'uiux';
+  else if(currentIcon.includes('circle cx="12" cy="12" r="9"')) selVal = 'web';
   else if(currentIcon.includes('m3 11 19-9')) selVal = 'promotion';
 
   const ov = openModal(`<div class="modal">
@@ -162,6 +163,14 @@ function openSvcModal(s=null) {
       <button class="btn btn-primary" id="saveBtn">Save Service</button>
     </div>
   </div>`);
+  const iconSelect = ov.querySelector('#fIcon');
+  if (iconSelect && !iconSelect.querySelector('option[value="web"]')) {
+    const webOption = document.createElement('option');
+    webOption.value = 'web';
+    webOption.textContent = 'Web Design & Development';
+    iconSelect.insertBefore(webOption, iconSelect.querySelector('option[value="cad"]'));
+    if (selVal === 'web') iconSelect.value = 'web';
+  }
   ov.querySelector('#cancelBtn').onclick = () => closeModal(ov);
   ov.querySelector('#saveBtn').onclick = () => {
     const title = ov.querySelector('#fTitle').value.trim();
