@@ -1813,6 +1813,16 @@
     }
   });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const branchFlow = document.getElementById('homeBranchFlow');
+  if (branchFlow) branchFlow.innerHTML = '';
+  const premiumCard = document.querySelector('#services .adavatar-card');
+  if (premiumCard) premiumCard.innerHTML = '';
+  const servicesGrid = document.querySelector('#services .services-grid');
+  if (servicesGrid) servicesGrid.innerHTML = '';
+});
+</script>
 <script src="db.js"></script>
 <script src="icons.js"></script>
 <script src="shared.js"></script>
