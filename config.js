@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   GALAXY DESIGN STUDIO — Configuration
+   Galaxy Studio — Configuration
    ───────────────────────────────────────────────────────────────
    SETUP INSTRUCTIONS:
    ─────────────────────────────────────────────────────────────
@@ -52,6 +52,37 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
     document.documentElement.classList.add('is-auth');
 }
 
+// Normalize older saved branding so the parent studio name stays consistent.
+(() => {
+    try {
+        const rawSettings = localStorage.getItem('galaxy_settings');
+        if (rawSettings) {
+            const settings = JSON.parse(rawSettings) || {};
+            let changed = false;
+            if (settings.studioName === 'Galaxy Design Studio') {
+                settings.studioName = 'Galaxy Studio';
+                changed = true;
+            }
+            if (settings.tagline === 'Creative & Digital Advertisement Studio') {
+                settings.tagline = 'Creative, Design & Development Studio';
+                changed = true;
+            }
+            if (changed) localStorage.setItem('galaxy_settings', JSON.stringify(settings));
+        }
+
+        const rawAbout = localStorage.getItem('galaxy_about');
+        if (rawAbout) {
+            const about = JSON.parse(rawAbout) || {};
+            let changed = false;
+            if (about.role === 'Owner & Creative Director · Galaxy Design Studio') {
+                about.role = 'Owner & Creative Director · Galaxy Studio';
+                changed = true;
+            }
+            if (changed) localStorage.setItem('galaxy_about', JSON.stringify(about));
+        }
+    } catch {}
+})();
+
 // Always prioritize the studio logo for browser/tab icons.
 (() => {
     let bootSettings = {};
@@ -84,7 +115,7 @@ if (!window.location.pathname.includes('/admin/')) {
         bootSettings = JSON.parse(localStorage.getItem('galaxy_settings') || '{}') || {};
     } catch {}
 
-    const studioName = bootSettings.studioName || 'Galaxy Design Studio';
+    const studioName = bootSettings.studioName || 'Galaxy Studio';
     const rawLogoUrl = bootSettings.logo || 'logo-512.png';
     const logoUrl = window.__resolveAssetUrl__(rawLogoUrl === 'logo.png' ? 'logo-512.png' : rawLogoUrl);
     window.__GDS_BOOT_SETTINGS__ = { studioName, logo: logoUrl };
@@ -137,7 +168,7 @@ window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYj
 
 // ── App settings ──────────────────────────────────────────────
 window.__APP_VERSION__ = '1.0.0';
-window.__SITE_NAME__   = 'Galaxy Design Studio';
+window.__SITE_NAME__   = 'Galaxy Studio';
 
 window.__PWA_THEME_COLOR__ = '#12091d';
 
@@ -398,3 +429,4 @@ window.__GDS_SMART_TITLE__ = window.__GDS_SMART_TITLE__ || null;
  *  Falls back to base64 data URL if Supabase is not configured.
  * ─────────────────────────────────────────────────────────────
  */
+

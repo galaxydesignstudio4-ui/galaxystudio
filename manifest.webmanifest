@@ -1,7 +1,7 @@
 {
-  "name": "Galaxy Design Studio",
+  "name": "Galaxy Studio",
   "short_name": "Galaxy",
-  "description": "Galaxy Design Studio creative portfolio, services, gallery, and admin dashboard.",
+  "description": "Galaxy Studio creative portfolio, services, gallery, and admin dashboard.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -23,3 +23,4 @@
     }
   ]
 }
+

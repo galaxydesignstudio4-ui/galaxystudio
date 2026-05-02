@@ -52,7 +52,7 @@
   <div class="auth-card">
     <div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
     <h2 class="auth-title">Admin Access</h2>
-    <p class="auth-sub">Enter your password to manage Galaxy Design Studio.</p>
+    <p class="auth-sub">Enter your password to manage Galaxy Studio.</p>
     <input class="auth-input" type="password" id="authPassword" placeholder="••••••••">
     <button class="auth-btn" id="authBtn">Enter Admin Panel →</button>
     <p class="auth-error" id="authError">Incorrect password. Please try again.</p>
@@ -466,7 +466,7 @@ function getGeneratedQrArt(targetUrl='') {
   const visualId = nextQrVisualId();
   return `
     <div class="qr-generated-wrap">
-      <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Design Studio QR code">
+      <svg class="qr-generated-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Galaxy Studio QR code">
         <defs>
           <linearGradient id="${visualId}-frame" x1="4%" y1="8%" x2="96%" y2="92%">
             <stop offset="0%" stop-color="#7a5cff"/>
@@ -502,12 +502,12 @@ function getQrMarkup(imageUrl, logoUrl, options = {}) {
   const media = useGeneratedTheme
     ? getGeneratedQrArt(options.targetUrl)
     : imageUrl
-      ? `<img src="${imageUrl}" alt="Galaxy Design Studio QR code" loading="eager" decoding="async">`
+      ? `<img src="${imageUrl}" alt="Galaxy Studio QR code" loading="eager" decoding="async">`
       : getQrPlaceholderMarkup();
   return `
     <div class="qr-shell${useGeneratedTheme ? ' is-generated' : ''}">
       <div class="qr-art${useGeneratedTheme ? ' is-generated' : ''}">${media}</div>
-      <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Design Studio logo" loading="eager" decoding="async"></div>
+      <div class="qr-logo-badge"><img src="${logoUrl}" alt="Galaxy Studio logo" loading="eager" decoding="async"></div>
     </div>
   `;
 }
@@ -832,3 +832,4 @@ function debounceQR() {
 </script>
 </body>
 </html>
+

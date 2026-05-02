@@ -4,7 +4,7 @@
 <script src="config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio — Galaxy Design Studio</title>
+<title>Portfolio — Galaxy Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -98,6 +98,16 @@
 
 .project-info { padding: 18px; }
 .project-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: #fcd34d;
+  font-size: 13px;
+  font-weight: 600;
+}
+.project-link:hover { color: #fde68a; }
 
 .no-results {
   grid-column: 1/-1;
@@ -152,6 +162,7 @@
       <button class="filter-btn" data-filter="branding">Branding</button>
       <button class="filter-btn" data-filter="adavatar">AdAvatar</button>
       <button class="filter-btn" data-filter="ad">Advertisement</button>
+      <button class="filter-btn" data-filter="website">Website</button>
     </div>
 
     <!-- Portfolio Grid -->
@@ -166,6 +177,29 @@
         <div class="project-info">
           <h3>AdAvatar — Brand Promo</h3>
           <span class="category-badge" style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);">AdAvatar</span>
+        </div>
+      </div>
+
+      <!-- Web Development Section Example -->
+      <div class="project-card animate-in" data-category="webdev" style="--delay:60ms">
+        <div class="project-thumb">
+          <img src="https://placehold.co/400x300/222/fff?text=Website+Preview" alt="School Website Preview">
+          <div class="project-overlay"><a href="https://your-school-website.com" target="_blank" style="color:#fff;text-decoration:underline;font-weight:600;">View Website</a></div>
+        </div>
+        <div class="project-info">
+          <h3>School Website Project</h3>
+          <span class="category-badge" style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);">Web Development</span>
+        </div>
+      </div>
+
+      <div class="project-card animate-in" data-category="webdev" style="--delay:120ms">
+        <div class="project-thumb">
+          <img src="https://placehold.co/400x300/222/fff?text=Business+Site" alt="Business Website Preview">
+          <div class="project-overlay"><a href="https://your-business-website.com" target="_blank" style="color:#fff;text-decoration:underline;font-weight:600;">View Website</a></div>
+        </div>
+        <div class="project-info">
+          <h3>Business Website Project</h3>
+          <span class="category-badge" style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);">Web Development</span>
         </div>
       </div>
 
@@ -330,7 +364,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 Galaxy Design Studio. All rights reserved.</p>
+      <p>© 2026 Galaxy Studio. All rights reserved.</p>
       <p>In collaboration with <a href="#">Nova Tech</a></p>
     </div>
   </div>
@@ -342,13 +376,25 @@
 <script src="icons.js"></script>
 <script src="shared.js"></script>
 <script>
-const CAT_MAP = { logos:'Logos & Branding', videos:'Videos', '3d':'3D Animation', uiux:'UI/UX Design', graphic:'Graphic Design', cad:'CAD Design', branding:'Branding', adavatar:'AdAvatar', ad:'Advertisement' };
-const CATEGORY_ICONS = { logos:'🏷️', videos:'🎬', '3d':'📦', uiux:'🖥️', graphic:'🖼️', cad:'📐', branding:'✨', adavatar:'👤', ad:'📣' };
+const CAT_MAP = { logos:'Logos & Branding', videos:'Videos', '3d':'3D Animation', uiux:'UI/UX Design', graphic:'Graphic Design', cad:'CAD Design', branding:'Branding', adavatar:'AdAvatar', ad:'Advertisement', webdev:'Web Development' };
+const CATEGORY_ICONS = { logos:'🏷️', videos:'🎬', '3d':'📦', uiux:'🖥️', graphic:'🖼️', cad:'📐', branding:'✨', adavatar:'👤', ad:'📣', webdev:'🌐' };
 let activeFilter = 'all';
 let portfolioItems = [];
+CAT_MAP.website = 'Website';
+CATEGORY_ICONS.website = CATEGORY_ICONS.webdev || CATEGORY_ICONS.website || 'Website';
+if (!CATEGORY_ICONS.website) CATEGORY_ICONS.website = CATEGORY_ICONS.webdev || 'Website';
+CATEGORY_ICONS.website = CATEGORY_ICONS.webdev || 'ðŸŒ';
 
 function escapeHtml(value) {
   return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function normalizePortfolioItem(project = {}) {
+  return {
+    ...project,
+    category: project.category === 'webdev' ? 'website' : (project.category || ''),
+    websiteUrl: project.websiteUrl || project.website_url || '',
+  };
 }
 
 function renderPortfolio() {
@@ -374,6 +420,7 @@ function renderPortfolio() {
       <div class="project-info">
         <h3>${escapeHtml(project.title || 'Untitled')}</h3>
         <span class="category-badge"${project.category === 'adavatar' ? ' style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);"' : ''}>${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span>
+        ${project.category === 'website' && project.websiteUrl ? `<a class="project-link" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a>` : ''}
       </div>
     </div>
   `).join('');
@@ -418,6 +465,7 @@ function openProjectLightbox(project) {
         <div style="margin-bottom:12px;"><span class="category-badge">${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span></div>
         <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:8px;">${escapeHtml(project.desc || 'No description yet.')}</p>
         <p style="font-size:13px;color:hsl(260,5%,45%);">Client: ${escapeHtml(project.client || 'Not specified')}</p>
+        ${project.category === 'website' && project.websiteUrl ? `<div style="margin-top:16px;"><a class="btn btn-primary" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a></div>` : ''}
       </div>
     </div>
   `;
@@ -450,18 +498,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const grid = document.getElementById('portfolioGrid');
   grid.addEventListener('click', event => {
+    if (event.target.closest('.project-link')) return;
     const card = event.target.closest('.project-card');
     if (!card) return;
     const project = portfolioItems.find(item => String(item.id) === card.dataset.id);
     if (project) openProjectLightbox(project);
   });
 
-  portfolioItems = getData('galaxy_portfolio') || [];
+  portfolioItems = (getData('galaxy_portfolio') || []).map(normalizePortfolioItem);
   if (typeof window.loadFromCloud === 'function') {
     try {
       const cloudItems = await window.loadFromCloud('galaxy_portfolio');
       if (Array.isArray(cloudItems)) {
-        portfolioItems = cloudItems;
+        portfolioItems = cloudItems.map(normalizePortfolioItem);
       }
     } catch (error) {
       console.warn('[Portfolio] Cloud sync failed:', error.message);
@@ -472,3 +521,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
+

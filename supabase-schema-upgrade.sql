@@ -12,6 +12,9 @@ alter table if exists public.gallery
   add column if not exists created_at timestamptz default timezone('utc', now()),
   add column if not exists title_source text default 'manual';
 
+alter table if exists public.portfolio
+  add column if not exists website_url text;
+
 alter table if exists public.adavatar
   add column if not exists thumb_url text,
   add column if not exists storage_path text,
