@@ -177,7 +177,7 @@ window.__REDIS_URL__   = 'https://adequate-seahorse-103818.upstash.io';
 window.__REDIS_TOKEN__ = 'gQAAAAAAAZWKAAIocDE4ODA2NWUyMTNjODY0NTdjYjQwNGY0NzliYjBjZmI2OXAxMTAzODE4'; 
 
 // ── App settings ──────────────────────────────────────────────
-window.__APP_VERSION__ = '1.0.0';
+window.__APP_VERSION__ = '1.0.1';
 window.__SITE_NAME__   = 'Galaxy Studio';
 
 window.__PWA_THEME_COLOR__ = '#12091d';
@@ -264,8 +264,11 @@ window.__PWA_THEME_COLOR__ = '#12091d';
     const registerServiceWorker = async () => {
         if (!('serviceWorker' in navigator) || window.location.protocol === 'file:') return;
         try {
-            const swUrl = window.__resolveAssetUrl__('sw.js');
-            await navigator.serviceWorker.register(swUrl);
+            const swUrl = `${window.__resolveAssetUrl__('sw.js')}?v=${encodeURIComponent(window.__APP_VERSION__ || '1.0.1')}`;
+            const registration = await navigator.serviceWorker.register(swUrl);
+            if (typeof registration.update === 'function') {
+                registration.update().catch(() => {});
+            }
         } catch (error) {
             console.warn('[PWA] Service worker registration failed:', error?.message || error);
         }

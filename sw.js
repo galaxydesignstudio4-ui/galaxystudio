@@ -1,4 +1,4 @@
-const CACHE_NAME = 'galaxy-pwa-v2';
+const CACHE_NAME = 'galaxy-pwa-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -31,6 +31,17 @@ const APP_SHELL = [
   './admin/admin.js',
   './admin/admin.css'
 ];
+
+function isCoreAsset(url) {
+  const path = url.pathname.toLowerCase();
+  return (
+    path.endsWith('.html') ||
+    path.endsWith('.js') ||
+    path.endsWith('.css') ||
+    path.endsWith('/admin/') ||
+    path.includes('/admin/')
+  );
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -67,6 +78,21 @@ self.addEventListener('fetch', (event) => {
           const cached = await caches.match(request);
           return cached || caches.match('./index.html');
         })
+    );
+    return;
+  }
+
+  if (isCoreAsset(url)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
