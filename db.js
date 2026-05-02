@@ -320,6 +320,30 @@ function mergeObjectWithLocalFallback(localValue, cloudValue) {
   return merged;
 }
 
+function mergeCollectionWithLocalFallback(localValue, cloudValue, key = '') {
+  const localList = Array.isArray(localValue) ? localValue : [];
+  const cloudList = Array.isArray(cloudValue) ? cloudValue : [];
+  if (!localList.length) return sortValue(key, cloudList);
+  if (!cloudList.length) return sortValue(key, localList);
+
+  const merged = [...cloudList];
+  const seenIds = new Set(
+    cloudList
+      .map((item) => Number(item?.id))
+      .filter((id) => Number.isFinite(id))
+  );
+
+  localList.forEach((item) => {
+    const id = Number(item?.id);
+    if (Number.isFinite(id) && !seenIds.has(id)) {
+      merged.push(item);
+      seenIds.add(id);
+    }
+  });
+
+  return sortValue(key, merged);
+}
+
 function syncErrorKey(key) {
   return `${SYNC_ERROR_PREFIX}${key}`;
 }
@@ -1623,9 +1647,12 @@ function initDefaults() {
 async function loadFromCloud(key) {
   const localValue = lsGet(key);
   const cloudValue = await GalaxyDB.getAll(key, { forceCloud: true });
+  const shouldKeepLocalCollectionFallback = !OBJECT_KEYS.has(key) && (hasSyncPending(key) || hasSyncError(key));
   const nextValue = OBJECT_KEYS.has(key)
     ? mergeObjectWithLocalFallback(localValue, cloudValue)
-    : cloudValue;
+    : shouldKeepLocalCollectionFallback
+      ? mergeCollectionWithLocalFallback(localValue, cloudValue, key)
+      : cloudValue;
   lsSet(key, nextValue);
   return nextValue;
 }

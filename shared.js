@@ -616,9 +616,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  function filterPublicNotifications(items = []) {
+  function filterPublicNotifications(items = [], options = {}) {
     const hiddenAt = Number(localStorage.getItem('galaxy_notifications_cleared_at') || 0);
     const ttl = Number(window.NOTIFICATION_TTL_MS || 1000 * 60 * 60 * 12);
+    const respectClearedAt = options.respectClearedAt !== false;
     return (Array.isArray(items) ? items : [])
       .filter((item) => {
         const created = Date.parse(item?.createdAt || item?.created_at || '');
@@ -628,6 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Date.now() - created < ttl;
       })
       .filter((item) => {
+        if (!respectClearedAt) return true;
         const created = Date.parse(item?.createdAt || item?.created_at || '');
         return !hiddenAt || (Number.isFinite(created) && created > hiddenAt);
       })
@@ -993,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = document.getElementById('homeUpdates');
     const grid = document.getElementById('homeUpdatesGrid');
     if (!section || !grid) return;
-    const visible = filterPublicNotifications((Array.isArray(items) ? items : []).filter((item) => item && item.active !== false));
+    const visible = filterPublicNotifications((Array.isArray(items) ? items : []).filter((item) => item && item.active !== false), { respectClearedAt: false });
     if (!visible.length) {
       section.style.display = 'none';
       grid.innerHTML = '';

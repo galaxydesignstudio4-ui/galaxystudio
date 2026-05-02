@@ -74,7 +74,8 @@ async function syncNotificationsFromCloud(){
 
 function renderNotifs(){
   let list=typeof window.pruneExpiredNotifications==='function'?window.pruneExpiredNotifications(getData('galaxy_notifications')||[]):(getData('galaxy_notifications')||[]);
-  if(list.length !== (getData('galaxy_notifications')||[]).length) setData('galaxy_notifications',list);
+  if(list.length !== (getData('galaxy_notifications')||[]).length && typeof window.saveDataNow === 'function') window.saveDataNow('galaxy_notifications',list).catch(()=>{});
+  else if(list.length !== (getData('galaxy_notifications')||[]).length) setData('galaxy_notifications',list);
   document.getElementById('nSub').textContent=`${list.length} notification${list.length!==1?'s':''}`;
   const clearBtn=document.getElementById('clearNotifsBtn');
   if(clearBtn) clearBtn.disabled=!list.length;
@@ -150,7 +151,9 @@ function openNotifModal(n=null){
       const ttl=Number(window.NOTIFICATION_TTL_MS||1000*60*60*12);
       const obj={id:isEdit?n.id:nextId(list),title,message:msg,type:ov.querySelector('#nType').value,audience:ov.querySelector('#nAudience').value,source:n?.source||'manual',createdAt,expiresAt:n?.expiresAt||new Date(Date.parse(createdAt)+ttl).toISOString(),active:ov.querySelector('#nActive').checked};
       if(isEdit){const i=list.findIndex(x=>x.id===n.id);if(i>-1)list[i]=obj;}else list.push(obj);
-      setData('galaxy_notifications',list);closeModal(ov);renderNotifs();
+      if (typeof window.saveDataNow === 'function') await window.saveDataNow('galaxy_notifications',list);
+      else setData('galaxy_notifications',list);
+      closeModal(ov);renderNotifs();
       showToast(isEdit?'Notification updated!':'Notification added!');
     } catch (error) {
       showToast(`Could not save notification: ${error?.message || 'Save failed.'}`,'error');
@@ -166,7 +169,8 @@ window.toggleNotif=async (id,active)=>{
     const i=list.findIndex(x=>x.id===id);
     if(i>-1){
       list[i].active=active;
-      setData('galaxy_notifications',list);
+      if (typeof window.saveDataNow === 'function') await window.saveDataNow('galaxy_notifications',list);
+      else setData('galaxy_notifications',list);
       renderNotifs();
     }
   } catch (error) {
@@ -177,7 +181,9 @@ window.toggleNotif=async (id,active)=>{
 window.editNotif=id=>openNotifModal((getData('galaxy_notifications')||[]).find(x=>x.id===id));
 window.delNotif=id=>confirmDelete('Delete this notification?',async ()=>{
   try {
-    setData('galaxy_notifications',(getData('galaxy_notifications')||[]).filter(x=>x.id!==id));
+    const next = (getData('galaxy_notifications')||[]).filter(x=>x.id!==id);
+    if (typeof window.saveDataNow === 'function') await window.saveDataNow('galaxy_notifications',next);
+    else setData('galaxy_notifications',next);
     renderNotifs();showToast('Deleted.');
   } catch (error) {
     showToast(`Could not delete notification: ${error?.message || 'Delete failed.'}`,'error');
