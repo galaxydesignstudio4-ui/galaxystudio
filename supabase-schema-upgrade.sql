@@ -29,6 +29,7 @@ alter table if exists public.settings
 
 alter table if exists public.about
   add column if not exists avatar_storage_path text,
+  add column if not exists show_home_branches boolean default true,
   add column if not exists home_branch_label text,
   add column if not exists home_branch_title text,
   add column if not exists home_branch_intro text,

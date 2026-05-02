@@ -687,14 +687,26 @@
     padding: 2px;
     background: linear-gradient(135deg, #f59e0b, #fcd34d, #d97706, #fbbf24, #f59e0b);
     background-size: 300% 300%;
-    animation: shimmer 4s ease infinite;
+    animation: shimmer 8s ease infinite;
     margin-bottom: 48px;
   }
 
   .signature-services-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2px;
+    gap: 18px;
+  }
+
+  .adavatar-card.is-multi-signature {
+    padding: 0;
+    background: transparent;
+    animation: none;
+  }
+
+  .signature-service-shell {
+    padding: 2px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, rgba(245,158,11,0.95), rgba(252,211,77,0.92), rgba(217,119,6,0.95));
   }
 
   .signature-service-card {
@@ -921,6 +933,16 @@
     background: hsl(250 80% 65% / 0.12);
     color: var(--primary);
     border: 1px solid hsl(250 80% 65% / 0.25);
+  }
+
+  .project-link-inline {
+    display: inline-flex;
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fcd34d;
   }
 
   /* ═══════════════════════════════
@@ -1446,10 +1468,6 @@
             Our signature service — a 3D animated Pixar-style avatar that talks and promotes your product or business.
             Perfect for social media ads, brand promotion, and digital marketing campaigns.
           </p>
-          <div class="adavatar-btns">
-            <a class="btn btn-gold" href="contact.html">Get Your AdAvatar &rarr;</a>
-            <a class="btn btn-gold" style="background: linear-gradient(135deg, #ffd700, #f59e0b); color: #fff; font-weight: 700; border-color: #ffd700;" href="contact.html">Premium Signature Service</a>
-          </div>
         </div>
       </div>
     </div>

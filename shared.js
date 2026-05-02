@@ -1026,6 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ? (typeof window.__resolveAssetUrl__ === 'function' ? window.__resolveAssetUrl__(rawParentLogo) : rawParentLogo)
       : '';
     return {
+      showHomeBranches: about.showHomeBranches !== false,
       homeLabel: about.homeBranchLabel || 'Studio Branches',
       homeTitle: about.homeBranchTitle || 'One parent studio. Two focused branches.',
       homeIntro: about.homeBranchIntro || 'Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.',
@@ -1068,9 +1069,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderBranchSections(about = {}, settings = {}) {
     const content = normalizeBranchContent(about, settings);
+    const branchesSection = document.getElementById('branches');
     const homeRoot = document.getElementById('homeBranchFlow');
+    if (branchesSection) branchesSection.style.display = content.showHomeBranches ? '' : 'none';
     if (homeRoot) {
-      homeRoot.innerHTML = `
+      homeRoot.innerHTML = content.showHomeBranches ? `
         <div class="section-header animate-in visible home-branch-copy">
           <span class="section-label">${escHtml(content.homeLabel)}</span>
           <h2 class="section-title">${escHtml(content.homeTitle)}</h2>
@@ -1102,7 +1105,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </article>
           </div>
         </div>
-      `;
+      ` : '';
+      homeRoot.style.visibility = 'visible';
     }
 
     const aboutRoot = document.getElementById('aboutBranchTree');
@@ -1214,6 +1218,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       adavatarCard.innerHTML = `<div class="signature-services-grid">${cards.join('')}</div>`;
     }
+    if (adavatarCard) {
+      adavatarCard.style.visibility = 'visible';
+      adavatarCard.classList.toggle('is-multi-signature', signatureServices.length > 1);
+      adavatarCard.querySelectorAll('.adavatar-btns').forEach((node) => node.remove());
+      if (signatureServices.length > 1) {
+        adavatarCard.querySelectorAll('.signature-service-card').forEach((card) => {
+          if (card.parentElement?.classList.contains('signature-service-shell')) return;
+          const shell = document.createElement('div');
+          shell.className = 'signature-service-shell';
+          card.parentNode.insertBefore(shell, card);
+          shell.appendChild(card);
+        });
+      }
+    }
 
     const servicesGrid = document.querySelector('#services .services-grid');
     if (servicesGrid && services.length) {
@@ -1237,6 +1255,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       }).join('');
+      servicesGrid.style.visibility = 'visible';
     }
 
     const projectGrid = document.querySelector('#portfolio .projects-grid');
@@ -1258,6 +1277,24 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </a>
       `).join('');
+      projectGrid.querySelectorAll('.project-card').forEach((card, index) => {
+        const project = display[index] || {};
+        const websiteUrl = String(project.websiteUrl || project.website_url || '').trim();
+        const isWebsiteProject = Boolean(websiteUrl);
+        if (!isWebsiteProject) return;
+        card.setAttribute('href', websiteUrl);
+        card.setAttribute('target', '_blank');
+        card.setAttribute('rel', 'noopener noreferrer');
+        if (!card.querySelector('.project-link-inline')) {
+          const info = card.querySelector('.project-info');
+          if (info) {
+            const link = document.createElement('span');
+            link.className = 'project-link-inline';
+            link.textContent = 'View Website';
+            info.appendChild(link);
+          }
+        }
+      });
     }
     if (projectGrid) {
       if (!portfolio.length) projectGrid.innerHTML = '';
@@ -1339,6 +1376,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a>' : ''}
       `;
     });
+    listEl.querySelectorAll('.service-row.adavatar-row [style*="margin-top:20px"]').forEach((node) => node.remove());
+    listEl.style.visibility = 'visible';
   }
 
   function renderAboutPage(about) {

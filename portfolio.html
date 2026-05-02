@@ -420,7 +420,7 @@ function renderPortfolio() {
       <div class="project-info">
         <h3>${escapeHtml(project.title || 'Untitled')}</h3>
         <span class="category-badge"${project.category === 'adavatar' ? ' style="background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.3);"' : ''}>${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span>
-        ${project.category === 'website' && project.websiteUrl ? `<a class="project-link" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a>` : ''}
+        ${project.websiteUrl ? `<a class="project-link" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a>` : ''}
       </div>
     </div>
   `).join('');
@@ -465,7 +465,7 @@ function openProjectLightbox(project) {
         <div style="margin-bottom:12px;"><span class="category-badge">${escapeHtml(CAT_MAP[project.category] || project.category || 'Project')}</span></div>
         <p style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:8px;">${escapeHtml(project.desc || 'No description yet.')}</p>
         <p style="font-size:13px;color:hsl(260,5%,45%);">Client: ${escapeHtml(project.client || 'Not specified')}</p>
-        ${project.category === 'website' && project.websiteUrl ? `<div style="margin-top:16px;"><a class="btn btn-primary" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a></div>` : ''}
+        ${project.websiteUrl ? `<div style="margin-top:16px;"><a class="btn btn-primary" href="${escapeHtml(project.websiteUrl)}" target="_blank" rel="noopener noreferrer">Visit Website</a></div>` : ''}
       </div>
     </div>
   `;

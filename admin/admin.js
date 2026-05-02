@@ -35,6 +35,7 @@ window.DEFAULTS = {
     bio:'Emmanuel is a creative and digital advertisement specialist providing graphic design, video editing, 3D animation, CAD & UI/UX design, avatar-style ads, Pixar-style animations, logo and branding, and digital promotion content. Special creator of AdAvatar — 3D animated avatar advertisements for modern business promotion.',
     facebook:'https://web.facebook.com/profile.php?id=61562678010128',
     youtube1:'https://youtube.com/@epictales-q6n',youtube2:'https://youtube.com/@biblesparksbs',
+    showHomeBranches:true,
     homeBranchLabel:'Studio Branches',
     homeBranchTitle:'One parent studio. Two focused branches.',
     homeBranchIntro:'Galaxy Studio leads the vision, then each branch takes a clear path so clients immediately know where design work lives and where technical delivery lives.',

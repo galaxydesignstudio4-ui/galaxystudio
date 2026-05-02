@@ -81,6 +81,7 @@
         <div class="editor-section">
           <h3>Homepage Branch Section</h3>
           <p class="editor-note">This controls the branch tree shown on the homepage.</p>
+          <div class="form-group" style="margin-bottom:16px;"><label class="form-check"><input type="checkbox" id="showHomeBranches" checked> Show studio branches on the homepage</label></div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Section Label</label><input class="form-input" id="homeBranchLabel" placeholder="Studio Branches"></div>
             <div class="form-group"><label class="form-label">Section Title</label><input class="form-input" id="homeBranchTitle" placeholder="One parent studio. Two focused branches."></div>
@@ -227,6 +228,7 @@ function loadAbout(){
   document.getElementById('oFb').value=d.facebook||'';
   document.getElementById('oYt1').value=d.youtube1||'';
   document.getElementById('oYt2').value=d.youtube2||'';
+  document.getElementById('showHomeBranches').checked=d.showHomeBranches!==false;
   document.getElementById('homeBranchLabel').value=d.homeBranchLabel||'';
   document.getElementById('homeBranchTitle').value=d.homeBranchTitle||'';
   document.getElementById('homeBranchIntro').value=d.homeBranchIntro||'';
@@ -338,6 +340,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
         facebook:document.getElementById('oFb').value.trim(),
         youtube1:document.getElementById('oYt1').value.trim(),
         youtube2:document.getElementById('oYt2').value.trim(),
+        showHomeBranches:document.getElementById('showHomeBranches').checked,
         homeBranchLabel:document.getElementById('homeBranchLabel').value.trim(),
         homeBranchTitle:document.getElementById('homeBranchTitle').value.trim(),
         homeBranchIntro:document.getElementById('homeBranchIntro').value.trim(),

@@ -110,6 +110,7 @@ if (window.location.pathname.includes('/admin/') && localStorage.getItem('galaxy
 
 // Show the saved public logo as early as possible on non-admin pages.
 if (!window.location.pathname.includes('/admin/')) {
+    document.documentElement.classList.add('gds-loading');
     let bootSettings = {};
     try {
         bootSettings = JSON.parse(localStorage.getItem('galaxy_settings') || '{}') || {};
@@ -132,6 +133,15 @@ if (!window.location.pathname.includes('/admin/')) {
 
         const style = document.createElement('style');
         style.textContent = `
+html.gds-loading #homeBranchFlow,
+html.gds-loading #services .adavatar-card,
+html.gds-loading #services .services-grid,
+html.gds-loading #portfolio .projects-grid,
+html.gds-loading #testimonials .testimonials-grid,
+html.gds-loading .services-list,
+html.gds-loading #portfolioGrid {
+  visibility: hidden !important;
+}
 html.gds-has-boot-logo .nav-logo .logo-icon,
 html.gds-has-boot-logo .footer-logo .logo-icon {
   background-color: transparent !important;
