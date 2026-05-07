@@ -245,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdown.innerHTML = `
           <a class="nav-link nav-dropdown-toggle" href="blog.html">Blog</a>
           <div class="nav-dropdown-menu">
-            <a class="nav-link" href="blog.html">Blog</a>
             <a class="nav-link" href="resources.html">Resources</a>
           </div>
         `;
