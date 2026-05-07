@@ -234,6 +234,75 @@
     align-items: center;
     gap: 4px;
   }
+  .nav-dropdown {
+    position: relative;
+    padding-bottom: 14px;
+    margin-bottom: -14px;
+  }
+  .nav-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-dropdown-toggle::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor;
+    transform: rotate(45deg) translateY(-1px);
+    opacity: 0.75;
+  }
+  .nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid hsl(250 24% 22% / 0.9);
+    background:
+      radial-gradient(circle at top, hsl(250 80% 65% / 0.14), transparent 55%),
+      linear-gradient(180deg, hsl(260 18% 10% / 0.98), hsl(260 18% 7% / 0.98));
+    box-shadow: 0 28px 70px rgba(0,0,0,0.38);
+    backdrop-filter: blur(18px);
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 1001;
+  }
+  .nav-dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateX(-50%) rotate(45deg);
+    background: hsl(260 18% 9%);
+    border-left: 1px solid hsl(250 24% 22% / 0.9);
+    border-top: 1px solid hsl(250 24% 22% / 0.9);
+  }
+  .nav-dropdown:hover .nav-dropdown-menu,
+  .nav-dropdown:focus-within .nav-dropdown-menu,
+  .nav-dropdown.open .nav-dropdown-menu {
+    display: flex;
+    animation: slideDown 0.2s ease;
+  }
+  .nav-dropdown-menu .nav-link {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: transparent;
+  }
+  .nav-dropdown-menu .nav-link::after {
+    content: '↗';
+    font-size: 12px;
+    opacity: 0.7;
+  }
 
   .nav-link {
     padding: 7px 14px;
@@ -294,6 +363,34 @@
   .mobile-menu.open { display: flex; }
   .mobile-menu .nav-link { font-size: 16px; padding: 10px 14px; }
   .mobile-menu .btn { margin-top: 8px; width: 100%; justify-content: center; }
+  .mobile-menu .nav-dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .mobile-menu .nav-dropdown-toggle {
+    justify-content: space-between;
+  }
+  .mobile-menu .nav-dropdown-menu {
+    position: static;
+    transform: none;
+    display: none;
+    min-width: 0;
+    margin-left: 12px;
+    padding: 8px 0 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .mobile-menu .nav-dropdown-menu::before {
+    display: none;
+  }
+  .mobile-menu .nav-dropdown.open .nav-dropdown-menu {
+    display: flex;
+  }
 
   @media (max-width: 900px) {
     .nav-links, .nav-right .btn { display: none; }
@@ -1285,6 +1382,28 @@
     pointer-events: none;
     z-index: 0;
     opacity: 0.4;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+    background-image:
+      radial-gradient(1px 1px at 7% 16%, rgba(255,255,255,0.9) 98%, transparent 100%),
+      radial-gradient(1px 1px at 16% 39%, rgba(194,216,255,0.72) 98%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 29% 11%, rgba(255,255,255,0.8) 98%, transparent 100%),
+      radial-gradient(1px 1px at 42% 28%, rgba(209,221,255,0.62) 98%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 56% 8%, rgba(255,255,255,0.78) 98%, transparent 100%),
+      radial-gradient(1px 1px at 66% 24%, rgba(168,225,255,0.74) 98%, transparent 100%),
+      radial-gradient(1px 1px at 79% 12%, rgba(255,255,255,0.8) 98%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 89% 17%, rgba(225,230,255,0.76) 98%, transparent 100%),
+      radial-gradient(1px 1px at 94% 31%, rgba(255,255,255,0.68) 98%, transparent 100%),
+      radial-gradient(1px 1px at 12% 72%, rgba(255,255,255,0.56) 98%, transparent 100%),
+      radial-gradient(1.3px 1.3px at 34% 83%, rgba(177,215,255,0.64) 98%, transparent 100%),
+      radial-gradient(1px 1px at 58% 76%, rgba(255,255,255,0.58) 98%, transparent 100%),
+      radial-gradient(1.4px 1.4px at 80% 71%, rgba(197,213,255,0.66) 98%, transparent 100%);
   }
 
   @media (max-width: 640px) {
