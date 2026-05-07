@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const POSTS_KEY = 'galaxy_blog_posts';
   const COMMENTS_KEY = 'galaxy_blog_comments';
   const RESOURCES_KEY = 'galaxy_resources';
+  const SETTINGS_KEY = 'galaxy_settings';
   const USERS_KEY = 'galaxy_users';
   const SUBSCRIBERS_KEY = 'galaxy_subscribers';
   const OWNER_KEY = 'galaxy_reader_owner_id';
@@ -17,12 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let posts = normalizePosts(getDataSafe(POSTS_KEY));
   let comments = normalizeComments(getDataSafe(COMMENTS_KEY));
   let resources = normalizeResources(getDataSafe(RESOURCES_KEY));
+  let settings = normalizeSettings(getDataSafe(SETTINGS_KEY));
   let users = normalizeUsers(getDataSafe(USERS_KEY));
 
   hydrateCloudData().then(() => {
     posts = normalizePosts(getDataSafe(POSTS_KEY));
     comments = normalizeComments(getDataSafe(COMMENTS_KEY));
     resources = normalizeResources(getDataSafe(RESOURCES_KEY));
+    settings = normalizeSettings(getDataSafe(SETTINGS_KEY));
     users = normalizeUsers(getDataSafe(USERS_KEY));
     route();
   });
@@ -41,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.loadFromCloud(POSTS_KEY).catch(() => {}),
       window.loadFromCloud(COMMENTS_KEY).catch(() => {}),
       window.loadFromCloud(RESOURCES_KEY).catch(() => {}),
+      window.loadFromCloud(SETTINGS_KEY).catch(() => {}),
       window.loadFromCloud(USERS_KEY).catch(() => {}),
       window.loadFromCloud(SUBSCRIBERS_KEY).catch(() => {}),
     ]);
@@ -119,15 +123,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
+  function normalizeExternalUrl(value = '') {
+    const raw = String(value || '').trim();
+    if (!raw || raw === '#') return '';
+    if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
+    if (/^\/\//.test(raw)) return `https:${raw}`;
+    return `https://${raw.replace(/^\/+/, '')}`;
+  }
+
+  function normalizeSettings(value = {}) {
+    const source = value && typeof value === 'object' ? value : {};
+    const defaults = ((window.DEFAULTS || {}).galaxy_settings || {}).resourcesBlock || {};
+    return {
+      ...source,
+      resourcesBlock: {
+        eyebrow: 'Digital Downloads',
+        title: 'Featured Resources',
+        subtitle: 'Preview and download Galaxy Studio assets without extra clutter.',
+        primaryLabel: '',
+        primaryUrl: '',
+        secondaryLabel: '',
+        secondaryUrl: '',
+        ...defaults,
+        ...((source && source.resourcesBlock) || {}),
+      },
+    };
+  }
+
+  function normalizeResourceLink(entry = {}) {
+    return {
+      label: String(entry?.label || '').trim(),
+      url: normalizeExternalUrl(entry?.url || ''),
+      kind: String(entry?.kind || 'custom').trim().toLowerCase(),
+    };
+  }
+
   function normalizeResources(list = []) {
     return (Array.isArray(list) ? list : []).map((item) => ({
       ...item,
+      order: Number(item.order || 0),
       slug: item.slug || slugify(item.title || 'resource'),
       previewImages: Array.isArray(item.previewImages) ? item.previewImages : [],
+      previewStoragePaths: Array.isArray(item.previewStoragePaths) ? item.previewStoragePaths : [],
       tags: Array.isArray(item.tags) ? item.tags : [],
       relatedSlugs: Array.isArray(item.relatedSlugs) ? item.relatedSlugs : [],
+      links: (Array.isArray(item.links) ? item.links : []).map((entry) => normalizeResourceLink(entry)).filter((entry) => entry.label && entry.url),
       downloads: Number(item.downloads || 0),
-    }));
+    })).sort((a, b) => (a.order || 999) - (b.order || 999) || (a.id || 0) - (b.id || 0));
   }
 
   function normalizeUsers(list = []) {
@@ -164,6 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(item.gallery) && item.gallery[0]) return item.gallery[0];
     if (Array.isArray(item.previewImages) && item.previewImages[0]) return item.previewImages[0];
     return '';
+  }
+
+  function renderResourceActions(item, { includeDownload = true } = {}) {
+    const links = (item.links || []).slice(0, 3);
+    const buttons = [];
+    if (includeDownload) {
+      buttons.push(`<button class="btn btn-outline" type="button" data-download-resource="${item.slug}">Download</button>`);
+    }
+    links.forEach((entry) => {
+      buttons.push(`<a class="btn btn-outline" href="${escHtml(entry.url)}" target="_blank" rel="noopener">${escHtml(entry.label)}</a>`);
+    });
+    return buttons.join('');
   }
 
   function getOrCreateOwnerId() {
@@ -778,9 +832,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const resourceSearch = document.getElementById('resourceSearch');
     const resourceFeatured = document.getElementById('resourceFeatured');
     const resourceCount = document.getElementById('resourceCount');
+    const blockEyebrow = document.getElementById('resourceBlockEyebrow');
+    const blockTitle = document.getElementById('resourceBlockTitle');
+    const blockSubtitle = document.getElementById('resourceBlockSubtitle');
+    const blockActions = document.getElementById('resourceBlockActions');
+    const resourceBlock = settings.resourcesBlock || {};
     const featured = resources.filter((item) => item.featured).slice(0, 2);
     const categories = [...new Set(resources.map((item) => item.category).filter(Boolean))];
     let activeCategory = 'All';
+
+    if (blockEyebrow) blockEyebrow.textContent = resourceBlock.eyebrow || 'Digital Downloads';
+    if (blockTitle) blockTitle.textContent = resourceBlock.title || 'Featured Resources';
+    if (blockSubtitle) blockSubtitle.textContent = resourceBlock.subtitle || 'Preview and download Galaxy Studio assets without extra clutter.';
+    if (blockActions) {
+      const actions = [];
+      if (resourceBlock.primaryLabel && resourceBlock.primaryUrl) actions.push(`<a class="btn btn-primary" href="${escHtml(normalizeExternalUrl(resourceBlock.primaryUrl))}" target="_blank" rel="noopener">${escHtml(resourceBlock.primaryLabel)}</a>`);
+      if (resourceBlock.secondaryLabel && resourceBlock.secondaryUrl) actions.push(`<a class="btn btn-outline" href="${escHtml(normalizeExternalUrl(resourceBlock.secondaryUrl))}" target="_blank" rel="noopener">${escHtml(resourceBlock.secondaryLabel)}</a>`);
+      blockActions.innerHTML = actions.join('');
+    }
 
     if (resourceFeatured) {
       resourceFeatured.innerHTML = featured.map((item) => `
@@ -798,7 +867,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="stat-pill">${escHtml(item.fileType)}</span>
                 <span class="stat-pill">${escHtml(item.fileSize || 'Digital asset')}</span>
               </div>
-              <button class="btn btn-primary" type="button" data-open-resource="${item.slug}">Preview</button>
+              <div class="article-actions">
+                <button class="btn btn-primary" type="button" data-open-resource="${item.slug}">Preview</button>
+                ${renderResourceActions(item, { includeDownload: true })}
+              </div>
             </div>
           </div>
         </article>
@@ -834,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div class="card-row">
                 <button class="btn btn-primary" type="button" data-open-resource="${item.slug}">Preview</button>
-                <button class="btn btn-outline" type="button" data-download-resource="${item.slug}">Download</button>
+                <div class="article-actions">${renderResourceActions(item, { includeDownload: true })}</div>
               </div>
             </div>
           </article>
@@ -867,8 +939,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = resources.find((entry) => entry.slug === slug);
     if (!item) return;
     const previewItems = (item.previewImages || []).map((src) => ({ type: 'image', url: src, title: item.title }));
-    if (previewItems.length && typeof window.openLightbox === 'function') window.openLightbox(previewItems, 0);
-    showFeedback(`${item.title} preview opened.`);
+    if (previewItems.length && typeof window.openLightbox === 'function') {
+      window.openLightbox(previewItems, 0);
+      showFeedback(`${item.title} preview opened.`);
+      return;
+    }
+    if (item.downloadUrl && item.downloadUrl !== '#') {
+      window.open(item.downloadUrl, '_blank', 'noopener');
+      showFeedback(`${item.title} file opened.`);
+      return;
+    }
+    showFeedback('No preview is attached yet. Add one from the admin dashboard.', true);
   }
 
   function downloadResource(slug) {

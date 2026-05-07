@@ -183,6 +183,7 @@ create table if not exists public.blog_comments (
 
 create table if not exists public.resources (
   id bigint primary key,
+  ord integer default 0,
   title text,
   slug text,
   excerpt text,
@@ -191,14 +192,22 @@ create table if not exists public.resources (
   file_type text,
   file_size text,
   download_url text,
+  download_storage_path text,
   preview_images_json jsonb default '[]'::jsonb,
+  preview_storage_paths_json jsonb default '[]'::jsonb,
   tags_json jsonb default '[]'::jsonb,
   featured boolean default false,
   premium boolean default false,
   downloads integer default 0,
   upload_date timestamptz default timezone('utc', now()),
-  related_slugs_json jsonb default '[]'::jsonb
+  related_slugs_json jsonb default '[]'::jsonb,
+  links_json jsonb default '[]'::jsonb
 );
+
+alter table public.resources add column if not exists ord integer default 0;
+alter table public.resources add column if not exists download_storage_path text;
+alter table public.resources add column if not exists preview_storage_paths_json jsonb default '[]'::jsonb;
+alter table public.resources add column if not exists links_json jsonb default '[]'::jsonb;
 
 create table if not exists public.users (
   id bigint primary key,
@@ -216,6 +225,8 @@ create table if not exists public.users (
   liked_comments_json jsonb default '[]'::jsonb,
   newsletter boolean default false
 );
+
+alter table public.settings add column if not exists resources_block_json jsonb default '{}'::jsonb;
 
 create table if not exists public.subscribers (
   id bigint primary key,

@@ -7,32 +7,77 @@
 <title>Resources Management | Galaxy Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin.css">
+<style>
+.resource-layout{display:grid;gap:20px}
+.resource-block-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.resource-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.resource-preview-card{position:relative;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:hsl(260 15% 10%)}
+.resource-preview-card img{width:100%;height:92px;object-fit:cover}
+.resource-preview-card button{position:absolute;top:6px;right:6px}
+.resource-link-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.resource-inline-note{font-size:12px;color:var(--muted)}
+.resource-stat{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid var(--border);background:hsl(260 16% 12%)}
+.upload-box{border:1px dashed hsl(250 80% 65% / 0.34);border-radius:16px;padding:14px;background:hsl(250 80% 65% / 0.06)}
+@media (max-width:820px){
+  .resource-block-grid,.resource-link-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-<div id="authGate"><div class="auth-card"><div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><h2 class="auth-title">Admin Access</h2><p class="auth-sub">Enter your password to manage Galaxy Studio.</p><input class="auth-input" type="password" id="authPassword" placeholder="••••••••"><button class="auth-btn" id="authBtn">Enter Admin Panel →</button><p class="auth-error" id="authError">Incorrect password. Please try again.</p></div></div>
+<div id="authGate"><div class="auth-card"><div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><h2 class="auth-title">Admin Access</h2><p class="auth-sub">Enter your password to manage Galaxy Studio.</p><input class="auth-input" type="password" id="authPassword" placeholder="........"><button class="auth-btn" id="authBtn">Enter Admin Panel -></button><p class="auth-error" id="authError">Incorrect password. Please try again.</p></div></div>
 <div id="adminPanel">
   <aside id="sidebar">
-    <div class="sidebar-header"><div class="sidebar-logo-icon">▣</div><span class="sidebar-logo-text">Content Admin</span></div>
+    <div class="sidebar-header"><div class="sidebar-logo-icon">R</div><span class="sidebar-logo-text">Content Admin</span></div>
     <nav class="sidebar-nav">
-      <a class="nav-item" href="index.html"><span class="nav-icon">⌂</span><span class="nav-label">Dashboard</span></a>
-      <a class="nav-item" href="blog.html"><span class="nav-icon">✦</span><span class="nav-label">Blog</span></a>
-      <a class="nav-item active" href="resources.html"><span class="nav-icon">▣</span><span class="nav-label">Resources</span></a>
-      <a class="nav-item" href="comments.html"><span class="nav-icon">💬</span><span class="nav-label">Comments</span></a>
-      <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Audience</span></a>
+      <a class="nav-item" href="index.html"><span class="nav-icon">H</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="blog.html"><span class="nav-icon">B</span><span class="nav-label">Blog</span></a>
+      <a class="nav-item active" href="resources.html"><span class="nav-icon">R</span><span class="nav-label">Resources</span></a>
+      <a class="nav-item" href="comments.html"><span class="nav-icon">C</span><span class="nav-label">Comments</span></a>
+      <a class="nav-item" href="users.html"><span class="nav-icon">U</span><span class="nav-label">Audience</span></a>
     </nav>
-    <div class="sidebar-footer"><a class="nav-item" href="../resources.html"><span class="nav-icon">↗</span><span class="nav-label">View Library</span></a><button class="logout-btn" id="logoutBtn"><span class="nav-icon">⎋</span><span class="nav-label">Log Out</span></button></div>
+    <div class="sidebar-footer"><a class="nav-item" href="../resources.html"><span class="nav-icon">V</span><span class="nav-label">View Library</span></a><button class="logout-btn" id="logoutBtn"><span class="nav-icon">X</span><span class="nav-label">Log Out</span></button></div>
   </aside>
   <main id="mainContent">
-    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">Resources</h1><p class="page-sub">Manage previews, downloads, categories, and featured template packs.</p></div><div class="page-actions"><button class="btn btn-primary" id="addResourceBtn">+ Add Resource</button></div></div>
-    <div class="page-body">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h1 class="page-title">Resources</h1>
+        <p class="page-sub">Manage the public resource block, uploaded files, previews, download actions, and external links.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" id="addResourceBtn">+ Add Resource</button>
+      </div>
+    </div>
+    <div class="page-body resource-layout">
       <div class="card">
-        <div class="card-header"><span class="card-title">Template Library</span><input class="form-input" id="resourceFilterInput" type="search" placeholder="Search title, category, tags" style="width:280px;"></div>
+        <div class="card-header"><span class="card-title">Resource Block Section</span></div>
+        <div class="card-body">
+          <div class="resource-block-grid">
+            <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="rbEyebrow" placeholder="Digital Downloads"></div>
+            <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rbTitle" placeholder="Featured Resources"></div>
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Subtitle</label><textarea class="form-textarea" id="rbSubtitle" placeholder="Explain what visitors can download from this section."></textarea></div>
+            <div class="form-group"><label class="form-label">Primary Button Label</label><input class="form-input" id="rbPrimaryLabel" placeholder="Chat on WhatsApp"></div>
+            <div class="form-group"><label class="form-label">Primary Button URL</label><input class="form-input" id="rbPrimaryUrl" placeholder="https://wa.me/..."></div>
+            <div class="form-group"><label class="form-label">Secondary Button Label</label><input class="form-input" id="rbSecondaryLabel" placeholder="Visit Facebook"></div>
+            <div class="form-group"><label class="form-label">Secondary Button URL</label><input class="form-input" id="rbSecondaryUrl" placeholder="https://facebook.com/..."></div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
+            <button class="btn btn-primary" id="saveBlockBtn" type="button">Save Resource Block</button>
+            <a class="btn btn-ghost" href="../resources.html" target="_blank" rel="noopener">Open Public Resources</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Resource Library</span>
+          <input class="form-input" id="resourceFilterInput" type="search" placeholder="Search title, category, tags" style="width:280px;">
+        </div>
         <div style="padding:0;overflow-x:auto;">
           <table class="data-table">
-            <thead><tr><th>Resource</th><th>Type</th><th>Category</th><th>Downloads</th><th style="text-align:right;">Actions</th></tr></thead>
+            <thead><tr><th>Order</th><th>Resource</th><th>Type</th><th>Category</th><th>Links</th><th>Downloads</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody id="resourceBody"></tbody>
           </table>
-          <div id="resourceEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">▣</div><h3>No resources yet</h3><p>Add templates, kits, or design assets to start your resource library.</p></div>
+          <div id="resourceEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">R</div><h3>No resources yet</h3><p>Add PDFs, images, packs, or result links to start your resource library.</p></div>
         </div>
       </div>
     </div>
@@ -43,82 +88,441 @@
 <script src="admin.js"></script>
 <script>
 const RESOURCES_KEY = 'galaxy_resources';
+const SETTINGS_KEY = 'galaxy_settings';
+const RESOURCE_BUCKET = 'resources';
 
-async function syncResourcesFromCloud() { if (typeof window.loadFromCloud !== 'function') return; try { await window.loadFromCloud(RESOURCES_KEY); } catch {} }
+function resourceDefaults() {
+  return (DEFAULTS.galaxy_settings && DEFAULTS.galaxy_settings.resourcesBlock) || {
+    eyebrow: 'Digital Downloads',
+    title: 'Featured Resources',
+    subtitle: 'Preview and download Galaxy Studio assets.',
+    primaryLabel: 'Chat on WhatsApp',
+    primaryUrl: 'https://wa.me/233556881003',
+    secondaryLabel: 'Visit Facebook',
+    secondaryUrl: 'https://web.facebook.com/profile.php?id=61562678010128',
+  };
+}
+
+function normalizeExternalUrl(value='') {
+  const raw = String(value || '').trim();
+  if (!raw || raw === '#') return '';
+  if (/^(https?:|mailto:|tel:|whatsapp:)/i.test(raw)) return raw;
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+  return `https://${raw.replace(/^\/+/, '')}`;
+}
+
+function slugify(value='') {
+  return String(value || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `resource-${Date.now()}`;
+}
+
+function humanFileSize(bytes=0) {
+  const size = Number(bytes || 0);
+  if (!size) return '';
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(size >= 1024 * 1024 * 10 ? 0 : 1)} MB`;
+  if (size >= 1024) return `${Math.round(size / 1024)} KB`;
+  return `${size} B`;
+}
+
+function resourceActionLinks(item={}) {
+  return (Array.isArray(item.links) ? item.links : [])
+    .map((entry) => ({
+      label: String(entry?.label || '').trim(),
+      url: normalizeExternalUrl(entry?.url || ''),
+      kind: String(entry?.kind || 'custom').trim().toLowerCase(),
+    }))
+    .filter((entry) => entry.label && entry.url);
+}
+
+function normalizeResource(item={}, index=0) {
+  return {
+    id: Number(item.id || 0) || Date.now() + index,
+    order: Number(item.order || 0) || index + 1,
+    title: String(item.title || '').trim(),
+    slug: String(item.slug || '').trim() || slugify(item.title || `resource-${index + 1}`),
+    excerpt: String(item.excerpt || '').trim(),
+    description: String(item.description || '').trim(),
+    category: String(item.category || '').trim(),
+    fileType: String(item.fileType || '').trim(),
+    fileSize: String(item.fileSize || '').trim(),
+    downloadUrl: String(item.downloadUrl || '#').trim() || '#',
+    downloadStoragePath: String(item.downloadStoragePath || '').trim(),
+    previewImages: Array.isArray(item.previewImages) ? item.previewImages.filter(Boolean) : [],
+    previewStoragePaths: Array.isArray(item.previewStoragePaths) ? item.previewStoragePaths.filter(Boolean) : [],
+    tags: Array.isArray(item.tags) ? item.tags.filter(Boolean) : [],
+    featured: Boolean(item.featured),
+    premium: Boolean(item.premium),
+    downloads: Number(item.downloads || 0),
+    uploadDate: item.uploadDate || new Date().toISOString(),
+    relatedSlugs: Array.isArray(item.relatedSlugs) ? item.relatedSlugs.filter(Boolean) : [],
+    links: resourceActionLinks(item),
+  };
+}
+
+function normalizeResourceList(list=[]) {
+  return (Array.isArray(list) ? list : []).map((item, index) => normalizeResource(item, index)).sort((a, b) => (a.order || 999) - (b.order || 999) || (a.id || 0) - (b.id || 0));
+}
+
+function getResources() {
+  return normalizeResourceList(getData(RESOURCES_KEY) || []);
+}
+
+function getResourceBlock() {
+  const settings = getData(SETTINGS_KEY) || {};
+  return { ...resourceDefaults(), ...((settings && settings.resourcesBlock) || {}) };
+}
+
+async function syncResourcesFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  await Promise.all([
+    window.loadFromCloud(RESOURCES_KEY).catch(() => {}),
+    window.loadFromCloud(SETTINGS_KEY).catch(() => {}),
+  ]);
+}
+
+async function saveCollectionNow(key, value) {
+  if (typeof window.saveDataNow === 'function') {
+    try {
+      await window.saveDataNow(key, value);
+      return { synced: true, error: null };
+    } catch (error) {
+      setData(key, value);
+      return { synced: false, error };
+    }
+  }
+  setData(key, value);
+  return { synced: true, error: null };
+}
+
+function syncMessage(result, successMessage) {
+  if (result?.synced === false) return `${successMessage} Saved locally; Supabase sync needs attention: ${result.error?.message || 'Cloud sync failed.'}`;
+  return successMessage;
+}
+
+function renderBlockForm() {
+  const block = getResourceBlock();
+  document.getElementById('rbEyebrow').value = block.eyebrow || '';
+  document.getElementById('rbTitle').value = block.title || '';
+  document.getElementById('rbSubtitle').value = block.subtitle || '';
+  document.getElementById('rbPrimaryLabel').value = block.primaryLabel || '';
+  document.getElementById('rbPrimaryUrl').value = block.primaryUrl || '';
+  document.getElementById('rbSecondaryLabel').value = block.secondaryLabel || '';
+  document.getElementById('rbSecondaryUrl').value = block.secondaryUrl || '';
+}
 
 function renderResourcesAdmin() {
-  const list = getData(RESOURCES_KEY) || [];
+  const list = getResources();
   const query = String(document.getElementById('resourceFilterInput')?.value || '').trim().toLowerCase();
-  const filtered = list.filter(item => !query || [item.title, item.category, ...(item.tags || [])].join(' ').toLowerCase().includes(query));
+  const filtered = list.filter((item) => !query || [item.title, item.category, item.excerpt, ...(item.tags || [])].join(' ').toLowerCase().includes(query));
   const body = document.getElementById('resourceBody');
   const empty = document.getElementById('resourceEmpty');
-  if (!filtered.length) { body.innerHTML=''; empty.style.display=''; return; }
-  empty.style.display='none';
-  body.innerHTML = filtered.map(item => `
+  if (!filtered.length) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = filtered.map((item) => `
     <tr>
-      <td><strong>${escHtml(item.title || 'Untitled')}</strong><div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(item.excerpt || '')}</div></td>
+      <td><span class="resource-stat">#${Number(item.order || 0)}</span></td>
+      <td>
+        <strong>${escHtml(item.title || 'Untitled')}</strong>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(item.excerpt || item.description || '')}</div>
+      </td>
       <td><span class="badge badge-blue">${escHtml(item.fileType || 'Asset')}</span></td>
-      <td>${item.featured ? '<span class="badge badge-purple">Featured</span> ' : ''}<span class="badge badge-cyan">${escHtml(item.category || 'General')}</span></td>
+      <td>${item.featured ? '<span class="badge badge-purple">Featured</span> ' : ''}${item.premium ? '<span class="badge badge-gold">Premium</span> ' : ''}<span class="badge badge-cyan">${escHtml(item.category || 'General')}</span></td>
+      <td style="color:var(--muted);">${resourceActionLinks(item).length} link${resourceActionLinks(item).length === 1 ? '' : 's'}</td>
       <td style="color:var(--muted);">${Number(item.downloads || 0)} downloads</td>
-      <td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="previewResource('${escHtml(item.slug)}')">Preview</button><button class="btn btn-ghost btn-sm" onclick="editResource(${item.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteResource(${item.id})">Delete</button></td>
-    </tr>`).join('');
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="previewResource('${escHtml(item.slug)}')">Preview</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveResource(${item.id}, -1)">Up</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveResource(${item.id}, 1)">Down</button>
+        <button class="btn btn-ghost btn-sm" onclick="editResource(${item.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteResource(${item.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderPreviewList(container, state) {
+  if (!container) return;
+  const items = (state.previewImages || []).map((src, index) => `
+    <div class="resource-preview-card">
+      <img src="${escHtml(src)}" alt="Preview ${index + 1}">
+      <button class="btn btn-danger btn-sm" type="button" data-remove-preview="${index}">Delete</button>
+    </div>
+  `).join('');
+  container.innerHTML = items || '<div class="resource-inline-note">No preview images yet.</div>';
+  container.querySelectorAll('[data-remove-preview]').forEach((button) => {
+    button.onclick = () => {
+      const index = Number(button.getAttribute('data-remove-preview'));
+      const storagePath = state.previewStoragePaths[index] || '';
+      if (storagePath) state.removedStoragePaths.push(storagePath);
+      state.previewImages.splice(index, 1);
+      state.previewStoragePaths.splice(index, 1);
+      renderPreviewList(container, state);
+    };
+  });
 }
 
 function openResourceModal(resource) {
   const isEdit = !!resource;
-  const ov = openModal(`<div class="modal" style="max-width:760px;">
-    <div class="modal-header"><span class="modal-title">${isEdit ? 'Edit' : 'Add'} Resource</span><button class="modal-close">✕</button></div>
+  const existing = normalizeResource(resource || {}, 0);
+  const state = {
+    previewImages: [...(existing.previewImages || [])],
+    previewStoragePaths: [...(existing.previewStoragePaths || [])],
+    removedStoragePaths: [],
+    newPreviewFiles: [],
+    newDownloadFile: null,
+  };
+
+  const ov = openModal(`<div class="modal" style="max-width:900px;">
+    <div class="modal-header"><span class="modal-title">${isEdit ? 'Edit' : 'Add'} Resource</span><button class="modal-close">X</button></div>
     <div class="modal-body">
-      <div class="form-row"><div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rTitle" value="${escHtml(resource?.title || '')}"></div><div class="form-group"><label class="form-label">Slug</label><input class="form-input" id="rSlug" value="${escHtml(resource?.slug || '')}"></div></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Category</label><input class="form-input" id="rCategory" value="${escHtml(resource?.category || '')}"></div><div class="form-group"><label class="form-label">File Type</label><input class="form-input" id="rType" value="${escHtml(resource?.fileType || '')}" placeholder="PSD / PNG"></div></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">File Size</label><input class="form-input" id="rSize" value="${escHtml(resource?.fileSize || '')}"></div><div class="form-group"><label class="form-label">Download URL</label><input class="form-input" id="rUrl" value="${escHtml(resource?.downloadUrl || '')}" placeholder="https://..."></div></div>
-      <div class="form-group"><label class="form-label">Short Description</label><textarea class="form-textarea" id="rExcerpt">${escHtml(resource?.excerpt || '')}</textarea></div>
-      <div class="form-group"><label class="form-label">Full Description</label><textarea class="form-textarea" id="rDescription">${escHtml(resource?.description || '')}</textarea></div>
-      <div class="form-group"><label class="form-label">Preview Image URLs</label><textarea class="form-textarea" id="rPreview">${escHtml((resource?.previewImages || []).join('\n'))}</textarea></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Tags</label><input class="form-input" id="rTags" value="${escHtml((resource?.tags || []).join(', '))}"></div><div class="form-group"><label class="form-label">Related Slugs</label><input class="form-input" id="rRelated" value="${escHtml((resource?.relatedSlugs || []).join(', '))}"></div></div>
-      <div class="form-row"><label class="form-check"><input type="checkbox" id="rFeatured" ${resource?.featured ? 'checked' : ''}> Featured</label><label class="form-check"><input type="checkbox" id="rPremium" ${resource?.premium ? 'checked' : ''}> Premium</label></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rTitle" value="${escHtml(existing.title || '')}"></div>
+        <div class="form-group"><label class="form-label">Slug</label><input class="form-input" id="rSlug" value="${escHtml(existing.slug || '')}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Order</label><input class="form-input" id="rOrder" type="number" min="1" value="${escHtml(existing.order || '')}" placeholder="1"></div>
+        <div class="form-group"><label class="form-label">Category</label><input class="form-input" id="rCategory" value="${escHtml(existing.category || '')}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">File Type</label><input class="form-input" id="rType" value="${escHtml(existing.fileType || '')}" placeholder="PDF / PNG / ZIP"></div>
+        <div class="form-group"><label class="form-label">File Size</label><input class="form-input" id="rSize" value="${escHtml(existing.fileSize || '')}" placeholder="22 MB"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Short Description</label><textarea class="form-textarea" id="rExcerpt">${escHtml(existing.excerpt || '')}</textarea></div>
+      <div class="form-group"><label class="form-label">Full Description</label><textarea class="form-textarea" id="rDescription">${escHtml(existing.description || '')}</textarea></div>
+
+      <div class="upload-box">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Upload Download File</label>
+            <input class="form-input" id="rDownloadFile" type="file">
+            <div class="resource-inline-note" id="rDownloadStatus">${existing.downloadStoragePath ? 'A file is already attached and will be replaced if you upload a new one.' : 'Upload a PDF, image, ZIP, or any downloadable file.'}</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">External Download URL</label>
+            <input class="form-input" id="rUrl" value="${escHtml(existing.downloadUrl && existing.downloadUrl !== '#' ? existing.downloadUrl : '')}" placeholder="https://...">
+            <div class="resource-inline-note">Use this only when the file lives elsewhere.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-box" style="margin-top:14px;">
+        <div class="form-group">
+          <label class="form-label">Upload Preview Images</label>
+          <input class="form-input" id="rPreviewFiles" type="file" accept="image/*" multiple>
+          <div class="resource-inline-note">You can mix uploaded preview images with manual image URLs.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manual Preview Image URLs</label>
+          <textarea class="form-textarea" id="rPreviewUrls" placeholder="One image URL per line"></textarea>
+        </div>
+        <div class="resource-preview-grid" id="rPreviewList"></div>
+      </div>
+
+      <div class="form-row" style="margin-top:14px;">
+        <div class="form-group"><label class="form-label">Tags</label><input class="form-input" id="rTags" value="${escHtml((existing.tags || []).join(', '))}" placeholder="Results, PDF, Promo"></div>
+        <div class="form-group"><label class="form-label">Related Slugs</label><input class="form-input" id="rRelated" value="${escHtml((existing.relatedSlugs || []).join(', '))}" placeholder="launch-week-social-kit"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px;background:hsl(260 16% 10%);border:1px solid var(--border);">
+        <div class="card-header"><span class="card-title">Action Links</span></div>
+        <div class="card-body">
+          <div class="resource-link-grid">
+            <div class="form-group"><label class="form-label">WhatsApp Link</label><input class="form-input" id="rWhatsApp" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'whatsapp') || {}).url || '')}" placeholder="https://wa.me/..."></div>
+            <div class="form-group"><label class="form-label">Facebook Link</label><input class="form-input" id="rFacebook" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'facebook') || {}).url || '')}" placeholder="https://facebook.com/..."></div>
+            <div class="form-group"><label class="form-label">Custom Button Label</label><input class="form-input" id="rCustomLabel" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'custom') || {}).label || '')}" placeholder="View Results"></div>
+            <div class="form-group"><label class="form-label">Custom Button URL</label><input class="form-input" id="rCustomUrl" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'custom') || {}).url || '')}" placeholder="https://..."></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:14px;"><label class="form-check"><input type="checkbox" id="rFeatured" ${existing.featured ? 'checked' : ''}> Featured</label><label class="form-check"><input type="checkbox" id="rPremium" ${existing.premium ? 'checked' : ''}> Premium</label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" id="cancelResourceBtn">Cancel</button><button class="btn btn-primary" id="saveResourceBtn">Save Resource</button></div>
   </div>`);
+
+  const previewList = ov.querySelector('#rPreviewList');
+  renderPreviewList(previewList, state);
+
+  ov.querySelector('#rPreviewFiles').addEventListener('change', (event) => {
+    state.newPreviewFiles = [...(event.target.files || [])];
+    showToast(state.newPreviewFiles.length ? `${state.newPreviewFiles.length} preview file(s) ready.` : 'No new preview files selected.');
+  });
+
+  ov.querySelector('#rDownloadFile').addEventListener('change', (event) => {
+    state.newDownloadFile = (event.target.files || [])[0] || null;
+    const status = ov.querySelector('#rDownloadStatus');
+    if (status) {
+      status.textContent = state.newDownloadFile
+        ? `${state.newDownloadFile.name} will be uploaded when you save.`
+        : (existing.downloadStoragePath ? 'A file is already attached and will be replaced if you upload a new one.' : 'Upload a PDF, image, ZIP, or any downloadable file.');
+    }
+    const typeInput = ov.querySelector('#rType');
+    const sizeInput = ov.querySelector('#rSize');
+    if (state.newDownloadFile && typeInput && !typeInput.value.trim()) {
+      const ext = state.newDownloadFile.name.split('.').pop();
+      typeInput.value = ext ? ext.toUpperCase() : 'File';
+    }
+    if (state.newDownloadFile && sizeInput && !sizeInput.value.trim()) {
+      sizeInput.value = humanFileSize(state.newDownloadFile.size);
+    }
+  });
+
   ov.querySelector('#cancelResourceBtn').onclick = () => closeModal(ov);
-  ov.querySelector('#saveResourceBtn').onclick = () => {
-    const list = getData(RESOURCES_KEY) || [];
-    const title = document.getElementById('rTitle').value.trim();
-    if (!title) { showToast('Title is required.', 'error'); return; }
-    const next = {
-      id: resource?.id || nextId(list),
-      title,
-      slug: (document.getElementById('rSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')),
-      excerpt: document.getElementById('rExcerpt').value.trim(),
-      description: document.getElementById('rDescription').value.trim(),
-      category: document.getElementById('rCategory').value.trim(),
-      fileType: document.getElementById('rType').value.trim(),
-      fileSize: document.getElementById('rSize').value.trim(),
-      downloadUrl: document.getElementById('rUrl').value.trim() || '#',
-      previewImages: document.getElementById('rPreview').value.split('\n').map(v => v.trim()).filter(Boolean),
-      tags: document.getElementById('rTags').value.split(',').map(v => v.trim()).filter(Boolean),
-      featured: document.getElementById('rFeatured').checked,
-      premium: document.getElementById('rPremium').checked,
-      downloads: Number(resource?.downloads || 0),
-      uploadDate: resource?.uploadDate || new Date().toISOString(),
-      relatedSlugs: document.getElementById('rRelated').value.split(',').map(v => v.trim()).filter(Boolean),
-    };
-    setData(RESOURCES_KEY, isEdit ? list.map(item => item.id === resource.id ? next : item) : [...list, next]);
-    closeModal(ov);
-    renderResourcesAdmin();
-    showToast(isEdit ? 'Resource updated.' : 'Resource added.');
+  ov.querySelector('#saveResourceBtn').onclick = async () => {
+    const list = getResources();
+    const title = ov.querySelector('#rTitle').value.trim();
+    if (!title) {
+      showToast('Title is required.', 'error');
+      return;
+    }
+
+    try {
+      let downloadUrl = ov.querySelector('#rUrl').value.trim();
+      let downloadStoragePath = existing.downloadStoragePath || '';
+
+      if (state.newDownloadFile) {
+        const uploaded = await uploadAsset(state.newDownloadFile, RESOURCE_BUCKET);
+        downloadUrl = uploaded?.url || downloadUrl || '#';
+        if (downloadStoragePath && uploaded?.path && downloadStoragePath !== uploaded.path) {
+          await removeAsset(RESOURCE_BUCKET, downloadStoragePath);
+        }
+        downloadStoragePath = uploaded?.path || '';
+      } else if (downloadUrl) {
+        downloadUrl = normalizeExternalUrl(downloadUrl);
+      }
+
+      const manualPreviews = ov.querySelector('#rPreviewUrls').value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+      for (const file of state.newPreviewFiles) {
+        const uploaded = await uploadAsset(file, RESOURCE_BUCKET);
+        if (uploaded?.url) {
+          state.previewImages.push(uploaded.url);
+          state.previewStoragePaths.push(uploaded.path || '');
+        }
+      }
+      manualPreviews.forEach((url) => {
+        state.previewImages.push(url);
+        state.previewStoragePaths.push('');
+      });
+
+      const removedPreviewPaths = [...new Set((state.removedStoragePaths || []).filter(Boolean))];
+      for (const path of removedPreviewPaths) {
+        await removeAsset(RESOURCE_BUCKET, path);
+      }
+
+      const links = [];
+      const whatsapp = normalizeExternalUrl(ov.querySelector('#rWhatsApp').value);
+      const facebook = normalizeExternalUrl(ov.querySelector('#rFacebook').value);
+      const customUrl = normalizeExternalUrl(ov.querySelector('#rCustomUrl').value);
+      const customLabel = ov.querySelector('#rCustomLabel').value.trim();
+      if (whatsapp) links.push({ label: 'WhatsApp', url: whatsapp, kind: 'whatsapp' });
+      if (facebook) links.push({ label: 'Facebook', url: facebook, kind: 'facebook' });
+      if (customLabel && customUrl) links.push({ label: customLabel, url: customUrl, kind: 'custom' });
+
+      const next = normalizeResource({
+        ...existing,
+        id: existing.id || nextId(list),
+        order: Number(ov.querySelector('#rOrder').value || 0) || (existing.order || list.length + 1),
+        title,
+        slug: ov.querySelector('#rSlug').value.trim() || slugify(title),
+        excerpt: ov.querySelector('#rExcerpt').value.trim(),
+        description: ov.querySelector('#rDescription').value.trim(),
+        category: ov.querySelector('#rCategory').value.trim(),
+        fileType: ov.querySelector('#rType').value.trim(),
+        fileSize: ov.querySelector('#rSize').value.trim(),
+        downloadUrl: downloadUrl || '#',
+        downloadStoragePath,
+        previewImages: state.previewImages,
+        previewStoragePaths: state.previewStoragePaths,
+        tags: ov.querySelector('#rTags').value.split(',').map((value) => value.trim()).filter(Boolean),
+        featured: ov.querySelector('#rFeatured').checked,
+        premium: ov.querySelector('#rPremium').checked,
+        downloads: Number(existing.downloads || 0),
+        uploadDate: existing.uploadDate || new Date().toISOString(),
+        relatedSlugs: ov.querySelector('#rRelated').value.split(',').map((value) => value.trim()).filter(Boolean),
+        links,
+      }, list.length);
+
+      const payload = isEdit
+        ? list.map((item) => item.id === existing.id ? next : item)
+        : [...list, next];
+      const ordered = normalizeResourceList(payload).map((item, index) => ({ ...item, order: index + 1 }));
+      const result = await saveCollectionNow(RESOURCES_KEY, ordered);
+      closeModal(ov);
+      renderResourcesAdmin();
+      showToast(syncMessage(result, isEdit ? 'Resource updated.' : 'Resource added.'));
+    } catch (error) {
+      showToast(error?.message || 'Resource save failed.', 'error');
+    }
   };
 }
 
 window.previewResource = (slug) => window.open(`../resources.html#${encodeURIComponent(slug)}`, '_blank', 'noopener');
-window.editResource = (id) => openResourceModal((getData(RESOURCES_KEY) || []).find(item => item.id === id));
-window.deleteResource = (id) => confirmDelete('Delete this resource?', () => { setData(RESOURCES_KEY, (getData(RESOURCES_KEY) || []).filter(item => item.id !== id)); renderResourcesAdmin(); showToast('Resource deleted.'); });
+
+window.editResource = (id) => {
+  const item = getResources().find((entry) => entry.id === id);
+  if (item) openResourceModal(item);
+};
+
+window.moveResource = async (id, delta) => {
+  const list = getResources();
+  const index = list.findIndex((entry) => entry.id === id);
+  const target = index + Number(delta || 0);
+  if (index < 0 || target < 0 || target >= list.length) return;
+  const next = list.slice();
+  const swap = next[index];
+  next[index] = next[target];
+  next[target] = swap;
+  const ordered = next.map((item, orderIndex) => ({ ...item, order: orderIndex + 1 }));
+  const result = await saveCollectionNow(RESOURCES_KEY, ordered);
+  renderResourcesAdmin();
+  showToast(syncMessage(result, 'Resource order updated.'));
+};
+
+window.deleteResource = (id) => confirmDelete('Delete this resource and its uploaded files?', async () => {
+  const list = getResources();
+  const item = list.find((entry) => entry.id === id);
+  if (!item) return;
+  try {
+    if (item.downloadStoragePath) await removeAsset(RESOURCE_BUCKET, item.downloadStoragePath);
+    const previewPaths = [...new Set((item.previewStoragePaths || []).filter(Boolean))];
+    for (const path of previewPaths) {
+      await removeAsset(RESOURCE_BUCKET, path);
+    }
+  } catch {}
+  const next = list.filter((entry) => entry.id !== id).map((entry, index) => ({ ...entry, order: index + 1 }));
+  const result = await saveCollectionNow(RESOURCES_KEY, next);
+  renderResourcesAdmin();
+  showToast(syncMessage(result, 'Resource deleted.'));
+});
+
+async function saveBlockSettings() {
+  const settings = getData(SETTINGS_KEY) || {};
+  const nextSettings = {
+    ...settings,
+    resourcesBlock: {
+      eyebrow: document.getElementById('rbEyebrow').value.trim(),
+      title: document.getElementById('rbTitle').value.trim(),
+      subtitle: document.getElementById('rbSubtitle').value.trim(),
+      primaryLabel: document.getElementById('rbPrimaryLabel').value.trim(),
+      primaryUrl: normalizeExternalUrl(document.getElementById('rbPrimaryUrl').value),
+      secondaryLabel: document.getElementById('rbSecondaryLabel').value.trim(),
+      secondaryUrl: normalizeExternalUrl(document.getElementById('rbSecondaryUrl').value),
+    },
+  };
+  const result = await saveCollectionNow(SETTINGS_KEY, nextSettings);
+  showToast(syncMessage(result, 'Resource block saved.'));
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   await syncResourcesFromCloud();
+  renderBlockForm();
   renderResourcesAdmin();
   document.getElementById('resourceFilterInput')?.addEventListener('input', renderResourcesAdmin);
   document.getElementById('addResourceBtn').onclick = () => openResourceModal();
+  document.getElementById('saveBlockBtn').onclick = saveBlockSettings;
 });
 </script>
 </body>

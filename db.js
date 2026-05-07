@@ -160,6 +160,7 @@ When the delivery feels organized, the brand feels more premium too.`,
   galaxy_resources: [
     {
       id: 1,
+      order: 1,
       title: 'Launch Week Social Kit',
       slug: 'launch-week-social-kit',
       excerpt: 'A fast-moving social template pack for product launches, promos, and announcement campaigns.',
@@ -168,18 +169,24 @@ When the delivery feels organized, the brand feels more premium too.`,
       fileType: 'PSD / PNG',
       fileSize: '48 MB',
       downloadUrl: '#',
+      downloadStoragePath: '',
       previewImages: [
         'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80'
       ],
+      previewStoragePaths: [],
       tags: ['Instagram', 'Marketing', 'Promo'],
       featured: true,
       premium: false,
       downloads: 32,
       uploadDate: '2026-04-19T09:00:00.000Z',
       relatedSlugs: ['brand-pitch-deck-system'],
+      links: [
+        { label: 'WhatsApp', url: 'https://wa.me/233556881003', kind: 'whatsapp' },
+      ],
     },
     {
       id: 2,
+      order: 2,
       title: 'Brand Pitch Deck System',
       slug: 'brand-pitch-deck-system',
       excerpt: 'Presentation slides built for strategy decks, proposals, and brand storytelling.',
@@ -188,18 +195,24 @@ When the delivery feels organized, the brand feels more premium too.`,
       fileType: 'PPTX / PDF',
       fileSize: '22 MB',
       downloadUrl: '#',
+      downloadStoragePath: '',
       previewImages: [
         'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80'
       ],
+      previewStoragePaths: [],
       tags: ['Pitch', 'Slides', 'Brand'],
       featured: true,
       premium: true,
       downloads: 19,
       uploadDate: '2026-04-27T15:00:00.000Z',
       relatedSlugs: ['launch-week-social-kit'],
+      links: [
+        { label: 'Facebook', url: 'https://web.facebook.com/profile.php?id=61562678010128', kind: 'facebook' },
+      ],
     },
     {
       id: 3,
+      order: 3,
       title: 'Logo Reveal Mockup Pack',
       slug: 'logo-reveal-mockup-pack',
       excerpt: 'Clean mockup scenes for presenting logo systems and identity applications.',
@@ -208,15 +221,18 @@ When the delivery feels organized, the brand feels more premium too.`,
       fileType: 'PSD',
       fileSize: '61 MB',
       downloadUrl: '#',
+      downloadStoragePath: '',
       previewImages: [
         'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=1200&q=80'
       ],
+      previewStoragePaths: [],
       tags: ['Branding', 'Mockup', 'Presentation'],
       featured: false,
       premium: false,
       downloads: 14,
       uploadDate: '2026-03-30T11:40:00.000Z',
       relatedSlugs: [],
+      links: [],
     }
   ],
   galaxy_users: [
@@ -257,6 +273,15 @@ When the delivery feels organized, the brand feels more premium too.`,
     whatsapp: '233556881003',
     novatech: '#',
     partners: [],
+    resourcesBlock: {
+      eyebrow: 'Digital Downloads',
+      title: 'Featured Resources',
+      subtitle: 'Preview and download Galaxy Studio assets, PDFs, images, and ready-to-share files without extra clutter.',
+      primaryLabel: 'Chat on WhatsApp',
+      primaryUrl: 'https://wa.me/233556881003',
+      secondaryLabel: 'Visit Facebook',
+      secondaryUrl: 'https://web.facebook.com/profile.php?id=61562678010128',
+    },
     qrUrl: '',
     logo: 'logo-512.png',
     logoStoragePath: '',
@@ -762,6 +787,7 @@ function fromRow(key, row) {
     case 'galaxy_resources':
       return {
         id: row.id,
+        order: Number(row.ord || row.order || 0),
         title: row.title || '',
         slug: row.slug || '',
         excerpt: row.excerpt || '',
@@ -770,8 +796,12 @@ function fromRow(key, row) {
         fileType: row.file_type || row.fileType || '',
         fileSize: row.file_size || row.fileSize || '',
         downloadUrl: row.download_url || row.downloadUrl || '#',
+        downloadStoragePath: row.download_storage_path || row.downloadStoragePath || '',
         previewImages: Array.isArray(row.previewImages) ? row.previewImages : (() => {
           try { return JSON.parse(row.preview_images_json || '[]'); } catch { return []; }
+        })(),
+        previewStoragePaths: Array.isArray(row.previewStoragePaths) ? row.previewStoragePaths : (() => {
+          try { return JSON.parse(row.preview_storage_paths_json || '[]'); } catch { return []; }
         })(),
         tags: Array.isArray(row.tags) ? row.tags : (() => {
           try { return JSON.parse(row.tags_json || '[]'); } catch { return []; }
@@ -782,6 +812,9 @@ function fromRow(key, row) {
         uploadDate: row.upload_date || row.uploadDate || '',
         relatedSlugs: Array.isArray(row.relatedSlugs) ? row.relatedSlugs : (() => {
           try { return JSON.parse(row.related_slugs_json || '[]'); } catch { return []; }
+        })(),
+        links: Array.isArray(row.links) ? row.links : (() => {
+          try { return JSON.parse(row.links_json || '[]'); } catch { return []; }
         })(),
       };
     case 'galaxy_users':
@@ -821,6 +854,16 @@ function fromRow(key, row) {
         whatsapp: row.whatsapp || '',
         novatech: row.novatech || '',
         partners: normalizePartnerList(row.partners_json || row.partnersJson || row.partners || []),
+        resourcesBlock: (() => {
+          try {
+            const parsed = JSON.parse(row.resources_block_json || row.resourcesBlockJson || 'null');
+            return parsed && typeof parsed === 'object'
+              ? { ...BASE_DEFAULTS.galaxy_settings.resourcesBlock, ...parsed }
+              : cloneValue(BASE_DEFAULTS.galaxy_settings.resourcesBlock);
+          } catch {
+            return cloneValue(BASE_DEFAULTS.galaxy_settings.resourcesBlock);
+          }
+        })(),
         qrUrl: row.qr_url || row.qrUrl || '',
         logo: row.logo_url || row.logo || '',
         logoStoragePath: row.logo_storage_path || row.logoStoragePath || '',
@@ -997,6 +1040,7 @@ function toRow(key, value) {
     case 'galaxy_resources':
       return {
         id: value.id,
+        ord: Number(value.order || 0),
         title: value.title || '',
         slug: value.slug || '',
         excerpt: value.excerpt || '',
@@ -1005,13 +1049,16 @@ function toRow(key, value) {
         file_type: value.fileType || '',
         file_size: value.fileSize || '',
         download_url: value.downloadUrl || '#',
+        download_storage_path: value.downloadStoragePath || '',
         preview_images_json: JSON.stringify(Array.isArray(value.previewImages) ? value.previewImages : []),
+        preview_storage_paths_json: JSON.stringify(Array.isArray(value.previewStoragePaths) ? value.previewStoragePaths : []),
         tags_json: JSON.stringify(Array.isArray(value.tags) ? value.tags : []),
         featured: Boolean(value.featured),
         premium: Boolean(value.premium),
         downloads: Number(value.downloads || 0),
         upload_date: value.uploadDate || value.upload_date || new Date().toISOString(),
         related_slugs_json: JSON.stringify(Array.isArray(value.relatedSlugs) ? value.relatedSlugs : []),
+        links_json: JSON.stringify(Array.isArray(value.links) ? value.links : []),
       };
     case 'galaxy_users':
       return {
@@ -1051,6 +1098,7 @@ function toRow(key, value) {
         whatsapp: value.whatsapp || '',
         novatech: value.novatech || '',
         partners_json: JSON.stringify(normalizePartnerList(value.partners || [])),
+        resources_block_json: JSON.stringify({ ...(BASE_DEFAULTS.galaxy_settings.resourcesBlock || {}), ...((value && value.resourcesBlock) || {}) }),
         qr_url: value.qrUrl || '',
         logo_url: value.logo || '',
         logo_storage_path: value.logoStoragePath || '',
@@ -1119,6 +1167,8 @@ function sortValue(key, value) {
     });
   } else if (key === 'galaxy_resources') {
     sorted.sort((a, b) => {
+      const byOrder = (a.order || 999) - (b.order || 999);
+      if (byOrder) return byOrder;
       const aFeatured = a.featured ? 1 : 0;
       const bFeatured = b.featured ? 1 : 0;
       if (aFeatured !== bFeatured) return bFeatured - aFeatured;

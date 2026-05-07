@@ -27,7 +27,17 @@ window.DEFAULTS = {
     studioName:'Galaxy Studio',tagline:'Creative, Design & Development Studio',
     email:'galaxydesignstudio4@gmail.com',phone:'055-688-1003',
     location:'Tema, Accra, Ghana',facebook:'https://web.facebook.com/profile.php?id=61562678010128',
-    whatsapp:'233556881003',novatech:'#',qrUrl:'',logo:'logo-512.png',
+    whatsapp:'233556881003',novatech:'#',
+    resourcesBlock:{
+      eyebrow:'Digital Downloads',
+      title:'Featured Resources',
+      subtitle:'Preview and download Galaxy Studio assets, PDFs, images, and ready-to-share files without extra clutter.',
+      primaryLabel:'Chat on WhatsApp',
+      primaryUrl:'https://wa.me/233556881003',
+      secondaryLabel:'Visit Facebook',
+      secondaryUrl:'https://web.facebook.com/profile.php?id=61562678010128',
+    },
+    qrUrl:'',logo:'logo-512.png',
   },
   galaxy_about: {
     name:'Emmanuel Yirenkyi-Amoyaw',
