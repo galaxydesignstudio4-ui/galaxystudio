@@ -230,6 +230,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Active nav link ── */
   const path = window.location.pathname;
+  function ensurePublicNavLinks() {
+    const navGroups = document.querySelectorAll('.nav-links, .mobile-menu');
+    navGroups.forEach((group) => {
+      if (!group) return;
+      const contactLink = group.querySelector('[href="contact.html"]');
+      const existingBlog = group.querySelector(':scope > [href="blog.html"]');
+      const existingResources = group.querySelector(':scope > [href="resources.html"]');
+      let dropdown = group.querySelector(':scope > .nav-dropdown');
+
+      if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.className = 'nav-dropdown';
+        dropdown.innerHTML = `
+          <a class="nav-link nav-dropdown-toggle" href="blog.html">Blog</a>
+          <div class="nav-dropdown-menu">
+            <a class="nav-link" href="blog.html">Blog</a>
+            <a class="nav-link" href="resources.html">Resources</a>
+          </div>
+        `;
+        if (contactLink) group.insertBefore(dropdown, contactLink);
+        else group.appendChild(dropdown);
+      }
+
+      existingBlog?.remove();
+      existingResources?.remove();
+
+      const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+      const current = path.split('/').pop() || 'index.html';
+      const blogActive = ['blog.html', 'post.html', 'resources.html'].includes(current);
+      toggle?.classList.toggle('active', blogActive);
+      dropdown.querySelectorAll('.nav-dropdown-menu .nav-link').forEach((link) => {
+        const page = (link.getAttribute('href') || '').split('/').pop();
+        link.classList.toggle('active', page === current);
+      });
+
+      if (group.classList.contains('mobile-menu') && !dropdown.dataset.bound) {
+        dropdown.dataset.bound = 'true';
+        toggle?.addEventListener('click', (event) => {
+          event.preventDefault();
+          dropdown.classList.toggle('open');
+        });
+      }
+    });
+
+    const footerLinks = [...document.querySelectorAll('.footer-links')].find((group) => /services|portfolio|about/i.test(group.textContent || ''));
+    if (footerLinks && !footerLinks.querySelector('[href="blog.html"]')) {
+      footerLinks.insertAdjacentHTML('beforeend', '<a href="blog.html">Blog</a>');
+    }
+  }
+
+  ensurePublicNavLinks();
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.remove('active');
     const href = link.getAttribute('href') || '';
@@ -1017,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!btnWrap) return;
       btnWrap.innerHTML = `
         <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">${iconName === 'avatar' ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
-        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a>' : ''}
+        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View AdAvatar Gallery</a>' : ''}
       `;
     }
   }
@@ -1170,6 +1221,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const services = data.galaxy_services || [];
     const portfolio = data.galaxy_portfolio || [];
     const testimonials = data.galaxy_testimonials || [];
+    const blogPosts = data.galaxy_blog_posts || [];
+    const resources = data.galaxy_resources || [];
     const about = data.galaxy_about || {};
     const notifications = data.galaxy_notifications || [];
     const partners = normalizePartners(data.galaxy_settings || {}).filter((entry) => entry.premium);
@@ -1189,7 +1242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="adavatar-desc">${escHtml(adavatar?.desc || 'Our signature service — a 3D animated Pixar-style avatar that talks and promotes your product or business.')}</p>
             <div class="adavatar-btns">
               <a class="btn btn-gold" href="contact.html">Get Your AdAvatar →</a>
-              <a class="btn btn-gold-outline" href="adavatar.html">View Samples & Gallery</a>
+              <a class="btn btn-gold-outline" href="adavatar.html">View AdAvatar Gallery</a>
             </div>
           </div>
         </div>
@@ -1212,18 +1265,19 @@ document.addEventListener('DOMContentLoaded', () => {
               <p class="adavatar-desc">${escHtml(service.desc || fallbackDesc)}</p>
               <div class="adavatar-btns">
                 <a class="btn btn-gold" href="contact.html">${isAdavatarService ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
-                ${isAdavatarService ? '<a class="btn btn-gold-outline" href="adavatar.html">View Samples & Gallery</a>' : ''}
+                ${isAdavatarService ? '<a class="btn btn-gold-outline" href="adavatar.html">View AdAvatar Gallery</a>' : ''}
               </div>
             </div>
           </article>
         `;
       });
-      adavatarCard.innerHTML = `<div class="signature-services-grid">${cards.join('')}</div>`;
+      adavatarCard.innerHTML = signatureServices.length > 1
+        ? `<div class="signature-services-grid">${cards.join('')}</div>`
+        : cards.join('');
     }
     if (adavatarCard) {
       adavatarCard.style.visibility = 'visible';
       adavatarCard.classList.toggle('is-multi-signature', signatureServices.length > 1);
-      adavatarCard.querySelectorAll('.adavatar-btns').forEach((node) => node.remove());
       if (signatureServices.length > 1) {
         adavatarCard.querySelectorAll('.signature-service-card').forEach((card) => {
           if (card.parentElement?.classList.contains('signature-service-shell')) return;
@@ -1343,6 +1397,8 @@ document.addEventListener('DOMContentLoaded', () => {
         partnersGrid.innerHTML = '';
       }
     }
+
+    document.getElementById('insights-resources-home')?.remove();
   }
 
   function renderServicesPage(services) {
@@ -1360,7 +1416,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="service-features">
             ${featureListForService(service).map((feature) => `<div class="feature-item"><div class="feature-check"${service.signature ? ' style="background:rgba(245,158,11,0.15);color:#f59e0b;"' : ''}>✓</div>${escHtml(feature)}</div>`).join('')}
           </div>
-          ${service.signature ? '<div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;"><a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">Get Your AdAvatar →</a><a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a></div>' : ''}
+          ${service.signature ? '<div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;"><a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">Get Your AdAvatar →</a><a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View AdAvatar Gallery</a></div>' : ''}
         </div>
       </div>
     `).join('');
@@ -1375,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!btnWrap) return;
       btnWrap.innerHTML = `
         <a class="btn btn-gold" href="contact.html" style="font-size:14px;padding:10px 22px;">${iconName === 'avatar' ? `Get Your ${escHtml(service.title || 'AdAvatar')} →` : `Book ${escHtml(service.title || 'This Service')} →`}</a>
-        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View Samples</a>' : ''}
+        ${iconName === 'avatar' ? '<a class="btn btn-gold-outline" href="adavatar.html" style="font-size:14px;padding:10px 22px;">View AdAvatar Gallery</a>' : ''}
       `;
     });
     listEl.querySelectorAll('.service-row.adavatar-row [style*="margin-top:20px"]').forEach((node) => node.remove());
@@ -1421,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const keys = new Set(['galaxy_settings', 'galaxy_about', 'galaxy_notifications']);
     if (pageName === 'index.html' || pageName === '') {
-      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials'].forEach((key) => keys.add(key));
+      ['galaxy_services', 'galaxy_portfolio', 'galaxy_testimonials', 'galaxy_blog_posts', 'galaxy_resources'].forEach((key) => keys.add(key));
     }
     if (pageName === 'services.html') keys.add('galaxy_services');
 

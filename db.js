@@ -46,6 +46,207 @@ const BASE_DEFAULTS = {
   galaxy_team: [],
   galaxy_messages: [],
   galaxy_notifications: [],
+  galaxy_blog_posts: [
+    {
+      id: 1,
+      title: 'Inside the Galaxy Studio Creative Process',
+      slug: 'inside-the-galaxy-studio-creative-process',
+      excerpt: 'A lighter look at how Galaxy Studio shapes ideas, motion, and visual polish into a premium final experience.',
+      body: `Galaxy Studio pages work best when movement supports clarity instead of fighting it.
+
+## Start with rhythm
+Spacing is part of the story. When cards, copy blocks, and calls to action breathe, the experience feels more premium.
+
+> Motion should reward curiosity, not demand attention.
+
+## Build scroll moments
+Use featured sections, layered backgrounds, and a few intentional reveal animations to make each section feel like a chapter.
+
+## Keep interaction tactile
+Hover states, sticky controls, progress indicators, and card depth help users feel in control of the page.
+
+\`\`\`css
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px hsl(250 80% 65% / 0.12);
+}
+\`\`\`
+
+[video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+
+The result is a website that feels confident, modern, and intentionally crafted.`,
+      category: 'Design Systems',
+      tags: ['UX', 'Motion', 'Creative Direction'],
+      authorName: 'Galaxy Studio',
+      authorRole: 'Creative Tech Team',
+      featured: true,
+      pinned: true,
+      status: 'published',
+      publishDate: '2026-05-01T09:30:00.000Z',
+      scheduledFor: '',
+      banner: '',
+      bannerStoragePath: '',
+      gallery: [],
+      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      commentsEnabled: true,
+      likes: 18,
+      views: 126,
+      bookmarks: 9,
+      seoTitle: 'Inside the Galaxy Studio Creative Process | Galaxy Studio',
+      seoDescription: 'See how Galaxy Studio shapes creative direction, motion, and visual polish into premium digital work.',
+      newsletterCta: 'Get new Galaxy Studio breakdowns, templates, and launch notes in your inbox.',
+    },
+    {
+      id: 2,
+      title: 'How We Package Brand Assets for Fast Client Handoffs',
+      slug: 'how-we-package-brand-assets-for-fast-client-handoffs',
+      excerpt: 'Inside our resource delivery workflow for logos, social kits, mockups, and reusable files that clients can actually use.',
+      body: `A beautiful brand system loses value if the handoff is messy.
+
+## Deliver in layers
+We separate master assets, social exports, quick-edit templates, and usage notes so clients know exactly where to start.
+
+## Reduce friction
+- Keep filenames clean
+- Group assets by platform
+- Include preview boards
+- Add simple usage guidance
+
+[gallery:https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80,https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80]
+
+When the delivery feels organized, the brand feels more premium too.`,
+      category: 'Workflow',
+      tags: ['Branding', 'Resources', 'Delivery'],
+      authorName: 'Galaxy Studio',
+      authorRole: 'Brand Operations',
+      featured: false,
+      pinned: false,
+      status: 'published',
+      publishDate: '2026-04-24T14:00:00.000Z',
+      scheduledFor: '',
+      banner: '',
+      bannerStoragePath: '',
+      gallery: [
+        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80'
+      ],
+      videoUrl: '',
+      commentsEnabled: true,
+      likes: 11,
+      views: 84,
+      bookmarks: 6,
+      seoTitle: 'Brand Asset Delivery Workflow | Galaxy Studio',
+      seoDescription: 'See how Galaxy Studio packages logos, templates, and brand assets for fast and clean client handoffs.',
+      newsletterCta: 'Subscribe for more process notes, templates, and creative workflow resources.',
+    }
+  ],
+  galaxy_blog_comments: [
+    {
+      id: 1,
+      postId: 1,
+      parentId: 0,
+      authorName: 'Ama Mensah',
+      authorEmail: 'ama@example.com',
+      content: 'The point about motion rewarding curiosity is excellent. This is exactly what makes premium sites feel easier to explore.',
+      ownerId: 'seed-user-1',
+      status: 'approved',
+      pinned: true,
+      likes: 4,
+      reports: 0,
+      createdAt: '2026-05-02T10:15:00.000Z',
+      updatedAt: '',
+    }
+  ],
+  galaxy_resources: [
+    {
+      id: 1,
+      title: 'Launch Week Social Kit',
+      slug: 'launch-week-social-kit',
+      excerpt: 'A fast-moving social template pack for product launches, promos, and announcement campaigns.',
+      description: 'Includes story cards, feed layouts, CTA slides, promo headers, and layered social graphics for launch campaigns.',
+      category: 'Social Media',
+      fileType: 'PSD / PNG',
+      fileSize: '48 MB',
+      downloadUrl: '#',
+      previewImages: [
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80'
+      ],
+      tags: ['Instagram', 'Marketing', 'Promo'],
+      featured: true,
+      premium: false,
+      downloads: 32,
+      uploadDate: '2026-04-19T09:00:00.000Z',
+      relatedSlugs: ['brand-pitch-deck-system'],
+    },
+    {
+      id: 2,
+      title: 'Brand Pitch Deck System',
+      slug: 'brand-pitch-deck-system',
+      excerpt: 'Presentation slides built for strategy decks, proposals, and brand storytelling.',
+      description: 'A premium slide system with section dividers, metrics pages, case study layouts, and polished visual storytelling components.',
+      category: 'Presentations',
+      fileType: 'PPTX / PDF',
+      fileSize: '22 MB',
+      downloadUrl: '#',
+      previewImages: [
+        'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80'
+      ],
+      tags: ['Pitch', 'Slides', 'Brand'],
+      featured: true,
+      premium: true,
+      downloads: 19,
+      uploadDate: '2026-04-27T15:00:00.000Z',
+      relatedSlugs: ['launch-week-social-kit'],
+    },
+    {
+      id: 3,
+      title: 'Logo Reveal Mockup Pack',
+      slug: 'logo-reveal-mockup-pack',
+      excerpt: 'Clean mockup scenes for presenting logo systems and identity applications.',
+      description: 'Preview logos on signage, packaging, stationery, device screens, and campaign mockups with a polished presentation style.',
+      category: 'Mockups',
+      fileType: 'PSD',
+      fileSize: '61 MB',
+      downloadUrl: '#',
+      previewImages: [
+        'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=1200&q=80'
+      ],
+      tags: ['Branding', 'Mockup', 'Presentation'],
+      featured: false,
+      premium: false,
+      downloads: 14,
+      uploadDate: '2026-03-30T11:40:00.000Z',
+      relatedSlugs: [],
+    }
+  ],
+  galaxy_users: [
+    {
+      id: 1,
+      deviceId: 'seed-user-1',
+      name: 'Ama Mensah',
+      email: 'ama@example.com',
+      role: 'reader',
+      status: 'active',
+      origin: 'comment',
+      lastSeen: '2026-05-02T10:15:00.000Z',
+      commentsCount: 1,
+      bookmarks: ['inside-the-galaxy-studio-creative-process'],
+      history: ['inside-the-galaxy-studio-creative-process'],
+      likedPosts: [1],
+      likedComments: [1],
+      newsletter: true,
+    }
+  ],
+  galaxy_subscribers: [
+    {
+      id: 1,
+      email: 'hello@galaxystudio.example',
+      name: 'Launch List',
+      source: 'seed',
+      subscribedAt: '2026-05-01T09:35:00.000Z',
+      status: 'active',
+    }
+  ],
   galaxy_settings: {
     studioName: 'Galaxy Studio',
     tagline: 'Creative, Design & Development Studio',
@@ -108,6 +309,11 @@ const TABLES = {
   galaxy_team: 'team',
   galaxy_messages: 'messages',
   galaxy_notifications: 'notifications',
+  galaxy_blog_posts: 'blog_posts',
+  galaxy_blog_comments: 'blog_comments',
+  galaxy_resources: 'resources',
+  galaxy_users: 'users',
+  galaxy_subscribers: 'subscribers',
   galaxy_settings: 'settings',
   galaxy_about: 'about',
 };
@@ -505,6 +711,105 @@ function fromRow(key, row) {
         createdAt: row.created_at || row.createdAt || '',
         expiresAt: row.expires_at || row.expiresAt || notificationExpiryFor(row.created_at || row.createdAt),
       };
+    case 'galaxy_blog_posts':
+      return {
+        id: row.id,
+        title: row.title || '',
+        slug: row.slug || '',
+        excerpt: row.excerpt || '',
+        body: row.body || '',
+        category: row.category || '',
+        tags: Array.isArray(row.tags) ? row.tags : (() => {
+          try { return JSON.parse(row.tags_json || '[]'); } catch { return []; }
+        })(),
+        authorName: row.author_name || row.authorName || '',
+        authorRole: row.author_role || row.authorRole || '',
+        featured: Boolean(row.featured),
+        pinned: Boolean(row.pinned),
+        status: row.status || 'draft',
+        publishDate: row.publish_date || row.publishDate || '',
+        scheduledFor: row.scheduled_for || row.scheduledFor || '',
+        banner: row.banner_url || row.banner || '',
+        bannerStoragePath: row.banner_storage_path || row.bannerStoragePath || '',
+        gallery: Array.isArray(row.gallery) ? row.gallery : (() => {
+          try { return JSON.parse(row.gallery_json || '[]'); } catch { return []; }
+        })(),
+        videoUrl: row.video_url || row.videoUrl || '',
+        commentsEnabled: row.comments_enabled !== false,
+        likes: Number(row.likes || 0),
+        views: Number(row.views || 0),
+        bookmarks: Number(row.bookmarks || 0),
+        seoTitle: row.seo_title || row.seoTitle || '',
+        seoDescription: row.seo_description || row.seoDescription || '',
+        newsletterCta: row.newsletter_cta || row.newsletterCta || '',
+      };
+    case 'galaxy_blog_comments':
+      return {
+        id: row.id,
+        postId: Number(row.post_id || row.postId || 0),
+        parentId: Number(row.parent_id || row.parentId || 0),
+        authorName: row.author_name || row.authorName || '',
+        authorEmail: row.author_email || row.authorEmail || '',
+        content: row.content || '',
+        ownerId: row.owner_id || row.ownerId || '',
+        status: row.status || 'pending',
+        pinned: Boolean(row.pinned),
+        likes: Number(row.likes || 0),
+        reports: Number(row.reports || 0),
+        createdAt: row.created_at || row.createdAt || '',
+        updatedAt: row.updated_at || row.updatedAt || '',
+      };
+    case 'galaxy_resources':
+      return {
+        id: row.id,
+        title: row.title || '',
+        slug: row.slug || '',
+        excerpt: row.excerpt || '',
+        description: row.description || '',
+        category: row.category || '',
+        fileType: row.file_type || row.fileType || '',
+        fileSize: row.file_size || row.fileSize || '',
+        downloadUrl: row.download_url || row.downloadUrl || '#',
+        previewImages: Array.isArray(row.previewImages) ? row.previewImages : (() => {
+          try { return JSON.parse(row.preview_images_json || '[]'); } catch { return []; }
+        })(),
+        tags: Array.isArray(row.tags) ? row.tags : (() => {
+          try { return JSON.parse(row.tags_json || '[]'); } catch { return []; }
+        })(),
+        featured: Boolean(row.featured),
+        premium: Boolean(row.premium),
+        downloads: Number(row.downloads || 0),
+        uploadDate: row.upload_date || row.uploadDate || '',
+        relatedSlugs: Array.isArray(row.relatedSlugs) ? row.relatedSlugs : (() => {
+          try { return JSON.parse(row.related_slugs_json || '[]'); } catch { return []; }
+        })(),
+      };
+    case 'galaxy_users':
+      return {
+        id: row.id,
+        deviceId: row.device_id || row.deviceId || '',
+        name: row.name || '',
+        email: row.email || '',
+        role: row.role || 'reader',
+        status: row.status || 'active',
+        origin: row.origin || 'reader',
+        lastSeen: row.last_seen || row.lastSeen || '',
+        commentsCount: Number(row.comments_count || row.commentsCount || 0),
+        bookmarks: (() => { try { return JSON.parse(row.bookmarks_json || '[]'); } catch { return []; } })(),
+        history: (() => { try { return JSON.parse(row.history_json || '[]'); } catch { return []; } })(),
+        likedPosts: (() => { try { return JSON.parse(row.liked_posts_json || '[]'); } catch { return []; } })(),
+        likedComments: (() => { try { return JSON.parse(row.liked_comments_json || '[]'); } catch { return []; } })(),
+        newsletter: Boolean(row.newsletter),
+      };
+    case 'galaxy_subscribers':
+      return {
+        id: row.id,
+        email: row.email || '',
+        name: row.name || '',
+        source: row.source || 'website',
+        subscribedAt: row.subscribed_at || row.subscribedAt || '',
+        status: row.status || 'active',
+      };
     case 'galaxy_settings':
       return {
         studioName: row.studio_name || row.studioName || BASE_DEFAULTS.galaxy_settings.studioName,
@@ -645,6 +950,95 @@ function toRow(key, value) {
         created_at: value.createdAt || value.created_at || new Date().toISOString(),
         expires_at: value.expiresAt || value.expires_at || notificationExpiryFor(value.createdAt || value.created_at),
       };
+    case 'galaxy_blog_posts':
+      return {
+        id: value.id,
+        title: value.title || '',
+        slug: value.slug || '',
+        excerpt: value.excerpt || '',
+        body: value.body || '',
+        category: value.category || '',
+        tags_json: JSON.stringify(Array.isArray(value.tags) ? value.tags : []),
+        author_name: value.authorName || '',
+        author_role: value.authorRole || '',
+        featured: Boolean(value.featured),
+        pinned: Boolean(value.pinned),
+        status: value.status || 'draft',
+        publish_date: value.publishDate || value.publish_date || '',
+        scheduled_for: value.scheduledFor || value.scheduled_for || '',
+        banner_url: value.banner || value.banner_url || '',
+        banner_storage_path: value.bannerStoragePath || value.banner_storage_path || '',
+        gallery_json: JSON.stringify(Array.isArray(value.gallery) ? value.gallery : []),
+        video_url: value.videoUrl || value.video_url || '',
+        comments_enabled: value.commentsEnabled !== false,
+        likes: Number(value.likes || 0),
+        views: Number(value.views || 0),
+        bookmarks: Number(value.bookmarks || 0),
+        seo_title: value.seoTitle || '',
+        seo_description: value.seoDescription || '',
+        newsletter_cta: value.newsletterCta || '',
+      };
+    case 'galaxy_blog_comments':
+      return {
+        id: value.id,
+        post_id: Number(value.postId || 0),
+        parent_id: Number(value.parentId || 0),
+        author_name: value.authorName || '',
+        author_email: value.authorEmail || '',
+        content: value.content || '',
+        owner_id: value.ownerId || '',
+        status: value.status || 'pending',
+        pinned: Boolean(value.pinned),
+        likes: Number(value.likes || 0),
+        reports: Number(value.reports || 0),
+        created_at: value.createdAt || value.created_at || new Date().toISOString(),
+        updated_at: value.updatedAt || value.updated_at || '',
+      };
+    case 'galaxy_resources':
+      return {
+        id: value.id,
+        title: value.title || '',
+        slug: value.slug || '',
+        excerpt: value.excerpt || '',
+        description: value.description || '',
+        category: value.category || '',
+        file_type: value.fileType || '',
+        file_size: value.fileSize || '',
+        download_url: value.downloadUrl || '#',
+        preview_images_json: JSON.stringify(Array.isArray(value.previewImages) ? value.previewImages : []),
+        tags_json: JSON.stringify(Array.isArray(value.tags) ? value.tags : []),
+        featured: Boolean(value.featured),
+        premium: Boolean(value.premium),
+        downloads: Number(value.downloads || 0),
+        upload_date: value.uploadDate || value.upload_date || new Date().toISOString(),
+        related_slugs_json: JSON.stringify(Array.isArray(value.relatedSlugs) ? value.relatedSlugs : []),
+      };
+    case 'galaxy_users':
+      return {
+        id: value.id,
+        device_id: value.deviceId || '',
+        name: value.name || '',
+        email: value.email || '',
+        role: value.role || 'reader',
+        status: value.status || 'active',
+        origin: value.origin || 'reader',
+        last_seen: value.lastSeen || value.last_seen || new Date().toISOString(),
+        comments_count: Number(value.commentsCount || 0),
+        bookmarks_json: JSON.stringify(Array.isArray(value.bookmarks) ? value.bookmarks : []),
+        history_json: JSON.stringify(Array.isArray(value.history) ? value.history : []),
+        liked_posts_json: JSON.stringify(Array.isArray(value.likedPosts) ? value.likedPosts : []),
+        liked_comments_json: JSON.stringify(Array.isArray(value.likedComments) ? value.likedComments : []),
+        newsletter: Boolean(value.newsletter),
+      };
+    case 'galaxy_subscribers':
+      return {
+        id: value.id,
+        email: value.email || '',
+        name: value.name || '',
+        source: value.source || 'website',
+        subscribed_at: value.subscribedAt || value.subscribed_at || new Date().toISOString(),
+        status: value.status || 'active',
+      };
     case 'galaxy_settings':
       return {
         id: 1,
@@ -709,6 +1103,31 @@ function sortValue(key, value) {
   const sorted = key === 'galaxy_notifications' ? pruneExpiredNotifications(value) : [...value];
   if (key === 'galaxy_services' || key === 'galaxy_team') {
     sorted.sort((a, b) => (a.order || 999) - (b.order || 999) || (a.id || 0) - (b.id || 0));
+  } else if (key === 'galaxy_blog_posts') {
+    sorted.sort((a, b) => {
+      const aPinned = a.pinned ? 1 : 0;
+      const bPinned = b.pinned ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+      return new Date(b.publishDate || b.scheduledFor || 0) - new Date(a.publishDate || a.scheduledFor || 0) || (b.id || 0) - (a.id || 0);
+    });
+  } else if (key === 'galaxy_blog_comments') {
+    sorted.sort((a, b) => {
+      const aPinned = a.pinned ? 1 : 0;
+      const bPinned = b.pinned ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+      return new Date(a.createdAt || 0) - new Date(b.createdAt || 0) || (a.id || 0) - (b.id || 0);
+    });
+  } else if (key === 'galaxy_resources') {
+    sorted.sort((a, b) => {
+      const aFeatured = a.featured ? 1 : 0;
+      const bFeatured = b.featured ? 1 : 0;
+      if (aFeatured !== bFeatured) return bFeatured - aFeatured;
+      return new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0) || (b.downloads || 0) - (a.downloads || 0);
+    });
+  } else if (key === 'galaxy_users') {
+    sorted.sort((a, b) => new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0) || (b.id || 0) - (a.id || 0));
+  } else if (key === 'galaxy_subscribers') {
+    sorted.sort((a, b) => new Date(b.subscribedAt || 0) - new Date(a.subscribedAt || 0) || (b.id || 0) - (a.id || 0));
   } else if (key === 'galaxy_messages') {
     sorted.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
   } else if (key === 'galaxy_notifications') {

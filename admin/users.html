@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audience & Users | Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="authGate"><div class="auth-card"><div class="auth-logo">👥</div><h2 class="auth-title">Admin Access</h2><p class="auth-sub">Enter your password to manage Galaxy Studio.</p><input class="auth-input" type="password" id="authPassword" placeholder="••••••••"><button class="auth-btn" id="authBtn">Enter Admin Panel →</button><p class="auth-error" id="authError">Incorrect password. Please try again.</p></div></div>
+<div id="adminPanel">
+  <aside id="sidebar"><div class="sidebar-header"><div class="sidebar-logo-icon">👥</div><span class="sidebar-logo-text">Content Admin</span></div><nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-icon">⌂</span><span class="nav-label">Dashboard</span></a><a class="nav-item" href="blog.html"><span class="nav-icon">✦</span><span class="nav-label">Blog</span></a><a class="nav-item" href="resources.html"><span class="nav-icon">▣</span><span class="nav-label">Resources</span></a><a class="nav-item" href="comments.html"><span class="nav-icon">💬</span><span class="nav-label">Comments</span></a><a class="nav-item active" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Audience</span></a></nav><div class="sidebar-footer"><button class="logout-btn" id="logoutBtn"><span class="nav-icon">⎋</span><span class="nav-label">Log Out</span></button></div></aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">Audience & Users</h1><p class="page-sub">Review reader activity, newsletter signups, and optional editor roles.</p></div></div>
+    <div class="page-body">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><span class="card-title">Reader Profiles</span></div>
+        <div style="padding:0;overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Role</th><th>Bookmarks</th><th>History</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody id="userBody"></tbody>
+          </table>
+          <div id="userEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">👥</div><h3>No audience data yet</h3><p>Reader profiles are created from comments, likes, bookmarks, and newsletter activity.</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Newsletter Subscribers</span></div>
+        <div style="padding:0;overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Status</th></tr></thead>
+            <tbody id="subscriberBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const USERS_KEY = 'galaxy_users';
+const SUBSCRIBERS_KEY = 'galaxy_subscribers';
+
+async function syncAudienceFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  await Promise.all([window.loadFromCloud(USERS_KEY).catch(()=>{}), window.loadFromCloud(SUBSCRIBERS_KEY).catch(()=>{})]);
+}
+
+function renderAudienceAdmin() {
+  const users = getData(USERS_KEY) || [];
+  const subscribers = getData(SUBSCRIBERS_KEY) || [];
+  const body = document.getElementById('userBody');
+  const empty = document.getElementById('userEmpty');
+  if (!users.length) { body.innerHTML=''; empty.style.display=''; } else {
+    empty.style.display='none';
+    body.innerHTML = users.map(user => `<tr>
+      <td><strong>${escHtml(user.name || 'Guest Reader')}</strong><div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(user.email || user.deviceId || '')}</div></td>
+      <td><span class="badge ${user.role === 'editor' ? 'badge-purple' : 'badge-blue'}">${escHtml(user.role || 'reader')}</span> <span class="badge ${user.status === 'active' ? 'badge-green' : 'badge-red'}">${escHtml(user.status || 'active')}</span></td>
+      <td style="color:var(--muted);">${(user.bookmarks || []).length} saved</td>
+      <td style="color:var(--muted);">${(user.history || []).length} viewed</td>
+      <td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="toggleRole(${user.id})">${user.role === 'editor' ? 'Make Reader' : 'Make Editor'}</button><button class="btn btn-ghost btn-sm" onclick="toggleStatus(${user.id})">${user.status === 'active' ? 'Suspend' : 'Activate'}</button></td>
+    </tr>`).join('');
+  }
+  document.getElementById('subscriberBody').innerHTML = subscribers.map(item => `<tr><td><strong>${escHtml(item.email || '')}</strong></td><td>${escHtml(item.name || '')}</td><td><span class="badge badge-cyan">${escHtml(item.source || 'website')}</span></td><td><span class="badge ${item.status === 'active' ? 'badge-green' : 'badge-red'}">${escHtml(item.status || 'active')}</span></td></tr>`).join('') || `<tr><td colspan="4" style="color:var(--muted);">No subscribers yet.</td></tr>`;
+}
+
+window.toggleRole = (id) => { setData(USERS_KEY, (getData(USERS_KEY) || []).map(user => user.id === id ? { ...user, role: user.role === 'editor' ? 'reader' : 'editor' } : user)); renderAudienceAdmin(); showToast('User role updated.'); };
+window.toggleStatus = (id) => { setData(USERS_KEY, (getData(USERS_KEY) || []).map(user => user.id === id ? { ...user, status: user.status === 'active' ? 'suspended' : 'active' } : user)); renderAudienceAdmin(); showToast('User status updated.'); };
+
+document.addEventListener('DOMContentLoaded', async () => { await syncAudienceFromCloud(); renderAudienceAdmin(); });
+</script>
+</body>
+</html>

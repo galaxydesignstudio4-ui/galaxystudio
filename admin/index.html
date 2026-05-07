@@ -98,6 +98,8 @@ async function syncDashboardData() {
     window.loadFromCloud('galaxy_messages').catch(() => {}),
     window.loadFromCloud('galaxy_team').catch(() => {}),
     window.loadFromCloud('galaxy_notifications').catch(() => {}),
+    window.loadFromCloud('galaxy_blog_posts').catch(() => {}),
+    window.loadFromCloud('galaxy_resources').catch(() => {}),
   ]);
 }
 
@@ -130,6 +132,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const portfolio  = getData('galaxy_portfolio') || [];
   const messages   = getData('galaxy_messages') || [];
   const team       = getData('galaxy_team') || [];
+  const posts      = getData('galaxy_blog_posts') || [];
+  const resources  = getData('galaxy_resources') || [];
   const notifications = (typeof window.getNotificationsForAudience === 'function'
     ? window.getNotificationsForAudience('admin')
     : (getData('galaxy_notifications') || [])).slice(0,5);
@@ -139,8 +143,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stats = [
     {icon:'💼',label:'Total Services',   value:services.length,  bg:'hsl(250 80% 65% / 0.12)',color:'var(--primary)'},
     {icon:'📁',label:'Portfolio Items',  value:portfolio.length, bg:'hsl(200 100% 60% / 0.12)',color:'hsl(200,100%,60%)'},
-    {icon:'📨',label:'Unread Messages',  value:unread,           bg:unread>0?'hsl(250 80% 65% / 0.14)':'hsl(260 15% 12%)',color:unread>0?'var(--primary)':'var(--muted)'},
-    {icon:'👤',label:'Team Members',     value:team.length,      bg:'hsl(145 60% 42% / 0.12)',color:'hsl(145,60%,55%)'},
+    {icon:'✦',label:'Blog Posts',        value:posts.length,     bg:'hsl(280 80% 65% / 0.12)',color:'hsl(280,80%,72%)'},
+    {icon:'▣',label:'Resources',         value:resources.length, bg:'hsl(45 100% 50% / 0.12)',color:'#fcd34d'},
   ];
   document.getElementById('statsGrid').innerHTML = stats.map(s=>`
     <div class="stat-card">
@@ -153,12 +157,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     {icon:'💼',title:'Services',desc:'Manage service listings',href:'services.html'},
     {icon:'📁',title:'Portfolio',desc:'Add & edit projects',href:'portfolio.html'},
     {icon:'🖼️',title:'Gallery',desc:'Upload images & videos',href:'gallery.html'},
+    {icon:'✦',title:'Blog',desc:`${posts.length} posts`,href:'blog.html'},
+    {icon:'▣',title:'Resources',desc:`${resources.length} assets`,href:'resources.html'},
+    {icon:'💬',title:'Comments',desc:'Moderate discussions',href:'comments.html'},
     {icon:'💬',title:'Testimonials',desc:'Client reviews',href:'testimonials.html'},
     {icon:'👥',title:'About / Owner',desc:'Profile & bio',href:'about.html'},
     {icon:'👤',title:'Team Members',desc:'Team management',href:'team.html'},
     {icon:'✨',title:'AdAvatar',desc:'Avatar gallery',href:'adavatar.html'},
     {icon:'🔔',title:'Notifications',desc:'Site alerts',href:'notifications.html'},
     {icon:'📨',title:'Messages',desc:`${unread} unread`,href:'messages.html'},
+    {icon:'👥',title:'Audience',desc:'Readers & subscribers',href:'users.html'},
     {icon:'⚙️',title:'Settings',desc:'Studio preferences',href:'settings.html'},
   ];
   document.getElementById('quickGrid').innerHTML = qpages.map(p=>`

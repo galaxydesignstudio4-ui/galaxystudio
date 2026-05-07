@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post | Galaxy Studio</title>
+<meta name="description" content="Read Galaxy Studio blog posts, workflows, and creative-tech insights.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="blog-resources.css">
+</head>
+<body>
+<div class="reading-progress" id="readingProgress"></div>
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <span class="logo-text">Galaxy <span class="gradient-text">Studio</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="services.html">Services</a>
+      <a class="nav-link" href="portfolio.html">Portfolio</a>
+      <a class="nav-link" href="gallery.html">Gallery</a>
+      <div class="nav-dropdown">
+        <a class="nav-link nav-dropdown-toggle active" href="blog.html">Blog</a>
+        <div class="nav-dropdown-menu">
+          <a class="nav-link active" href="blog.html">Blog</a>
+          <a class="nav-link" href="resources.html">Resources</a>
+        </div>
+      </div>
+      <a class="nav-link" href="about.html">About</a>
+      <a class="nav-link" href="contact.html">Contact</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-outline" href="blog.html" style="font-size:14px;padding:9px 20px;">Back to Blog</a>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a>
+    <div class="nav-dropdown">
+      <a class="nav-link nav-dropdown-toggle active" href="blog.html">Blog</a>
+      <div class="nav-dropdown-menu">
+        <a class="nav-link active" href="blog.html">Blog</a>
+        <a class="nav-link" href="resources.html">Resources</a>
+      </div>
+    </div>
+    <a class="nav-link" href="about.html">About</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+    <a class="btn btn-primary" href="blog.html">Back to Blog</a>
+  </div>
+</nav>
+
+<main class="content-shell">
+  <div class="container">
+    <section class="article-layout">
+      <article class="surface-card article-main" id="postArticle"></article>
+      <aside id="postSidebar"></aside>
+    </section>
+    <section style="margin-top:24px;" id="postComments"></section>
+    <section class="surface-card" style="padding:24px;margin-top:24px;">
+      <div class="section-head">
+        <div>
+          <h2>Related Posts</h2>
+          <p>More stories from the Galaxy Studio journal, selected around the same themes and creative direction.</p>
+        </div>
+      </div>
+      <div class="related-grid" id="relatedPosts"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <p>&copy; 2026 Galaxy Studio. Built for immersive reading.</p>
+      <p><a href="blog.html">All Posts</a> • <a href="resources.html">Resources</a></p>
+    </div>
+  </div>
+</footer>
+
+<button id="scroll-top" aria-label="Scroll to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
+
+<script src="db.js"></script>
+<script src="icons.js"></script>
+<script src="shared.js"></script>
+<script src="blog-data.js"></script>
+</body>
+</html>

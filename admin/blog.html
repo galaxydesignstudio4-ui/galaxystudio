@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog Management | Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="authGate"><div class="auth-card"><div class="auth-logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><h2 class="auth-title">Admin Access</h2><p class="auth-sub">Enter your password to manage Galaxy Studio.</p><input class="auth-input" type="password" id="authPassword" placeholder="••••••••"><button class="auth-btn" id="authBtn">Enter Admin Panel →</button><p class="auth-error" id="authError">Incorrect password. Please try again.</p></div></div>
+<div id="adminPanel">
+  <aside id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span class="sidebar-logo-text">Content Admin</span></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><span class="nav-icon">⌂</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item active" href="blog.html"><span class="nav-icon">✦</span><span class="nav-label">Blog</span></a>
+      <a class="nav-item" href="resources.html"><span class="nav-icon">▣</span><span class="nav-label">Resources</span></a>
+      <a class="nav-item" href="comments.html"><span class="nav-icon">💬</span><span class="nav-label">Comments</span></a>
+      <a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Audience</span></a>
+      <a class="nav-item" href="settings.html"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="nav-item" href="../blog.html"><span class="nav-icon">↗</span><span class="nav-label">View Blog</span></a>
+      <button class="logout-btn" id="logoutBtn"><span class="nav-icon">⎋</span><span class="nav-label">Log Out</span></button>
+    </div>
+  </aside>
+  <main id="mainContent">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <h1 class="page-title">Blog Management</h1>
+        <p class="page-sub" id="blogSub">Manage stories, SEO, scheduling, and reading experience.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" id="addPostBtn">+ New Post</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="stats-grid" id="blogStats"></div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Published & Draft Posts</span>
+          <div class="page-actions">
+            <input class="form-input" id="blogFilterInput" type="search" placeholder="Search title, category, tags" style="width:280px;">
+          </div>
+        </div>
+        <div style="padding:0;overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Post</th><th>Status</th><th>Visibility</th><th>Reading</th><th>SEO</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody id="blogBody"></tbody>
+          </table>
+          <div id="blogEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">✦</div><h3>No posts yet</h3><p>Create your first article to launch the Galaxy Studio blog.</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const POSTS_KEY = 'galaxy_blog_posts';
+
+async function syncBlogFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  try { await window.loadFromCloud(POSTS_KEY); } catch {}
+}
+
+function normalizePost(post, list) {
+  const title = document.getElementById('fTitle').value.trim();
+  const status = document.getElementById('fStatus').value;
+  const slug = (document.getElementById('fSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+  return {
+    id: post?.id || nextId(list),
+    title,
+    slug,
+    excerpt: document.getElementById('fExcerpt').value.trim(),
+    body: document.getElementById('fBody').value.trim(),
+    category: document.getElementById('fCategory').value.trim(),
+    tags: document.getElementById('fTags').value.split(',').map(v => v.trim()).filter(Boolean),
+    authorName: document.getElementById('fAuthor').value.trim() || 'Galaxy Studio',
+    authorRole: document.getElementById('fAuthorRole').value.trim() || 'Creative Tech Team',
+    featured: document.getElementById('fFeatured').checked,
+    pinned: document.getElementById('fPinned').checked,
+    status,
+    publishDate: document.getElementById('fPublishDate').value || new Date().toISOString(),
+    scheduledFor: document.getElementById('fSchedule').value || '',
+    banner: document.getElementById('fBanner').value.trim(),
+    bannerStoragePath: post?.bannerStoragePath || '',
+    gallery: document.getElementById('fGallery').value.split('\n').map(v => v.trim()).filter(Boolean),
+    videoUrl: document.getElementById('fVideo').value.trim(),
+    commentsEnabled: document.getElementById('fCommentsEnabled').checked,
+    likes: Number(post?.likes || 0),
+    views: Number(post?.views || 0),
+    bookmarks: Number(post?.bookmarks || 0),
+    seoTitle: document.getElementById('fSeoTitle').value.trim(),
+    seoDescription: document.getElementById('fSeoDescription').value.trim(),
+    newsletterCta: document.getElementById('fNewsletter').value.trim(),
+  };
+}
+
+function renderBlogAdmin() {
+  const list = (getData(POSTS_KEY) || []).slice().sort((a,b)=>new Date(b.publishDate||b.scheduledFor||0)-new Date(a.publishDate||a.scheduledFor||0));
+  const query = String(document.getElementById('blogFilterInput')?.value || '').trim().toLowerCase();
+  const filtered = list.filter(post => !query || [post.title, post.category, ...(post.tags||[])].join(' ').toLowerCase().includes(query));
+  const body = document.getElementById('blogBody');
+  const empty = document.getElementById('blogEmpty');
+  const stats = {
+    total: list.length,
+    published: list.filter(item => item.status === 'published').length,
+    drafts: list.filter(item => item.status === 'draft').length,
+    scheduled: list.filter(item => item.status === 'scheduled').length,
+  };
+  document.getElementById('blogStats').innerHTML = [
+    { label:'Total Posts', value:stats.total, color:'var(--primary)', bg:'var(--primary-dim)' },
+    { label:'Published', value:stats.published, color:'hsl(145,60%,55%)', bg:'hsl(145 60% 42% / 0.12)' },
+    { label:'Drafts', value:stats.drafts, color:'hsl(200,100%,60%)', bg:'hsl(200 100% 60% / 0.12)' },
+    { label:'Scheduled', value:stats.scheduled, color:'#fcd34d', bg:'rgba(245,158,11,0.12)' },
+  ].map(item => `<div class="stat-card"><div class="stat-icon" style="background:${item.bg};color:${item.color};">✦</div><div><div class="stat-value" style="color:${item.color};">${item.value}</div><div class="stat-label">${item.label}</div></div></div>`).join('');
+  if (!filtered.length) { body.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+  body.innerHTML = filtered.map(post => `
+    <tr>
+      <td>
+        <strong>${escHtml(post.title || 'Untitled')}</strong>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(post.category || 'Uncategorized')} • ${escHtml((post.tags || []).join(', ') || 'No tags')}</div>
+      </td>
+      <td><span class="badge ${post.status === 'published' ? 'badge-green' : post.status === 'scheduled' ? 'badge-gold' : 'badge-blue'}">${escHtml(post.status || 'draft')}</span></td>
+      <td>${post.featured ? '<span class="badge badge-purple">Featured</span> ' : ''}${post.pinned ? '<span class="badge badge-gold">Pinned</span>' : '<span class="badge badge-blue">Standard</span>'}</td>
+      <td style="color:var(--muted);">${Number(post.views || 0)} views • ${Number(post.likes || 0)} likes</td>
+      <td style="color:var(--muted);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(post.seoTitle || post.title || '')}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="previewPost('${escHtml(post.slug)}')">View</button>
+        <button class="btn btn-ghost btn-sm" onclick="editPost(${post.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePost(${post.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openPostModal(post) {
+  const isEdit = !!post;
+  const ov = openModal(`<div class="modal" style="max-width:860px;">
+    <div class="modal-header"><span class="modal-title">${isEdit ? 'Edit' : 'Create'} Blog Post</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">Title</label><input class="form-input" id="fTitle" value="${escHtml(post?.title || '')}"></div><div class="form-group"><label class="form-label">Slug</label><input class="form-input" id="fSlug" value="${escHtml(post?.slug || '')}"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Category</label><input class="form-input" id="fCategory" value="${escHtml(post?.category || '')}" placeholder="Design Systems"></div><div class="form-group"><label class="form-label">Tags</label><input class="form-input" id="fTags" value="${escHtml((post?.tags || []).join(', '))}" placeholder="UX, Motion, Branding"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Author</label><input class="form-input" id="fAuthor" value="${escHtml(post?.authorName || 'Galaxy Studio')}"></div><div class="form-group"><label class="form-label">Author Role</label><input class="form-input" id="fAuthorRole" value="${escHtml(post?.authorRole || 'Creative Tech Team')}"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Status</label><select class="form-select" id="fStatus"><option value="draft" ${post?.status === 'draft' ? 'selected' : ''}>Draft</option><option value="published" ${post?.status === 'published' ? 'selected' : ''}>Published</option><option value="scheduled" ${post?.status === 'scheduled' ? 'selected' : ''}>Scheduled</option></select></div><div class="form-group"><label class="form-label">Publish Date</label><input class="form-input" id="fPublishDate" type="datetime-local" value="${(post?.publishDate || '').slice(0,16)}"></div></div>
+      <div class="form-group"><label class="form-label">Scheduled Date</label><input class="form-input" id="fSchedule" type="datetime-local" value="${(post?.scheduledFor || '').slice(0,16)}"></div>
+      <div class="form-group"><label class="form-label">Excerpt</label><textarea class="form-textarea" id="fExcerpt">${escHtml(post?.excerpt || '')}</textarea></div>
+      <div class="form-group"><label class="form-label">Body</label><textarea class="form-textarea" id="fBody" style="min-height:220px;">${escHtml(post?.body || '')}</textarea><div class="form-hint">Supports headings with ##, quotes with &gt;, code fences, [video](url), and [gallery:url1,url2]</div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Banner Image URL</label><input class="form-input" id="fBanner" value="${escHtml(post?.banner || '')}"></div><div class="form-group"><label class="form-label">Video URL</label><input class="form-input" id="fVideo" value="${escHtml(post?.videoUrl || '')}"></div></div>
+      <div class="form-group"><label class="form-label">Gallery URLs</label><textarea class="form-textarea" id="fGallery">${escHtml((post?.gallery || []).join('\n'))}</textarea></div>
+      <div class="form-group"><label class="form-label">Newsletter CTA</label><input class="form-input" id="fNewsletter" value="${escHtml(post?.newsletterCta || '')}"></div>
+      <div class="divider"></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">SEO Title</label><input class="form-input" id="fSeoTitle" value="${escHtml(post?.seoTitle || '')}"></div><div class="form-group"><label class="form-label">SEO Description</label><input class="form-input" id="fSeoDescription" value="${escHtml(post?.seoDescription || '')}"></div></div>
+      <div class="form-row">
+        <label class="form-check"><input type="checkbox" id="fFeatured" ${post?.featured ? 'checked' : ''}> Featured post</label>
+        <label class="form-check"><input type="checkbox" id="fPinned" ${post?.pinned ? 'checked' : ''}> Pin to top</label>
+      </div>
+      <div class="form-row">
+        <label class="form-check"><input type="checkbox" id="fCommentsEnabled" ${post?.commentsEnabled !== false ? 'checked' : ''}> Comments enabled</label>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" id="cancelPostBtn">Cancel</button><button class="btn btn-primary" id="savePostBtn">${isEdit ? 'Update' : 'Publish'} Post</button></div>
+  </div>`);
+  ov.querySelector('#cancelPostBtn').onclick = () => closeModal(ov);
+  ov.querySelector('#savePostBtn').onclick = () => {
+    const list = getData(POSTS_KEY) || [];
+    const next = normalizePost(post, list);
+    if (!next.title || !next.body) { showToast('Title and body are required.', 'error'); return; }
+    const updated = isEdit ? list.map(item => item.id === post.id ? next : item) : [...list, next];
+    setData(POSTS_KEY, updated);
+    closeModal(ov);
+    renderBlogAdmin();
+    showToast(isEdit ? 'Post updated.' : 'Post created.');
+  };
+}
+
+window.previewPost = (slug) => window.open(`../post.html?slug=${encodeURIComponent(slug)}`, '_blank', 'noopener');
+window.editPost = (id) => openPostModal((getData(POSTS_KEY) || []).find(item => item.id === id));
+window.deletePost = (id) => confirmDelete('Delete this post?', () => { setData(POSTS_KEY, (getData(POSTS_KEY) || []).filter(item => item.id !== id)); renderBlogAdmin(); showToast('Post deleted.'); });
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await syncBlogFromCloud();
+  renderBlogAdmin();
+  document.getElementById('blogFilterInput')?.addEventListener('input', renderBlogAdmin);
+  document.getElementById('addPostBtn').onclick = () => openPostModal();
+});
+</script>
+</body>
+</html>

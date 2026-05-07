@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../config.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comments Moderation | Galaxy Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="authGate"><div class="auth-card"><div class="auth-logo">💬</div><h2 class="auth-title">Admin Access</h2><p class="auth-sub">Enter your password to manage Galaxy Studio.</p><input class="auth-input" type="password" id="authPassword" placeholder="••••••••"><button class="auth-btn" id="authBtn">Enter Admin Panel →</button><p class="auth-error" id="authError">Incorrect password. Please try again.</p></div></div>
+<div id="adminPanel">
+  <aside id="sidebar"><div class="sidebar-header"><div class="sidebar-logo-icon">💬</div><span class="sidebar-logo-text">Content Admin</span></div><nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-icon">⌂</span><span class="nav-label">Dashboard</span></a><a class="nav-item" href="blog.html"><span class="nav-icon">✦</span><span class="nav-label">Blog</span></a><a class="nav-item" href="resources.html"><span class="nav-icon">▣</span><span class="nav-label">Resources</span></a><a class="nav-item active" href="comments.html"><span class="nav-icon">💬</span><span class="nav-label">Comments</span></a><a class="nav-item" href="users.html"><span class="nav-icon">👥</span><span class="nav-label">Audience</span></a></nav><div class="sidebar-footer"><button class="logout-btn" id="logoutBtn"><span class="nav-icon">⎋</span><span class="nav-label">Log Out</span></button></div></aside>
+  <main id="mainContent">
+    <div class="page-header"><div class="page-title-wrap"><h1 class="page-title">Comments</h1><p class="page-sub">Approve, pin, review reports, and remove spam.</p></div></div>
+    <div class="page-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Moderation Queue</span><select class="form-select" id="commentStatusFilter" style="width:220px;"><option value="all">All statuses</option><option value="approved">Approved</option><option value="pending">Pending</option></select></div>
+        <div style="padding:0;overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Author</th><th>Comment</th><th>Status</th><th>Reports</th><th style="text-align:right;">Actions</th></tr></thead>
+            <tbody id="commentBody"></tbody>
+          </table>
+          <div id="commentEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">💬</div><h3>No comments yet</h3><p>Reader comments will appear here for review.</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../db.js"></script>
+<script src="../icons.js"></script>
+<script src="admin.js"></script>
+<script>
+const COMMENTS_KEY = 'galaxy_blog_comments';
+const POSTS_KEY = 'galaxy_blog_posts';
+
+async function syncCommentsFromCloud() {
+  if (typeof window.loadFromCloud !== 'function') return;
+  await Promise.all([window.loadFromCloud(COMMENTS_KEY).catch(()=>{}), window.loadFromCloud(POSTS_KEY).catch(()=>{})]);
+}
+
+function renderCommentsAdmin() {
+  const comments = getData(COMMENTS_KEY) || [];
+  const posts = getData(POSTS_KEY) || [];
+  const filter = document.getElementById('commentStatusFilter')?.value || 'all';
+  const filtered = comments.filter(item => filter === 'all' || item.status === filter);
+  const body = document.getElementById('commentBody');
+  const empty = document.getElementById('commentEmpty');
+  if (!filtered.length) { body.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+  body.innerHTML = filtered.map(comment => {
+    const post = posts.find(item => item.id === comment.postId);
+    return `<tr>
+      <td><strong>${escHtml(comment.authorName || 'Reader')}</strong><div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(post?.title || 'Unknown post')}</div></td>
+      <td style="max-width:340px;color:var(--muted);">${escHtml(comment.content || '')}</td>
+      <td><span class="badge ${comment.status === 'approved' ? 'badge-green' : 'badge-gold'}">${escHtml(comment.status || 'pending')}</span>${comment.pinned ? ' <span class="badge badge-purple">Pinned</span>' : ''}</td>
+      <td style="color:var(--muted);">${Number(comment.reports || 0)}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="toggleCommentStatus(${comment.id})">${comment.status === 'approved' ? 'Mark Pending' : 'Approve'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleCommentPin(${comment.id})">${comment.pinned ? 'Unpin' : 'Pin'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.toggleCommentStatus = (id) => {
+  const list = (getData(COMMENTS_KEY) || []).map(item => item.id === id ? { ...item, status: item.status === 'approved' ? 'pending' : 'approved' } : item);
+  setData(COMMENTS_KEY, list); renderCommentsAdmin(); showToast('Comment status updated.');
+};
+window.toggleCommentPin = (id) => {
+  const list = (getData(COMMENTS_KEY) || []).map(item => item.id === id ? { ...item, pinned: !item.pinned } : item);
+  setData(COMMENTS_KEY, list); renderCommentsAdmin(); showToast('Comment pin updated.');
+};
+window.deleteComment = (id) => confirmDelete('Delete this comment?', () => { setData(COMMENTS_KEY, (getData(COMMENTS_KEY) || []).filter(item => item.id !== id && item.parentId !== id)); renderCommentsAdmin(); showToast('Comment deleted.'); });
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await syncCommentsFromCloud();
+  renderCommentsAdmin();
+  document.getElementById('commentStatusFilter')?.addEventListener('change', renderCommentsAdmin);
+});
+</script>
+</body>
+</html>

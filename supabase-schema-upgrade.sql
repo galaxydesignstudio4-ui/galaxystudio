@@ -136,3 +136,92 @@ select 1
 where not exists (
   select 1 from public.about where id = 1
 );
+
+create table if not exists public.blog_posts (
+  id bigint primary key,
+  title text,
+  slug text,
+  excerpt text,
+  body text,
+  category text,
+  tags_json jsonb default '[]'::jsonb,
+  author_name text,
+  author_role text,
+  featured boolean default false,
+  pinned boolean default false,
+  status text default 'draft',
+  publish_date timestamptz,
+  scheduled_for timestamptz,
+  banner_url text,
+  banner_storage_path text,
+  gallery_json jsonb default '[]'::jsonb,
+  video_url text,
+  comments_enabled boolean default true,
+  likes integer default 0,
+  views integer default 0,
+  bookmarks integer default 0,
+  seo_title text,
+  seo_description text,
+  newsletter_cta text
+);
+
+create table if not exists public.blog_comments (
+  id bigint primary key,
+  post_id bigint,
+  parent_id bigint default 0,
+  author_name text,
+  author_email text,
+  content text,
+  owner_id text,
+  status text default 'pending',
+  pinned boolean default false,
+  likes integer default 0,
+  reports integer default 0,
+  created_at timestamptz default timezone('utc', now()),
+  updated_at timestamptz
+);
+
+create table if not exists public.resources (
+  id bigint primary key,
+  title text,
+  slug text,
+  excerpt text,
+  description text,
+  category text,
+  file_type text,
+  file_size text,
+  download_url text,
+  preview_images_json jsonb default '[]'::jsonb,
+  tags_json jsonb default '[]'::jsonb,
+  featured boolean default false,
+  premium boolean default false,
+  downloads integer default 0,
+  upload_date timestamptz default timezone('utc', now()),
+  related_slugs_json jsonb default '[]'::jsonb
+);
+
+create table if not exists public.users (
+  id bigint primary key,
+  device_id text,
+  name text,
+  email text,
+  role text default 'reader',
+  status text default 'active',
+  origin text default 'reader',
+  last_seen timestamptz default timezone('utc', now()),
+  comments_count integer default 0,
+  bookmarks_json jsonb default '[]'::jsonb,
+  history_json jsonb default '[]'::jsonb,
+  liked_posts_json jsonb default '[]'::jsonb,
+  liked_comments_json jsonb default '[]'::jsonb,
+  newsletter boolean default false
+);
+
+create table if not exists public.subscribers (
+  id bigint primary key,
+  email text,
+  name text,
+  source text default 'website',
+  subscribed_at timestamptz default timezone('utc', now()),
+  status text default 'active'
+);
