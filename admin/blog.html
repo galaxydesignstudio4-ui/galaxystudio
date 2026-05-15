@@ -30,7 +30,7 @@
     <div class="page-header">
       <div class="page-title-wrap">
         <h1 class="page-title">Blog Management</h1>
-        <p class="page-sub" id="blogSub">Manage stories, SEO, scheduling, and reading experience.</p>
+        <p class="page-sub" id="blogSub">Manage every blog update here, then edit or delete it anytime from the admin page.</p>
       </div>
       <div class="page-actions">
         <button class="btn btn-primary" id="addPostBtn">+ New Post</button>
@@ -150,7 +150,7 @@ function openPostModal(post) {
       <div class="form-row"><div class="form-group"><label class="form-label">Status</label><select class="form-select" id="fStatus"><option value="draft" ${post?.status === 'draft' ? 'selected' : ''}>Draft</option><option value="published" ${post?.status === 'published' ? 'selected' : ''}>Published</option><option value="scheduled" ${post?.status === 'scheduled' ? 'selected' : ''}>Scheduled</option></select></div><div class="form-group"><label class="form-label">Publish Date</label><input class="form-input" id="fPublishDate" type="datetime-local" value="${(post?.publishDate || '').slice(0,16)}"></div></div>
       <div class="form-group"><label class="form-label">Scheduled Date</label><input class="form-input" id="fSchedule" type="datetime-local" value="${(post?.scheduledFor || '').slice(0,16)}"></div>
       <div class="form-group"><label class="form-label">Excerpt</label><textarea class="form-textarea" id="fExcerpt">${escHtml(post?.excerpt || '')}</textarea></div>
-      <div class="form-group"><label class="form-label">Body</label><textarea class="form-textarea" id="fBody" style="min-height:220px;">${escHtml(post?.body || '')}</textarea><div class="form-hint">Supports headings with ##, quotes with &gt;, code fences, [video](url), and [gallery:url1,url2]</div></div>
+      <div class="form-group"><label class="form-label">Body</label><textarea class="form-textarea" id="fBody" style="min-height:220px;">${escHtml(post?.body || '')}</textarea><div class="form-hint">Supports headings with ##, code fences, and [gallery:url1,url2]. Lines starting with &gt; are shown as normal text, not quote blocks.</div></div>
       <div class="form-row"><div class="form-group"><label class="form-label">Banner Image URL</label><input class="form-input" id="fBanner" value="${escHtml(post?.banner || '')}"></div><div class="form-group"><label class="form-label">Video URL</label><input class="form-input" id="fVideo" value="${escHtml(post?.videoUrl || '')}"></div></div>
       <div class="form-group"><label class="form-label">Gallery URLs</label><textarea class="form-textarea" id="fGallery">${escHtml((post?.gallery || []).join('\n'))}</textarea></div>
       <div class="form-group"><label class="form-label">Newsletter CTA</label><input class="form-input" id="fNewsletter" value="${escHtml(post?.newsletterCta || '')}"></div>

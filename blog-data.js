@@ -134,18 +134,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function normalizeSettings(value = {}) {
     const source = value && typeof value === 'object' ? value : {};
     const defaults = ((window.DEFAULTS || {}).galaxy_settings || {}).resourcesBlock || {};
+    const incomingBlock = { ...((source && source.resourcesBlock) || {}) };
+    if (incomingBlock.title === 'Featured Resources') incomingBlock.title = 'Downloadable Resources';
+    if (incomingBlock.subtitle === 'Preview and download Galaxy Studio assets without extra clutter.' || incomingBlock.subtitle === 'Preview and download Galaxy Studio assets, PDFs, images, and ready-to-share files without extra clutter.') {
+      incomingBlock.subtitle = 'Simple resource cards with a title, a short note, an image, and a download button.';
+    }
+    if (incomingBlock.primaryLabel === 'Chat on WhatsApp') incomingBlock.primaryLabel = '';
+    if (incomingBlock.primaryUrl === 'https://wa.me/233556881003') incomingBlock.primaryUrl = '';
+    if (incomingBlock.secondaryLabel === 'Visit Facebook') incomingBlock.secondaryLabel = '';
+    if (incomingBlock.secondaryUrl === 'https://web.facebook.com/profile.php?id=61562678010128') incomingBlock.secondaryUrl = '';
     return {
       ...source,
       resourcesBlock: {
         eyebrow: 'Digital Downloads',
-        title: 'Featured Resources',
-        subtitle: 'Preview and download Galaxy Studio assets without extra clutter.',
+        title: 'Downloadable Resources',
+        subtitle: 'Simple resource cards with a title, a short note, an image, and a download button.',
         primaryLabel: '',
         primaryUrl: '',
         secondaryLabel: '',
         secondaryUrl: '',
         ...defaults,
-        ...((source && source.resourcesBlock) || {}),
+        ...incomingBlock,
       },
     };
   }
@@ -206,6 +215,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(item.gallery) && item.gallery[0]) return item.gallery[0];
     if (Array.isArray(item.previewImages) && item.previewImages[0]) return item.previewImages[0];
     return '';
+  }
+
+  function initialsFor(value = '') {
+    const parts = String(value || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2);
+    return (parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'GS').slice(0, 2);
   }
 
   function renderResourceActions(item, { includeDownload = true } = {}) {
@@ -283,15 +301,20 @@ document.addEventListener('DOMContentLoaded', () => {
           ${coverFor(featured) ? `<img class="hero-image" src="${escHtml(coverFor(featured))}" alt="${escHtml(featured.title)}" loading="eager" decoding="async">` : ''}
           <div class="hero-glow"></div>
           <div class="hero-content">
-            <div class="eyebrow">Featured Post</div>
+            <div class="eyebrow">Pinned Update</div>
             <h1 class="hero-title">${escHtml(featured.title)}</h1>
             <p class="hero-sub" style="max-width:540px;">${escHtml(featured.excerpt)}</p>
             <div class="meta-row">
               <span class="meta-pill">${escHtml(featured.category || 'Galaxy Journal')}</span>
+              <span class="meta-pill">${Number(featured.likes || 0)} likes</span>
+              <span class="meta-pill">${visibleComments(featured.id).length} comments</span>
               <span class="meta-pill">${formatDate(featured.publishDate)}</span>
-              <span class="meta-pill">${featured.readTime} min read</span>
             </div>
-            <div class="article-actions" style="margin-top:24px;"><a class="btn btn-primary" href="post.html?slug=${encodeURIComponent(featured.slug)}">Read Post</a></div>
+            <div class="article-actions" style="margin-top:24px;">
+              <button class="btn btn-primary" type="button" data-feed-like="${featured.id}">${isPostLiked(featured.id) ? 'Liked' : 'Like'} • ${Number(featured.likes || 0)}</button>
+              <button class="btn btn-outline" type="button" data-feed-share="${escHtml(featured.slug)}">Share</button>
+              <a class="btn btn-outline" href="post.html?slug=${encodeURIComponent(featured.slug)}">Open Post</a>
+            </div>
           </div>
         </div>
       `;
@@ -313,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (latestGrid) {
         latestGrid.innerHTML = filtered.length ? filtered.map(renderPostCard).join('') : `<div class="surface-card empty-panel">No posts match this filter yet.</div>`;
       }
-      bindFilterInteractions();
+      bindBlogFeedEvents();
     };
 
     filters?.addEventListener('click', (event) => {
@@ -335,31 +358,48 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderPostCard(post) {
     const stats = postStats(post);
     return `
-      <article class="surface-card post-card animate-in visible">
+      <article class="surface-card feed-card animate-in visible">
         <a class="card-media" href="post.html?slug=${encodeURIComponent(post.slug)}">
           ${coverFor(post) ? `<img src="${escHtml(coverFor(post))}" alt="${escHtml(post.title)}" loading="lazy" decoding="async">` : ''}
         </a>
-        <div class="card-body">
+        <div class="feed-content">
+          <div class="feed-head">
+            <div class="feed-author">
+              <span class="feed-avatar">${escHtml(initialsFor(post.authorName || 'Galaxy Studio'))}</span>
+              <div>
+                <strong>${escHtml(post.authorName || 'Galaxy Studio')}</strong>
+                <span>${escHtml(post.authorRole || 'Studio Update')}</span>
+              </div>
+            </div>
+            <span class="feed-time">${relativeTime(post.publishDate)}</span>
+          </div>
           <div class="tag-row">
             <span class="meta-pill">${escHtml(post.category || 'Story')}</span>
+            ${post.pinned ? '<span class="meta-pill">Pinned</span>' : ''}
             ${post.featured ? '<span class="meta-pill">Featured</span>' : ''}
           </div>
-          <h3 style="font-size:26px;margin-top:14px;">${escHtml(post.title)}</h3>
-          <p class="card-copy">${escHtml(post.excerpt)}</p>
-          <div class="card-row">
+          <div>
+            <h3>${escHtml(post.title)}</h3>
+            <p class="card-copy">${escHtml(post.excerpt)}</p>
+          </div>
+          <div class="feed-actions">
             <div class="inline-stats">
-              <span class="stat-pill">${formatDate(post.publishDate)}</span>
-              <span class="stat-pill">${post.readTime} min</span>
+              <span class="stat-pill">${Number(post.likes || 0)} likes</span>
               <span class="stat-pill">${stats.commentCount} comments</span>
+              <span class="stat-pill">${formatDate(post.publishDate)}</span>
             </div>
-            <a class="btn btn-outline" href="post.html?slug=${encodeURIComponent(post.slug)}">Read More</a>
+            <div class="article-actions">
+              <button class="action-chip" type="button" data-feed-like="${post.id}">${isPostLiked(post.id) ? 'Liked' : 'Like'}</button>
+              <button class="action-chip" type="button" data-feed-share="${escHtml(post.slug)}">Share</button>
+              <a class="btn btn-outline" href="post.html?slug=${encodeURIComponent(post.slug)}">Read More</a>
+            </div>
           </div>
         </div>
       </article>
     `;
   }
 
-  function bindFilterInteractions() {
+  function bindBlogFeedEvents() {
     document.querySelectorAll('[data-tag-filter]').forEach((button) => {
       button.onclick = () => {
         const search = document.getElementById('blogSearch');
@@ -367,6 +407,22 @@ document.addEventListener('DOMContentLoaded', () => {
         search?.dispatchEvent(new Event('input'));
       };
     });
+    document.querySelectorAll('[data-feed-like]').forEach((button) => {
+      button.onclick = () => togglePostLike(Number(button.getAttribute('data-feed-like')));
+    });
+    document.querySelectorAll('[data-feed-share]').forEach((button) => {
+      button.onclick = () => sharePostFromFeed(button.getAttribute('data-feed-share') || '');
+    });
+  }
+
+  async function sharePostFromFeed(slug) {
+    const targetUrl = new URL(`post.html?slug=${encodeURIComponent(slug)}`, window.location.href).toString();
+    try {
+      await navigator.clipboard.writeText(targetUrl);
+      showFeedback('Post link copied.');
+    } catch {
+      showFeedback('Unable to copy the post link right now.', true);
+    }
   }
 
   function renderPostPage() {
@@ -516,12 +572,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if (line.startsWith('> ')) {
-        parts.push(`<blockquote>${escHtml(line.slice(2))}</blockquote>`);
+        parts.push(`<p>${escHtml(line.slice(2))}</p>`);
         return;
       }
       if (/^\[video\]\((.+)\)$/.test(line)) {
         const url = line.match(/^\[video\]\((.+)\)$/)?.[1] || '';
-        parts.push(`<div class="lightbox-media-frame" style="margin:18px 0;"><iframe src="${escHtml(url.replace('watch?v=', 'embed/'))}" title="Embedded video" allowfullscreen></iframe></div>`);
+        parts.push(`<p><a href="${escHtml(normalizeExternalUrl(url))}" target="_blank" rel="noopener">Open video link</a></p>`);
         return;
       }
       if (/^\[gallery:(.+)\]$/.test(line)) {
@@ -830,52 +886,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const resourceGrid = document.getElementById('resourceGrid');
     const resourceFilters = document.getElementById('resourceFilters');
     const resourceSearch = document.getElementById('resourceSearch');
-    const resourceFeatured = document.getElementById('resourceFeatured');
     const resourceCount = document.getElementById('resourceCount');
     const blockEyebrow = document.getElementById('resourceBlockEyebrow');
     const blockTitle = document.getElementById('resourceBlockTitle');
     const blockSubtitle = document.getElementById('resourceBlockSubtitle');
-    const blockActions = document.getElementById('resourceBlockActions');
     const resourceBlock = settings.resourcesBlock || {};
-    const featured = resources.filter((item) => item.featured).slice(0, 2);
     const categories = [...new Set(resources.map((item) => item.category).filter(Boolean))];
     let activeCategory = 'All';
 
     if (blockEyebrow) blockEyebrow.textContent = resourceBlock.eyebrow || 'Digital Downloads';
-    if (blockTitle) blockTitle.textContent = resourceBlock.title || 'Featured Resources';
-    if (blockSubtitle) blockSubtitle.textContent = resourceBlock.subtitle || 'Preview and download Galaxy Studio assets without extra clutter.';
-    if (blockActions) {
-      const actions = [];
-      if (resourceBlock.primaryLabel && resourceBlock.primaryUrl) actions.push(`<a class="btn btn-primary" href="${escHtml(normalizeExternalUrl(resourceBlock.primaryUrl))}" target="_blank" rel="noopener">${escHtml(resourceBlock.primaryLabel)}</a>`);
-      if (resourceBlock.secondaryLabel && resourceBlock.secondaryUrl) actions.push(`<a class="btn btn-outline" href="${escHtml(normalizeExternalUrl(resourceBlock.secondaryUrl))}" target="_blank" rel="noopener">${escHtml(resourceBlock.secondaryLabel)}</a>`);
-      blockActions.innerHTML = actions.join('');
-    }
-
-    if (resourceFeatured) {
-      resourceFeatured.innerHTML = featured.map((item) => `
-        <article class="surface-card resource-card animate-in visible">
-          <div class="card-media">${coverFor(item) ? `<img src="${escHtml(coverFor(item))}" alt="${escHtml(item.title)}" loading="lazy">` : ''}</div>
-          <div class="card-body">
-            <div class="tag-row">
-              <span class="meta-pill">${escHtml(item.category)}</span>
-              ${item.premium ? '<span class="meta-pill">Premium</span>' : ''}
-            </div>
-            <h3 style="font-size:28px;margin-top:12px;">${escHtml(item.title)}</h3>
-            <p class="card-copy">${escHtml(item.description)}</p>
-            <div class="card-row">
-              <div class="inline-stats">
-                <span class="stat-pill">${escHtml(item.fileType)}</span>
-                <span class="stat-pill">${escHtml(item.fileSize || 'Digital asset')}</span>
-              </div>
-              <div class="article-actions">
-                <button class="btn btn-primary" type="button" data-open-resource="${item.slug}">Preview</button>
-                ${renderResourceActions(item, { includeDownload: true })}
-              </div>
-            </div>
-          </div>
-        </article>
-      `).join('');
-    }
+    if (blockTitle) blockTitle.textContent = resourceBlock.title || 'Downloadable Resources';
+    if (blockSubtitle) blockSubtitle.textContent = resourceBlock.subtitle || 'Simple resource cards with a title, a short note, an image, and a download button.';
 
     if (resourceFilters) {
       resourceFilters.innerHTML = ['All', ...categories].map((item) => `<button class="filter-chip${item === 'All' ? ' active' : ''}" type="button" data-resource-category="${escHtml(item)}">${escHtml(item)}</button>`).join('');
@@ -891,23 +912,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (resourceCount) resourceCount.textContent = `${filtered.length} resource${filtered.length === 1 ? '' : 's'} available`;
       if (resourceGrid) {
         resourceGrid.innerHTML = filtered.map((item) => `
-          <article class="surface-card resource-card animate-in visible">
+          <article class="surface-card resource-download-card animate-in visible">
             <div class="card-media">${coverFor(item) ? `<img src="${escHtml(coverFor(item))}" alt="${escHtml(item.title)}" loading="lazy">` : ''}</div>
             <div class="card-body">
-              <div class="tag-row">
+              <div class="resource-meta">
                 <span class="meta-pill">${escHtml(item.category)}</span>
-                <span class="meta-pill">${escHtml(item.fileType)}</span>
+                ${item.fileType ? `<span class="meta-pill">${escHtml(item.fileType)}</span>` : ''}
               </div>
               <h3 style="font-size:24px;margin-top:12px;">${escHtml(item.title)}</h3>
-              <p class="card-copy">${escHtml(item.excerpt)}</p>
-              <div class="inline-stats" style="margin-bottom:16px;">
+              <p class="card-copy">${escHtml(item.excerpt || item.description || 'Download this resource from Galaxy Studio.')}</p>
+              <div class="resource-meta">
+                ${item.fileSize ? `<span class="stat-pill">${escHtml(item.fileSize)}</span>` : ''}
                 <span class="stat-pill">${item.downloads} downloads</span>
-                <span class="stat-pill">${formatDate(item.uploadDate)}</span>
               </div>
-              <div class="card-row">
-                <button class="btn btn-primary" type="button" data-open-resource="${item.slug}">Preview</button>
-                <div class="article-actions">${renderResourceActions(item, { includeDownload: true })}</div>
-              </div>
+              <button class="btn btn-primary" type="button" data-download-resource="${item.slug}">Download</button>
             </div>
           </article>
         `).join('');
@@ -927,29 +945,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function bindResourceEvents() {
-    document.querySelectorAll('[data-open-resource]').forEach((button) => {
-      button.addEventListener('click', () => openResourcePreview(button.getAttribute('data-open-resource') || ''));
-    });
     document.querySelectorAll('[data-download-resource]').forEach((button) => {
       button.addEventListener('click', () => downloadResource(button.getAttribute('data-download-resource') || ''));
     });
-  }
-
-  function openResourcePreview(slug) {
-    const item = resources.find((entry) => entry.slug === slug);
-    if (!item) return;
-    const previewItems = (item.previewImages || []).map((src) => ({ type: 'image', url: src, title: item.title }));
-    if (previewItems.length && typeof window.openLightbox === 'function') {
-      window.openLightbox(previewItems, 0);
-      showFeedback(`${item.title} preview opened.`);
-      return;
-    }
-    if (item.downloadUrl && item.downloadUrl !== '#') {
-      window.open(item.downloadUrl, '_blank', 'noopener');
-      showFeedback(`${item.title} file opened.`);
-      return;
-    }
-    showFeedback('No preview is attached yet. Add one from the admin dashboard.', true);
   }
 
   function downloadResource(slug) {

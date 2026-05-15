@@ -57,8 +57,6 @@ const BASE_DEFAULTS = {
 ## Start with rhythm
 Spacing is part of the story. When cards, copy blocks, and calls to action breathe, the experience feels more premium.
 
-> Motion should reward curiosity, not demand attention.
-
 ## Build scroll moments
 Use featured sections, layered backgrounds, and a few intentional reveal animations to make each section feel like a chapter.
 
@@ -71,8 +69,6 @@ Hover states, sticky controls, progress indicators, and card depth help users fe
   box-shadow: 0 24px 60px hsl(250 80% 65% / 0.12);
 }
 \`\`\`
-
-[video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
 The result is a website that feels confident, modern, and intentionally crafted.`,
       category: 'Design Systems',
@@ -87,7 +83,7 @@ The result is a website that feels confident, modern, and intentionally crafted.
       banner: '',
       bannerStoragePath: '',
       gallery: [],
-      videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      videoUrl: '',
       commentsEnabled: true,
       likes: 18,
       views: 126,
@@ -275,12 +271,12 @@ When the delivery feels organized, the brand feels more premium too.`,
     partners: [],
     resourcesBlock: {
       eyebrow: 'Digital Downloads',
-      title: 'Featured Resources',
-      subtitle: 'Preview and download Galaxy Studio assets, PDFs, images, and ready-to-share files without extra clutter.',
-      primaryLabel: 'Chat on WhatsApp',
-      primaryUrl: 'https://wa.me/233556881003',
-      secondaryLabel: 'Visit Facebook',
-      secondaryUrl: 'https://web.facebook.com/profile.php?id=61562678010128',
+      title: 'Downloadable Resources',
+      subtitle: 'Simple resource cards with a title, a short note, an image, and a download button.',
+      primaryLabel: '',
+      primaryUrl: '',
+      secondaryLabel: '',
+      secondaryUrl: '',
     },
     qrUrl: '',
     logo: 'logo-512.png',

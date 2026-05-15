@@ -41,7 +41,7 @@
     <div class="page-header">
       <div class="page-title-wrap">
         <h1 class="page-title">Resources</h1>
-        <p class="page-sub">Manage the public resource block, uploaded files, previews, download actions, and external links.</p>
+        <p class="page-sub">Manage the public resources page as simple downloadable cards you can edit or delete anytime.</p>
       </div>
       <div class="page-actions">
         <button class="btn btn-primary" id="addResourceBtn">+ Add Resource</button>
@@ -49,19 +49,15 @@
     </div>
     <div class="page-body resource-layout">
       <div class="card">
-        <div class="card-header"><span class="card-title">Resource Block Section</span></div>
+        <div class="card-header"><span class="card-title">Resources Page Header</span></div>
         <div class="card-body">
           <div class="resource-block-grid">
             <div class="form-group"><label class="form-label">Eyebrow</label><input class="form-input" id="rbEyebrow" placeholder="Digital Downloads"></div>
-            <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rbTitle" placeholder="Featured Resources"></div>
-            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Subtitle</label><textarea class="form-textarea" id="rbSubtitle" placeholder="Explain what visitors can download from this section."></textarea></div>
-            <div class="form-group"><label class="form-label">Primary Button Label</label><input class="form-input" id="rbPrimaryLabel" placeholder="Chat on WhatsApp"></div>
-            <div class="form-group"><label class="form-label">Primary Button URL</label><input class="form-input" id="rbPrimaryUrl" placeholder="https://wa.me/..."></div>
-            <div class="form-group"><label class="form-label">Secondary Button Label</label><input class="form-input" id="rbSecondaryLabel" placeholder="Visit Facebook"></div>
-            <div class="form-group"><label class="form-label">Secondary Button URL</label><input class="form-input" id="rbSecondaryUrl" placeholder="https://facebook.com/..."></div>
+            <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rbTitle" placeholder="Downloadable Resources"></div>
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Subtitle</label><textarea class="form-textarea" id="rbSubtitle" placeholder="Short intro for the resource cards."></textarea></div>
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
-            <button class="btn btn-primary" id="saveBlockBtn" type="button">Save Resource Block</button>
+            <button class="btn btn-primary" id="saveBlockBtn" type="button">Save Header</button>
             <a class="btn btn-ghost" href="../resources.html" target="_blank" rel="noopener">Open Public Resources</a>
           </div>
         </div>
@@ -74,7 +70,7 @@
         </div>
         <div style="padding:0;overflow-x:auto;">
           <table class="data-table">
-            <thead><tr><th>Order</th><th>Resource</th><th>Type</th><th>Category</th><th>Links</th><th>Downloads</th><th style="text-align:right;">Actions</th></tr></thead>
+            <thead><tr><th>Order</th><th>Resource</th><th>Type</th><th>Category</th><th>Image</th><th>Downloads</th><th style="text-align:right;">Actions</th></tr></thead>
             <tbody id="resourceBody"></tbody>
           </table>
           <div id="resourceEmpty" class="empty-state" style="display:none;"><div class="empty-state-icon">R</div><h3>No resources yet</h3><p>Add PDFs, images, packs, or result links to start your resource library.</p></div>
@@ -94,13 +90,22 @@ const RESOURCE_BUCKET = 'resources';
 function resourceDefaults() {
   return (DEFAULTS.galaxy_settings && DEFAULTS.galaxy_settings.resourcesBlock) || {
     eyebrow: 'Digital Downloads',
-    title: 'Featured Resources',
-    subtitle: 'Preview and download Galaxy Studio assets.',
-    primaryLabel: 'Chat on WhatsApp',
-    primaryUrl: 'https://wa.me/233556881003',
-    secondaryLabel: 'Visit Facebook',
-    secondaryUrl: 'https://web.facebook.com/profile.php?id=61562678010128',
+    title: 'Downloadable Resources',
+    subtitle: 'Simple resource cards with a title, a short note, an image, and a download button.',
   };
+}
+
+function normalizeResourceBlock(block={}) {
+  const next = { ...resourceDefaults(), ...(block || {}) };
+  if (next.title === 'Featured Resources') next.title = 'Downloadable Resources';
+  if (next.subtitle === 'Preview and download Galaxy Studio assets without extra clutter.' || next.subtitle === 'Preview and download Galaxy Studio assets, PDFs, images, and ready-to-share files without extra clutter.') {
+    next.subtitle = 'Simple resource cards with a title, a short note, an image, and a download button.';
+  }
+  next.primaryLabel = '';
+  next.primaryUrl = '';
+  next.secondaryLabel = '';
+  next.secondaryUrl = '';
+  return next;
 }
 
 function normalizeExternalUrl(value='') {
@@ -168,7 +173,7 @@ function getResources() {
 
 function getResourceBlock() {
   const settings = getData(SETTINGS_KEY) || {};
-  return { ...resourceDefaults(), ...((settings && settings.resourcesBlock) || {}) };
+  return normalizeResourceBlock((settings && settings.resourcesBlock) || {});
 }
 
 async function syncResourcesFromCloud() {
@@ -203,10 +208,6 @@ function renderBlockForm() {
   document.getElementById('rbEyebrow').value = block.eyebrow || '';
   document.getElementById('rbTitle').value = block.title || '';
   document.getElementById('rbSubtitle').value = block.subtitle || '';
-  document.getElementById('rbPrimaryLabel').value = block.primaryLabel || '';
-  document.getElementById('rbPrimaryUrl').value = block.primaryUrl || '';
-  document.getElementById('rbSecondaryLabel').value = block.secondaryLabel || '';
-  document.getElementById('rbSecondaryUrl').value = block.secondaryUrl || '';
 }
 
 function renderResourcesAdmin() {
@@ -229,8 +230,8 @@ function renderResourcesAdmin() {
         <div style="color:var(--muted);font-size:12px;margin-top:4px;">${escHtml(item.excerpt || item.description || '')}</div>
       </td>
       <td><span class="badge badge-blue">${escHtml(item.fileType || 'Asset')}</span></td>
-      <td>${item.featured ? '<span class="badge badge-purple">Featured</span> ' : ''}${item.premium ? '<span class="badge badge-gold">Premium</span> ' : ''}<span class="badge badge-cyan">${escHtml(item.category || 'General')}</span></td>
-      <td style="color:var(--muted);">${resourceActionLinks(item).length} link${resourceActionLinks(item).length === 1 ? '' : 's'}</td>
+      <td><span class="badge badge-cyan">${escHtml(item.category || 'General')}</span></td>
+      <td style="color:var(--muted);">${item.previewImages?.length ? `${item.previewImages.length} image${item.previewImages.length === 1 ? '' : 's'}` : 'No image'}</td>
       <td style="color:var(--muted);">${Number(item.downloads || 0)} downloads</td>
       <td style="text-align:right;white-space:nowrap;">
         <button class="btn btn-ghost btn-sm" onclick="previewResource('${escHtml(item.slug)}')">Preview</button>
@@ -290,8 +291,7 @@ function openResourceModal(resource) {
         <div class="form-group"><label class="form-label">File Type</label><input class="form-input" id="rType" value="${escHtml(existing.fileType || '')}" placeholder="PDF / PNG / ZIP"></div>
         <div class="form-group"><label class="form-label">File Size</label><input class="form-input" id="rSize" value="${escHtml(existing.fileSize || '')}" placeholder="22 MB"></div>
       </div>
-      <div class="form-group"><label class="form-label">Short Description</label><textarea class="form-textarea" id="rExcerpt">${escHtml(existing.excerpt || '')}</textarea></div>
-      <div class="form-group"><label class="form-label">Full Description</label><textarea class="form-textarea" id="rDescription">${escHtml(existing.description || '')}</textarea></div>
+      <div class="form-group"><label class="form-label">Short Description</label><textarea class="form-textarea" id="rExcerpt">${escHtml(existing.excerpt || existing.description || '')}</textarea></div>
 
       <div class="upload-box">
         <div class="form-row">
@@ -323,22 +323,7 @@ function openResourceModal(resource) {
 
       <div class="form-row" style="margin-top:14px;">
         <div class="form-group"><label class="form-label">Tags</label><input class="form-input" id="rTags" value="${escHtml((existing.tags || []).join(', '))}" placeholder="Results, PDF, Promo"></div>
-        <div class="form-group"><label class="form-label">Related Slugs</label><input class="form-input" id="rRelated" value="${escHtml((existing.relatedSlugs || []).join(', '))}" placeholder="launch-week-social-kit"></div>
       </div>
-
-      <div class="card" style="margin-top:14px;background:hsl(260 16% 10%);border:1px solid var(--border);">
-        <div class="card-header"><span class="card-title">Action Links</span></div>
-        <div class="card-body">
-          <div class="resource-link-grid">
-            <div class="form-group"><label class="form-label">WhatsApp Link</label><input class="form-input" id="rWhatsApp" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'whatsapp') || {}).url || '')}" placeholder="https://wa.me/..."></div>
-            <div class="form-group"><label class="form-label">Facebook Link</label><input class="form-input" id="rFacebook" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'facebook') || {}).url || '')}" placeholder="https://facebook.com/..."></div>
-            <div class="form-group"><label class="form-label">Custom Button Label</label><input class="form-input" id="rCustomLabel" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'custom') || {}).label || '')}" placeholder="View Results"></div>
-            <div class="form-group"><label class="form-label">Custom Button URL</label><input class="form-input" id="rCustomUrl" value="${escHtml((resourceActionLinks(existing).find((entry) => entry.kind === 'custom') || {}).url || '')}" placeholder="https://..."></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row" style="margin-top:14px;"><label class="form-check"><input type="checkbox" id="rFeatured" ${existing.featured ? 'checked' : ''}> Featured</label><label class="form-check"><input type="checkbox" id="rPremium" ${existing.premium ? 'checked' : ''}> Premium</label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" id="cancelResourceBtn">Cancel</button><button class="btn btn-primary" id="saveResourceBtn">Save Resource</button></div>
   </div>`);
@@ -412,15 +397,6 @@ function openResourceModal(resource) {
         await removeAsset(RESOURCE_BUCKET, path);
       }
 
-      const links = [];
-      const whatsapp = normalizeExternalUrl(ov.querySelector('#rWhatsApp').value);
-      const facebook = normalizeExternalUrl(ov.querySelector('#rFacebook').value);
-      const customUrl = normalizeExternalUrl(ov.querySelector('#rCustomUrl').value);
-      const customLabel = ov.querySelector('#rCustomLabel').value.trim();
-      if (whatsapp) links.push({ label: 'WhatsApp', url: whatsapp, kind: 'whatsapp' });
-      if (facebook) links.push({ label: 'Facebook', url: facebook, kind: 'facebook' });
-      if (customLabel && customUrl) links.push({ label: customLabel, url: customUrl, kind: 'custom' });
-
       const next = normalizeResource({
         ...existing,
         id: existing.id || nextId(list),
@@ -428,7 +404,7 @@ function openResourceModal(resource) {
         title,
         slug: ov.querySelector('#rSlug').value.trim() || slugify(title),
         excerpt: ov.querySelector('#rExcerpt').value.trim(),
-        description: ov.querySelector('#rDescription').value.trim(),
+        description: ov.querySelector('#rExcerpt').value.trim(),
         category: ov.querySelector('#rCategory').value.trim(),
         fileType: ov.querySelector('#rType').value.trim(),
         fileSize: ov.querySelector('#rSize').value.trim(),
@@ -437,12 +413,12 @@ function openResourceModal(resource) {
         previewImages: state.previewImages,
         previewStoragePaths: state.previewStoragePaths,
         tags: ov.querySelector('#rTags').value.split(',').map((value) => value.trim()).filter(Boolean),
-        featured: ov.querySelector('#rFeatured').checked,
-        premium: ov.querySelector('#rPremium').checked,
+        featured: Boolean(existing.featured),
+        premium: Boolean(existing.premium),
         downloads: Number(existing.downloads || 0),
         uploadDate: existing.uploadDate || new Date().toISOString(),
-        relatedSlugs: ov.querySelector('#rRelated').value.split(',').map((value) => value.trim()).filter(Boolean),
-        links,
+        relatedSlugs: Array.isArray(existing.relatedSlugs) ? existing.relatedSlugs : [],
+        links: [],
       }, list.length);
 
       const payload = isEdit
@@ -506,14 +482,14 @@ async function saveBlockSettings() {
       eyebrow: document.getElementById('rbEyebrow').value.trim(),
       title: document.getElementById('rbTitle').value.trim(),
       subtitle: document.getElementById('rbSubtitle').value.trim(),
-      primaryLabel: document.getElementById('rbPrimaryLabel').value.trim(),
-      primaryUrl: normalizeExternalUrl(document.getElementById('rbPrimaryUrl').value),
-      secondaryLabel: document.getElementById('rbSecondaryLabel').value.trim(),
-      secondaryUrl: normalizeExternalUrl(document.getElementById('rbSecondaryUrl').value),
+      primaryLabel: '',
+      primaryUrl: '',
+      secondaryLabel: '',
+      secondaryUrl: '',
     },
   };
   const result = await saveCollectionNow(SETTINGS_KEY, nextSettings);
-  showToast(syncMessage(result, 'Resource block saved.'));
+  showToast(syncMessage(result, 'Resources page header saved.'));
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
