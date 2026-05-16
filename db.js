@@ -531,10 +531,10 @@ function lsRemove(key) {
   } catch {}
 }
 
-function mergeObjectWithLocalFallback(localValue, cloudValue) {
+function mergeObjectWithLocalFallback(localValue, cloudValue, preferLocal = false) {
   const localObject = localValue && typeof localValue === 'object' ? localValue : {};
   const cloudObject = cloudValue && typeof cloudValue === 'object' ? cloudValue : {};
-  const merged = { ...localObject, ...cloudObject };
+  const merged = preferLocal ? { ...cloudObject, ...localObject } : { ...localObject, ...cloudObject };
   Object.keys(localObject).forEach((key) => {
     const localField = localObject[key];
     const cloudField = cloudObject[key];
@@ -542,33 +542,57 @@ function mergeObjectWithLocalFallback(localValue, cloudValue) {
     const localHasValue = !(localField === undefined || localField === null || localField === '');
     if (cloudMissing && localHasValue) {
       merged[key] = localField;
+      return;
+    }
+    if (preferLocal && localField && typeof localField === 'object' && !Array.isArray(localField) && cloudField && typeof cloudField === 'object' && !Array.isArray(cloudField)) {
+      merged[key] = mergeObjectWithLocalFallback(localField, cloudField, true);
     }
   });
   return merged;
 }
 
-function mergeCollectionWithLocalFallback(localValue, cloudValue, key = '') {
+function mergeCollectionWithLocalFallback(localValue, cloudValue, key = '', preferLocal = false) {
   const localList = Array.isArray(localValue) ? localValue : [];
   const cloudList = Array.isArray(cloudValue) ? cloudValue : [];
   if (!localList.length) return sortValue(key, cloudList);
   if (!cloudList.length) return sortValue(key, localList);
 
-  const merged = [...cloudList];
-  const seenIds = new Set(
-    cloudList
-      .map((item) => Number(item?.id))
-      .filter((id) => Number.isFinite(id))
-  );
-
-  localList.forEach((item) => {
+  const mergedMap = new Map();
+  cloudList.forEach((item) => {
     const id = Number(item?.id);
-    if (Number.isFinite(id) && !seenIds.has(id)) {
-      merged.push(item);
-      seenIds.add(id);
+    if (Number.isFinite(id)) {
+      mergedMap.set(id, item);
     }
   });
 
-  return sortValue(key, merged);
+  localList.forEach((item) => {
+    const id = Number(item?.id);
+    if (Number.isFinite(id)) {
+      if (!mergedMap.has(id) || preferLocal) {
+        mergedMap.set(id, item);
+      }
+    }
+  });
+
+  const merged = [...cloudList];
+  const seenIds = new Set();
+  const upsertMerged = [];
+
+  merged.forEach((item) => {
+    const id = Number(item?.id);
+    if (Number.isFinite(id) && mergedMap.has(id)) {
+      upsertMerged.push(mergedMap.get(id));
+      seenIds.add(id);
+      return;
+    }
+    upsertMerged.push(item);
+  });
+
+  mergedMap.forEach((item, id) => {
+    if (!seenIds.has(id)) upsertMerged.push(item);
+  });
+
+  return sortValue(key, upsertMerged);
 }
 
 function syncErrorKey(key) {
@@ -2112,11 +2136,13 @@ function initDefaults() {
 async function loadFromCloud(key) {
   const localValue = lsGet(key);
   const cloudValue = await GalaxyDB.getAll(key, { forceCloud: true });
-  const shouldKeepLocalCollectionFallback = !OBJECT_KEYS.has(key) && (hasSyncPending(key) || hasSyncError(key));
+  const shouldPreferLocalFallback = hasSyncPending(key) || hasSyncError(key);
   const nextValue = OBJECT_KEYS.has(key)
-    ? mergeObjectWithLocalFallback(localValue, cloudValue)
-    : shouldKeepLocalCollectionFallback
-      ? mergeCollectionWithLocalFallback(localValue, cloudValue, key)
+    ? shouldPreferLocalFallback
+      ? mergeObjectWithLocalFallback(localValue, cloudValue, true)
+      : mergeObjectWithLocalFallback(localValue, cloudValue, false)
+    : shouldPreferLocalFallback
+      ? mergeCollectionWithLocalFallback(localValue, cloudValue, key, true)
       : cloudValue;
   lsSet(key, nextValue);
   return nextValue;

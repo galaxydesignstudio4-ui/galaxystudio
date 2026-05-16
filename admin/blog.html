@@ -67,6 +67,27 @@ async function syncBlogFromCloud() {
   try { await window.loadFromCloud(POSTS_KEY); } catch {}
 }
 
+async function savePostsNow(value) {
+  if (typeof window.saveDataNow === 'function') {
+    try {
+      await window.saveDataNow(POSTS_KEY, value);
+      return { synced: true, error: null };
+    } catch (error) {
+      setData(POSTS_KEY, value);
+      return { synced: false, error };
+    }
+  }
+  setData(POSTS_KEY, value);
+  return { synced: true, error: null };
+}
+
+function syncMessage(result, successMessage) {
+  if (result?.synced === false) {
+    return `${successMessage} Saved locally only. Supabase sync failed: ${result.error?.message || 'Cloud write failed.'}`;
+  }
+  return successMessage;
+}
+
 function normalizePost(post, list) {
   const title = document.getElementById('fTitle').value.trim();
   const status = document.getElementById('fStatus').value;
@@ -167,21 +188,26 @@ function openPostModal(post) {
     <div class="modal-footer"><button class="btn btn-ghost" id="cancelPostBtn">Cancel</button><button class="btn btn-primary" id="savePostBtn">${isEdit ? 'Update' : 'Publish'} Post</button></div>
   </div>`);
   ov.querySelector('#cancelPostBtn').onclick = () => closeModal(ov);
-  ov.querySelector('#savePostBtn').onclick = () => {
+  ov.querySelector('#savePostBtn').onclick = async () => {
     const list = getData(POSTS_KEY) || [];
     const next = normalizePost(post, list);
     if (!next.title || !next.body) { showToast('Title and body are required.', 'error'); return; }
     const updated = isEdit ? list.map(item => item.id === post.id ? next : item) : [...list, next];
-    setData(POSTS_KEY, updated);
+    const result = await savePostsNow(updated);
     closeModal(ov);
     renderBlogAdmin();
-    showToast(isEdit ? 'Post updated.' : 'Post created.');
+    showToast(syncMessage(result, isEdit ? 'Post updated.' : 'Post created.'), result?.synced === false ? 'error' : 'success');
   };
 }
 
 window.previewPost = (slug) => window.open(`../post.html?slug=${encodeURIComponent(slug)}`, '_blank', 'noopener');
 window.editPost = (id) => openPostModal((getData(POSTS_KEY) || []).find(item => item.id === id));
-window.deletePost = (id) => confirmDelete('Delete this post?', () => { setData(POSTS_KEY, (getData(POSTS_KEY) || []).filter(item => item.id !== id)); renderBlogAdmin(); showToast('Post deleted.'); });
+window.deletePost = (id) => confirmDelete('Delete this post?', async () => {
+  const next = (getData(POSTS_KEY) || []).filter(item => item.id !== id);
+  const result = await savePostsNow(next);
+  renderBlogAdmin();
+  showToast(syncMessage(result, 'Post deleted.'), result?.synced === false ? 'error' : 'success');
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   await syncBlogFromCloud();

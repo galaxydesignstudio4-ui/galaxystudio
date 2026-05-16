@@ -199,7 +199,7 @@ async function saveCollectionNow(key, value) {
 }
 
 function syncMessage(result, successMessage) {
-  if (result?.synced === false) return `${successMessage} Saved locally; Supabase sync needs attention: ${result.error?.message || 'Cloud sync failed.'}`;
+  if (result?.synced === false) return `${successMessage} Saved locally only. Supabase sync failed: ${result.error?.message || 'Cloud write failed.'}`;
   return successMessage;
 }
 
