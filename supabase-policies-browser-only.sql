@@ -8,6 +8,11 @@ alter table public.messages enable row level security;
 alter table public.notifications enable row level security;
 alter table public.settings enable row level security;
 alter table public.about enable row level security;
+alter table public.blog_posts enable row level security;
+alter table public.blog_comments enable row level security;
+alter table public.resources enable row level security;
+alter table public.users enable row level security;
+alter table public.subscribers enable row level security;
 
 drop policy if exists "services public read" on public.services;
 drop policy if exists "services public insert" on public.services;
@@ -171,6 +176,96 @@ create policy "about public delete" on public.about
   for delete to anon, authenticated
   using (true);
 
+drop policy if exists "blog posts public read" on public.blog_posts;
+drop policy if exists "blog posts public insert" on public.blog_posts;
+drop policy if exists "blog posts public update" on public.blog_posts;
+drop policy if exists "blog posts public delete" on public.blog_posts;
+create policy "blog posts public read" on public.blog_posts
+  for select to anon, authenticated
+  using (true);
+create policy "blog posts public insert" on public.blog_posts
+  for insert to anon, authenticated
+  with check (true);
+create policy "blog posts public update" on public.blog_posts
+  for update to anon, authenticated
+  using (true)
+  with check (true);
+create policy "blog posts public delete" on public.blog_posts
+  for delete to anon, authenticated
+  using (true);
+
+drop policy if exists "blog comments public read" on public.blog_comments;
+drop policy if exists "blog comments public insert" on public.blog_comments;
+drop policy if exists "blog comments public update" on public.blog_comments;
+drop policy if exists "blog comments public delete" on public.blog_comments;
+create policy "blog comments public read" on public.blog_comments
+  for select to anon, authenticated
+  using (true);
+create policy "blog comments public insert" on public.blog_comments
+  for insert to anon, authenticated
+  with check (true);
+create policy "blog comments public update" on public.blog_comments
+  for update to anon, authenticated
+  using (true)
+  with check (true);
+create policy "blog comments public delete" on public.blog_comments
+  for delete to anon, authenticated
+  using (true);
+
+drop policy if exists "resources public read" on public.resources;
+drop policy if exists "resources public insert" on public.resources;
+drop policy if exists "resources public update" on public.resources;
+drop policy if exists "resources public delete" on public.resources;
+create policy "resources public read" on public.resources
+  for select to anon, authenticated
+  using (true);
+create policy "resources public insert" on public.resources
+  for insert to anon, authenticated
+  with check (true);
+create policy "resources public update" on public.resources
+  for update to anon, authenticated
+  using (true)
+  with check (true);
+create policy "resources public delete" on public.resources
+  for delete to anon, authenticated
+  using (true);
+
+drop policy if exists "users public read" on public.users;
+drop policy if exists "users public insert" on public.users;
+drop policy if exists "users public update" on public.users;
+drop policy if exists "users public delete" on public.users;
+create policy "users public read" on public.users
+  for select to anon, authenticated
+  using (true);
+create policy "users public insert" on public.users
+  for insert to anon, authenticated
+  with check (true);
+create policy "users public update" on public.users
+  for update to anon, authenticated
+  using (true)
+  with check (true);
+create policy "users public delete" on public.users
+  for delete to anon, authenticated
+  using (true);
+
+drop policy if exists "subscribers public read" on public.subscribers;
+drop policy if exists "subscribers public insert" on public.subscribers;
+drop policy if exists "subscribers public update" on public.subscribers;
+drop policy if exists "subscribers public delete" on public.subscribers;
+create policy "subscribers public read" on public.subscribers
+  for select to anon, authenticated
+  using (true);
+create policy "subscribers public insert" on public.subscribers
+  for insert to anon, authenticated
+  with check (true);
+create policy "subscribers public update" on public.subscribers
+  for update to anon, authenticated
+  using (true)
+  with check (true);
+create policy "subscribers public delete" on public.subscribers
+  for delete to anon, authenticated
+  using (true);
+
 drop policy if exists "messages public read" on public.messages;
 drop policy if exists "messages public insert" on public.messages;
 drop policy if exists "messages public update" on public.messages;
@@ -196,23 +291,23 @@ drop policy if exists "storage public delete galaxy buckets" on storage.objects;
 create policy "storage public read galaxy buckets" on storage.objects
   for select to anon, authenticated
   using (
-    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos')
+    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos', 'resources')
   );
 create policy "storage public insert galaxy buckets" on storage.objects
   for insert to anon, authenticated
   with check (
-    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos')
+    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos', 'resources')
   );
 create policy "storage public update galaxy buckets" on storage.objects
   for update to anon, authenticated
   using (
-    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos')
+    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos', 'resources')
   )
   with check (
-    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos')
+    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos', 'resources')
   );
 create policy "storage public delete galaxy buckets" on storage.objects
   for delete to anon, authenticated
   using (
-    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos')
+    bucket_id in ('portfolio-images', 'gallery-media', 'avatars', 'logos', 'resources')
   );

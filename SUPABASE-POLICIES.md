@@ -15,4 +15,4 @@ Important:
 - Your current local admin password is not Supabase Auth.
 - If you apply the recommended script without adding Supabase Auth, public reads and contact messages will work, but admin writes to Supabase will not.
 - Public buckets still need to exist in Storage with these ids:
-  `portfolio-images`, `gallery-media`, `avatars`, `logos`
+  `portfolio-images`, `gallery-media`, `avatars`, `logos`, `resources`

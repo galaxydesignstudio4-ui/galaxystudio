@@ -14,6 +14,7 @@
          • gallery-media    (public)
          • avatars          (public)
          • logos            (public)
+         • resources        (public)
 
    2. REDIS SETUP (Upstash — free tier, browser-compatible):
       a) Go to https://upstash.com and create a free Redis database

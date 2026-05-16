@@ -499,11 +499,20 @@ async function refreshAdminCloudStatus() {
 
   const configEnabled = Boolean(window.GDB_CONFIG?.enabled);
   const dbStatus = typeof window.GalaxyDB?.status === 'function' ? window.GalaxyDB.status() : null;
+  const syncKeys = ['galaxy_resources', 'galaxy_blog_posts', 'galaxy_settings'];
+  const syncErrors = syncKeys
+    .map((key) => ({ key, state: typeof window.getSyncState === 'function' ? window.getSyncState(key) : null }))
+    .filter((entry) => entry.state?.hasError && entry.state?.error?.message);
+  const policyError = syncErrors.find((entry) => /row-level security|42501|violates row-level security policy/i.test(String(entry.state.error.message || '')));
   let stateClass = 'offline';
   let label = 'Local only';
   let title = 'Supabase is not connected, so saves stay in local storage.';
 
-  if (!configEnabled) {
+  if (policyError) {
+    stateClass = 'warning';
+    label = 'Supabase policy blocked';
+    title = `Supabase is connected, but writes to ${policyError.key.replace('galaxy_', '').replace(/_/g, ' ')} are blocked by row-level security policies. Run the updated policy SQL in Supabase.`;
+  } else if (!configEnabled) {
     label = 'Supabase not configured';
     title = 'Add the Supabase URL and anon key in config.js to enable cloud saves.';
   } else if (dbStatus?.mode !== 'supabase') {

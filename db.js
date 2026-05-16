@@ -7,6 +7,7 @@ const GDB_CONFIG = {
       gallery: 'gallery-media',
       avatars: 'avatars',
       logos: 'logos',
+      resources: 'resources',
     },
   },
   redis: {
