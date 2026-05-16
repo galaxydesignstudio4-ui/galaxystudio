@@ -235,6 +235,53 @@ html.is-auth #adminPanel { display: flex !important; min-height: 100vh !importan
 .page-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 .page-sub { font-size: 13px; color: var(--muted); margin-top: 3px; }
 .page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 2px; }
+.cloud-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  background: hsl(260 16% 10%);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.cloud-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  box-shadow: 0 0 0 4px transparent;
+}
+.cloud-status-badge.connected {
+  border-color: hsl(145 60% 42% / 0.35);
+  background: hsl(145 60% 42% / 0.12);
+  color: hsl(145 80% 78%);
+}
+.cloud-status-badge.connected .cloud-status-dot {
+  background: hsl(145 80% 62%);
+  box-shadow: 0 0 0 4px hsl(145 80% 62% / 0.12);
+}
+.cloud-status-badge.warning {
+  border-color: hsl(42 92% 56% / 0.35);
+  background: hsl(42 92% 56% / 0.12);
+  color: hsl(48 96% 78%);
+}
+.cloud-status-badge.warning .cloud-status-dot {
+  background: hsl(42 92% 56%);
+  box-shadow: 0 0 0 4px hsl(42 92% 56% / 0.12);
+}
+.cloud-status-badge.offline {
+  border-color: hsl(0 70% 55% / 0.35);
+  background: hsl(0 70% 55% / 0.12);
+  color: hsl(0 90% 82%);
+}
+.cloud-status-badge.offline .cloud-status-dot {
+  background: hsl(0 84% 62%);
+  box-shadow: 0 0 0 4px hsl(0 84% 62% / 0.12);
+}
 .page-body { padding: 24px 32px 56px; }
 
 /* ══════════════════════════════

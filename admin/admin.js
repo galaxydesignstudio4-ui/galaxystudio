@@ -463,6 +463,7 @@ function setupSidebar() {
       el.insertAdjacentHTML('beforeend',`<span style="background:var(--primary);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;margin-left:6px;">${unread}</span>`);
     });
   }
+  refreshAdminCloudStatus().catch(()=>{});
 }
 
 /* ─── Utils ─── */
@@ -480,6 +481,54 @@ function showToast(msg, type='success') {
   t.className=`toast ${type}`; t.textContent=msg;
   document.body.appendChild(t);
   setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},3200);
+}
+function ensureCloudStatusBadge() {
+  document.querySelectorAll('.page-actions').forEach((actions) => {
+    if (actions.querySelector('[data-cloud-status-badge]')) return;
+    const badge = document.createElement('div');
+    badge.className = 'cloud-status-badge';
+    badge.setAttribute('data-cloud-status-badge', 'true');
+    badge.innerHTML = '<span class="cloud-status-dot"></span><span data-cloud-status-label>Checking cloud...</span>';
+    actions.insertAdjacentElement('afterbegin', badge);
+  });
+}
+async function refreshAdminCloudStatus() {
+  ensureCloudStatusBadge();
+  const badges = [...document.querySelectorAll('[data-cloud-status-badge]')];
+  if (!badges.length) return;
+
+  const configEnabled = Boolean(window.GDB_CONFIG?.enabled);
+  const dbStatus = typeof window.GalaxyDB?.status === 'function' ? window.GalaxyDB.status() : null;
+  let stateClass = 'offline';
+  let label = 'Local only';
+  let title = 'Supabase is not connected, so saves stay in local storage.';
+
+  if (!configEnabled) {
+    label = 'Supabase not configured';
+    title = 'Add the Supabase URL and anon key in config.js to enable cloud saves.';
+  } else if (dbStatus?.mode !== 'supabase') {
+    label = 'Supabase unavailable';
+    title = 'The app could not connect to Supabase, so saves will stay local until the connection works again.';
+  } else {
+    const session = await window.GalaxyAuth?.getSession?.().catch(() => null);
+    if (session?.access_token) {
+      stateClass = 'connected';
+      label = 'Supabase connected';
+      title = `Cloud saves are active${session?.user?.email ? ` for ${session.user.email}` : ''}.`;
+    } else {
+      stateClass = 'warning';
+      label = 'Supabase sign-in required';
+      title = 'Supabase is available, but admin cloud write access needs Google sign-in before saves go to the cloud.';
+    }
+  }
+
+  badges.forEach((badge) => {
+    badge.classList.remove('connected', 'warning', 'offline');
+    badge.classList.add(stateClass);
+    badge.title = title;
+    const labelNode = badge.querySelector('[data-cloud-status-label]');
+    if (labelNode) labelNode.textContent = label;
+  });
 }
 function openModal(html) {
   const ov = document.createElement('div');
@@ -735,5 +784,5 @@ function sidebarHTML(activePage) {
 }
 
 /* ─── Init ─── */
-document.addEventListener('DOMContentLoaded', async ()=>{ await setupAuth(); setupSidebar(); });
+document.addEventListener('DOMContentLoaded', async ()=>{ await setupAuth(); setupSidebar(); refreshAdminCloudStatus().catch(()=>{}); });
 
