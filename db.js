@@ -1814,6 +1814,29 @@ const GalaxyDB = (() => {
   let mode = 'local';
   let ready = false;
 
+  async function verifySupabaseConnection(client) {
+    try {
+      await client._fetch('/auth/v1/settings', {
+        headers: {
+          apikey: GDB_CONFIG.supabase.anonKey,
+        },
+      });
+      return true;
+    } catch (authError) {
+      try {
+        await client._fetch('/rest/v1/', {
+          headers: {
+            apikey: GDB_CONFIG.supabase.anonKey,
+            Accept: 'application/openapi+json',
+          },
+        });
+        return true;
+      } catch (restError) {
+        throw authError?.message ? authError : restError;
+      }
+    }
+  }
+
   async function init() {
     if (ready) return;
     ensureLocalDefaults();
@@ -1827,7 +1850,7 @@ const GalaxyDB = (() => {
     try {
       supabase = new SupabaseClient(GDB_CONFIG.supabase.url, GDB_CONFIG.supabase.anonKey);
       redis = new RedisClient(GDB_CONFIG.redis.url, GDB_CONFIG.redis.token);
-      await supabase._fetch('/rest/v1/services?select=id&limit=1');
+      await verifySupabaseConnection(supabase);
       mode = 'supabase';
       console.info('[GalaxyDB] Connected to Supabase.');
     } catch (error) {
